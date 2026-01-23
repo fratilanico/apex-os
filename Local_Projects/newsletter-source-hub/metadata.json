@@ -1,0 +1,5 @@
+{
+  "name": "Newsletter Source Hub",
+  "description": "Daily AI & Engineering digest aggregator powered by Next.js, Cloudflare R2, and Perplexity.",
+  "requestFramePermissions": []
+}
