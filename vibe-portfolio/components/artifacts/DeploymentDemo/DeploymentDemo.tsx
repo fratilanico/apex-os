@@ -822,7 +822,7 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
       {/* Terminal */}
       <div onClick={handleTerminalClick} className="cursor-text">
         <TerminalWindow title={selectedPlatform.scriptName}>
-          <div className="font-mono text-sm space-y-1 min-h-[300px]">
+          <div className="font-mono text-sm space-y-1 h-[400px] max-h-[400px] overflow-y-auto">
             {showPrompt && deploymentLog.length === 0 && (
               <form onSubmit={handleUserSubmit} className="flex items-center gap-2">
                 <span className="text-cyan-400">&gt;</span>
