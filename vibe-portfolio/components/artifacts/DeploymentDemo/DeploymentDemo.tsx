@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GitBranch, Package, TestTube2, Shield, Hammer, Rocket, CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { TerminalWindow } from '../../ui/Terminal/TerminalWindow';
 import { DEMO_EXAMPLES, PRICING_ROTATIONS, type DeploymentExample } from './DeploymentDemo.types';
 import { PlatformLogo } from './PlatformLogos';
@@ -8,21 +8,102 @@ import { PlatformLogo } from './PlatformLogos';
 // ============================================================================
 // Pipeline Stage Types & Constants
 // ============================================================================
-type StageStatus = 'pending' | 'running' | 'success' | 'failed';
+const LOG_VARIATIONS: Record<string, string[]> = {
+  database_schema: [
+    'Syncing database shards...',
+    'Optimizing query indexes for high-throughput...',
+    'Provisioning multi-region Postgres cluster...',
+    'Configuring connection pooling...',
+    'Establishing read-replicas in us-east-1 and eu-west-1...'
+  ],
+  api_endpoints: [
+    'Generating type-safe API client...',
+    'Optimizing edge functions in iad1...',
+    'Implementing rate-limiting with Redis...',
+    'Configuring GraphQL resolvers...',
+    'Establishing WebSocket handshake protocols...'
+  ],
+  react_frontend: [
+    'Hydrating client components...',
+    'Prerendering static paths for SEO...',
+    'Optimizing bundle size: -45% reduction...',
+    'Minifying assets with esbuild...',
+    'Injecting critical CSS for zero-CLS...'
+  ],
+  payment_integration: [
+    'Securely linking Stripe Connect...',
+    'Propagating PCI-compliant webhooks...',
+    'Encrypting transaction payloads...',
+    'Configuring recurring billing logic...',
+    'Validating sandbox testing suite...'
+  ],
+  tests: [
+    'Running e2e Playwright suite (142 passed)...',
+    'Static analysis: 0 vulnerabilities found.',
+    'Achieved 94% test coverage.',
+    'Fuzzing input parameters for security hardening...',
+    'Unit tests: 100% green.'
+  ],
+  auth_system: [
+    'Configuring JWT rotation strategy...',
+    'Syncing OAuth providers...',
+    'Establishing session persistence...',
+    'Implementing MFA/TOTP flow...',
+    'Hardening login rate-limits...'
+  ],
+  security_audit: [
+    'Running OWASP Top 10 scanner...',
+    'Hardening CSP headers...',
+    'Verifying SSL/TLS termination...',
+    'Scanning dependencies for vulnerabilities...',
+    'Configuring WAF rules...'
+  ],
+  analytics_dashboard: [
+    'Aggregating real-time event streams...',
+    'Optimizing OLAP cube performance...',
+    'Syncing data warehouse schemata...',
+    'Configuring Grafana visualization layers...',
+    'Establishing data retention policies...'
+  ],
+  crm_integration: [
+    'Mapping lead conversion funnels...',
+    'Syncing Salesforce API objects...',
+    'Configuring customer lifecycle triggers...',
+    'Establishing 360-degree profile views...',
+    'Validating data enrichment pipelines...'
+  ],
+  email_automation: [
+    'Warm-loading SendGrid IP pools...',
+    'Verifying DKIM/SPF/DMARC records...',
+    'Optimizing template deliverability...',
+    'Establishing drip campaign logic...',
+    'Configuring bounce-rate monitors...'
+  ],
+  react_native_app: [
+    'Compiling native binary modules...',
+    'Optimizing JS bundle bridge...',
+    'Injecting OTA update manifests...',
+    'Configuring push notification certificates...',
+    'Establishing offline-first sync logic...'
+  ],
+  general: [
+    'Propagating SSL certificate to 24 regions...',
+    'Cold start reduction: -120ms',
+    'Warm-loading serverless functions...',
+    'Optimizing asset delivery via global CDN...',
+    'Configuring auto-scaling thresholds...'
+  ]
+};
 
-interface PipelineStage {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-}
-
-const PIPELINE_STAGES: PipelineStage[] = [
-  { id: 'checkout', label: 'Checkout', icon: GitBranch },
-  { id: 'install', label: 'Install', icon: Package },
-  { id: 'test', label: 'Test', icon: TestTube2 },
-  { id: 'security', label: 'Security', icon: Shield },
-  { id: 'build', label: 'Build', icon: Hammer },
-  { id: 'deploy', label: 'Deploy', icon: Rocket },
+const SUCCESS_MESSAGES = [
+  'SYSTEM_STABLE',
+  'METRICS_OPTIMIZED',
+  'VIBE_CHECK_PASSED',
+  'EDGE_NODES_PROPAGATED',
+  'PEAK_PERFORMANCE_REACHED',
+  'TRAFFIC_ROUTING_ACTIVE',
+  'CACHE_WARMED',
+  'SSL_CERT_VERIFIED',
 ];
 
 // ============================================================================
@@ -99,7 +180,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   return (
     <div className="mb-6 px-4">
       <div className="text-white/60 text-sm font-medium mb-3">Deploy to:</div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {PLATFORMS.map((platform) => {
           const isSelected = selectedPlatform.id === platform.id;
           return (
@@ -108,7 +189,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
               onClick={() => !disabled && onSelectPlatform(platform)}
               disabled={disabled}
               className={`
-                relative overflow-hidden rounded-xl p-5 border-2 transition-all duration-300
+                relative overflow-hidden rounded-xl p-3 sm:p-5 border-2 transition-all duration-300
                 ${isSelected 
                   ? 'border-cyan-500/50 bg-cyan-500/10 shadow-lg shadow-cyan-500/20' 
                   : 'border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/[0.08] hover:shadow-xl'
@@ -182,7 +263,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                 
                 <div className="text-center">
                   <div className={`font-semibold text-sm transition-colors duration-300 ${
-                    isSelected ? 'text-white' : 'text-white/70 group-hover:text-white'
+                    isSelected ? 'text-white' : 'text-white/90 group-hover:text-white'
                   }`}>
                     {platform.name}
                   </div>
@@ -204,94 +285,6 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                 </motion.div>
               )}
             </motion.button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-// ============================================================================
-// PipelineStages Component - Visual CI/CD Pipeline
-// ============================================================================
-interface PipelineStagesProps {
-  currentStageIndex: number;
-  stageStatuses: StageStatus[];
-}
-
-// Prefix with underscore to suppress unused variable warning
-const _PipelineStages: React.FC<PipelineStagesProps> = ({ currentStageIndex, stageStatuses }) => {
-  return (
-    <div className="mb-6 px-4">
-      {/* Pipeline container */}
-      <div className="relative flex items-center justify-between">
-        {/* Background connection line */}
-        <div className="absolute top-6 left-6 right-6 h-0.5 bg-white/10 z-0" />
-        
-        {/* Progress line */}
-        <motion.div 
-          className="absolute top-6 left-6 h-0.5 bg-gradient-to-r from-cyan-500 to-emerald-500 z-0"
-          initial={{ width: 0 }}
-          animate={{ 
-            width: currentStageIndex >= 0 
-              ? `calc(${Math.min((currentStageIndex / (PIPELINE_STAGES.length - 1)) * 100, 100)}% - 48px)` 
-              : 0 
-          }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-        />
-        
-        {/* Stage nodes */}
-        {PIPELINE_STAGES.map((stage, index) => {
-          const status = stageStatuses[index] || 'pending';
-          const Icon = stage.icon;
-          
-          return (
-            <div key={stage.id} className="relative z-10 flex flex-col items-center">
-              {/* Stage circle */}
-              <motion.div
-                className={`
-                  w-12 h-12 rounded-xl flex items-center justify-center
-                  transition-all duration-300 relative
-                  ${status === 'pending' ? 'bg-white/5 border border-white/10' : ''}
-                  ${status === 'running' ? 'bg-cyan-500/20 border border-cyan-500/50' : ''}
-                  ${status === 'success' ? 'bg-emerald-500/20 border border-emerald-500/50' : ''}
-                  ${status === 'failed' ? 'bg-red-500/20 border border-red-500/50' : ''}
-                `}
-                animate={status === 'running' ? {
-                  boxShadow: [
-                    '0 0 0 0 rgba(6, 182, 212, 0)',
-                    '0 0 0 8px rgba(6, 182, 212, 0.3)',
-                    '0 0 0 0 rgba(6, 182, 212, 0)',
-                  ],
-                } : {}}
-                transition={status === 'running' ? {
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                } : {}}
-              >
-                {status === 'running' ? (
-                  <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
-                ) : status === 'success' ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                ) : status === 'failed' ? (
-                  <XCircle className="w-5 h-5 text-red-400" />
-                ) : (
-                  <Icon className={`w-5 h-5 ${status === 'pending' ? 'text-white/30' : 'text-white/70'}`} />
-                )}
-              </motion.div>
-              
-              {/* Stage label */}
-              <span className={`
-                mt-2 text-xs font-medium transition-colors duration-300
-                ${status === 'pending' ? 'text-white/30' : ''}
-                ${status === 'running' ? 'text-cyan-400' : ''}
-                ${status === 'success' ? 'text-emerald-400' : ''}
-                ${status === 'failed' ? 'text-red-400' : ''}
-              `}>
-                {stage.label}
-              </span>
-            </div>
           );
         })}
       </div>
@@ -412,9 +405,10 @@ const Confetti: React.FC<{ onComplete?: () => void }> = ({ onComplete }) => {
 interface DeploymentSuccessProps {
   onDismiss?: () => void;
   platform: Platform;
+  deployedUrl: string;
 }
 
-const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
+const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ deployedUrl }) => {
   const [copied, setCopied] = useState(false);
   const [metrics, setMetrics] = useState({
     responseTime: 42,
@@ -422,11 +416,6 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
     regions: 12,
   });
   
-  // Generate a realistic startup URL based on platform
-  const deployedUrl = useRef(
-    `your-startup-${Math.random().toString(36).substring(2, 6)}.${platform.urlPattern}`
-  ).current;
-
   // Update metrics every second to feel alive
   useEffect(() => {
     const interval = setInterval(() => {
@@ -440,7 +429,8 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleCopyUrl = async () => {
+  const handleCopyUrl = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(`https://${deployedUrl}`);
       setCopied(true);
@@ -456,7 +446,7 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-cyan-500/10 border border-emerald-500/30 rounded-xl p-6 backdrop-blur-sm relative overflow-hidden"
+      className="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-cyan-500/20 border border-emerald-500/40 rounded-xl p-6 backdrop-blur-md relative overflow-hidden shadow-2xl"
     >
       {/* Animated glow effect */}
       <motion.div
@@ -475,7 +465,7 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
       {/* Success Header */}
       <div className="relative flex items-center gap-3 mb-4">
         <motion.div 
-          className="inline-flex w-12 h-12 rounded-full bg-emerald-500/20 items-center justify-center flex-shrink-0"
+          className="inline-flex w-12 h-12 rounded-full bg-emerald-500/30 items-center justify-center flex-shrink-0"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.1 }}
@@ -507,7 +497,7 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
             Deployment Successful!
           </motion.h3>
           <motion.p 
-            className="text-white/50 text-sm"
+            className="text-white/70 text-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -519,7 +509,7 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
 
       {/* Deployed URL */}
       <motion.div 
-        className="relative bg-black/40 rounded-lg p-3 mb-4 flex items-center justify-between gap-2 border border-emerald-500/20"
+        className="relative bg-black/60 rounded-lg p-3 mb-4 flex items-center justify-between gap-2 border border-emerald-500/30"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
@@ -548,7 +538,7 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
         transition={{ delay: 0.5 }}
       >
         <motion.div 
-          className="bg-black/30 rounded-lg p-3 text-center border border-cyan-500/10 hover:border-cyan-500/30 transition-colors"
+          className="bg-black/40 rounded-lg p-3 text-center border border-cyan-500/20 hover:border-cyan-500/40 transition-colors"
         >
           <motion.div 
             className="text-cyan-400 font-mono text-2xl font-bold"
@@ -559,30 +549,30 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ platform }) => {
             {metrics.responseTime}
             <span className="text-xs text-white/40 ml-0.5">ms</span>
           </motion.div>
-          <div className="text-white/40 text-xs mt-1">Response Time</div>
+          <div className="text-white/50 text-xs mt-1">Response Time</div>
         </motion.div>
         <motion.div 
-          className="bg-black/30 rounded-lg p-3 text-center border border-emerald-500/10 hover:border-emerald-500/30 transition-colors"
+          className="bg-black/40 rounded-lg p-3 text-center border border-emerald-500/20 hover:border-emerald-500/40 transition-colors"
         >
           <div className="text-emerald-400 font-mono text-2xl font-bold">
             {metrics.uptime.toFixed(1)}
             <span className="text-xs text-white/40 ml-0.5">%</span>
           </div>
-          <div className="text-white/40 text-xs mt-1">Uptime</div>
+          <div className="text-white/50 text-xs mt-1">Uptime</div>
         </motion.div>
         <motion.div 
-          className="bg-black/30 rounded-lg p-3 text-center border border-violet-500/10 hover:border-violet-500/30 transition-colors"
+          className="bg-black/40 rounded-lg p-3 text-center border border-violet-500/20 hover:border-violet-500/40 transition-colors"
         >
           <div className="text-violet-400 font-mono text-2xl font-bold">
             {metrics.regions}
           </div>
-          <div className="text-white/40 text-xs mt-1">Edge Regions</div>
+          <div className="text-white/50 text-xs mt-1">Edge Regions</div>
         </motion.div>
       </motion.div>
 
       {/* Pulsing indicator */}
       <motion.div 
-        className="relative flex items-center justify-center gap-2 mt-4 text-white/40 text-xs"
+        className="relative flex items-center justify-center gap-2 mt-4 text-white/50 text-xs"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
@@ -609,6 +599,7 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
   const [showPrompt, setShowPrompt] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>(() => {
     const defaultPlatform = PLATFORMS[0];
     if (!defaultPlatform) throw new Error('No platforms defined');
@@ -618,6 +609,17 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
   const autoDeployTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasUserInteractedRef = useRef(false);
+
+  // Helper to generate a realistic URL
+  const generateProjectUrl = useCallback((idea: string, platform: Platform) => {
+    const slug = idea
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+      .substring(0, 24);
+    const id = Math.random().toString(36).substring(2, 6);
+    return `${slug || 'app'}-${id}.${platform.urlPattern}`;
+  }, []);
 
   // Track user scroll interaction to prevent scroll-jacking
   useEffect(() => {
@@ -728,8 +730,6 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
           clearTimeout(successTimeoutRef.current);
         }
       };
-    
-    return undefined;
   }, [showSuccess, handleSuccessDismiss]);
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -737,7 +737,7 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
   const typeText = async (text: string, callback: (char: string) => void) => {
     for (const char of text) {
       callback(char);
-      await sleep(Math.random() * 30 + 20); // 20-50ms per character
+      await sleep(Math.random() * 15 + 10); // Snappier typing speed
     }
   };
 
@@ -749,6 +749,8 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
     setShowPrompt(false);
     setIsDeploying(true);
     setDeploymentLog([]);
+    const deployedUrl = generateProjectUrl(example.idea, selectedPlatform);
+    setCurrentUrl(deployedUrl);
 
     // Type the deploy command
     let command = '';
@@ -768,17 +770,35 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
     // Deploy each feature
     for (let i = 0; i < example.features.length; i++) {
       const feature = example.features[i];
+      if (!feature) continue;
+
+      const variations = (feature in LOG_VARIATIONS ? LOG_VARIATIONS[feature] : LOG_VARIATIONS['general']) || [];
+      const randomLog = variations[Math.floor(Math.random() * variations.length)];
+      
+      if (randomLog) {
+        setDeploymentLog(prev => [...prev, randomLog]);
+        await sleep(400);
+      }
+
       const featureTime = Math.floor((selectedPlatform.deployTime / example.features.length) * (0.8 + Math.random() * 0.4));
       setDeploymentLog(prev => [...prev, `✓ ${feature}_complete (${featureTime}s)`]);
       await sleep(600);
     }
 
     await sleep(300);
+    
+    // Add a random success check
+    const randomSuccess = SUCCESS_MESSAGES[Math.floor(Math.random() * SUCCESS_MESSAGES.length)];
+    if (randomSuccess) {
+      setDeploymentLog(prev => [...prev, `[${randomSuccess}]`]);
+      await sleep(400);
+    }
+
     setDeploymentLog(prev => [...prev, '']);
     setDeploymentLog(prev => [...prev, 'DEPLOYMENT_COMPLETE']);
     setDeploymentLog(prev => [...prev, `⚡ Total: ${selectedPlatform.deployTime} seconds`]);
     setDeploymentLog(prev => [...prev, `💰 API costs: $${example.cost.toFixed(2)}`]);
-    setDeploymentLog(prev => [...prev, `🌐 Live at: ${selectedPlatform.urlPattern === 'vercel.app' ? 'vibe.infoacademy.vercel.app' : `your-app.${selectedPlatform.urlPattern}`}`]);
+    setDeploymentLog(prev => [...prev, `🌐 Live at: ${deployedUrl}`]);
     
     await sleep(500);
     setDeploymentLog(prev => [...prev, '']);
@@ -819,71 +839,79 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
         disabled={isDeploying}
       />
 
-      {/* Terminal */}
-      <div onClick={handleTerminalClick} className="cursor-text">
-        <TerminalWindow title={selectedPlatform.scriptName}>
-          <div className="font-mono text-sm space-y-1 h-[400px] max-h-[400px] overflow-y-auto">
-            {showPrompt && deploymentLog.length === 0 && (
-              <form onSubmit={handleUserSubmit} className="flex items-center gap-2">
-                <span className="text-cyan-400">&gt;</span>
-                <span className="text-white/60">What are you building?</span>
-                <span className="text-white/40">(e.g., "marketplace for vintage sneakers")</span>
-              </form>
-            )}
+      {/* Terminal Container with Relative positioning for Success Overlay */}
+      <div className="relative group">
+        <div onClick={handleTerminalClick} className="cursor-text">
+          <TerminalWindow title={selectedPlatform.scriptName}>
+            <div className="font-mono text-sm space-y-1 h-[400px] max-h-[400px] overflow-y-auto p-4">
+              {showPrompt && deploymentLog.length === 0 && (
+                <form onSubmit={handleUserSubmit} className="flex flex-col gap-1 mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-400 font-bold">?</span>
+                    <span className="text-white/60">What are you building?</span>
+                    <span className="text-white/40 italic text-xs ml-2">(e.g., "marketplace for vintage sneakers")</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-400 font-bold">&gt;</span>
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      className="flex-1 bg-transparent outline-none text-white caret-cyan-400"
+                      placeholder="Type your startup idea..."
+                      disabled={isDeploying}
+                    />
+                    {!userInput && <span className="w-2 h-4 bg-cyan-400 animate-terminal-blink" />}
+                  </div>
+                </form>
+              )}
 
-            {showPrompt && deploymentLog.length === 0 && (
-              <form onSubmit={handleUserSubmit} className="flex items-center gap-2">
-                <span className="text-cyan-400">&gt;</span>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  className="flex-1 bg-transparent outline-none text-white caret-cyan-400"
-                  placeholder="Type your startup idea..."
-                  disabled={isDeploying}
+              {deploymentLog.filter((line): line is string => line != null).map((line, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  {idx === 0 && line?.startsWith('swarm.deploy') ? (
+                    <>
+                      <span className="text-cyan-400 font-bold">&gt;</span>
+                      <span className="text-white font-medium">{line}</span>
+                    </>
+                  ) : line?.startsWith('✓') ? (
+                    <span className="text-emerald-400">{line}</span>
+                  ) : line?.startsWith('⚡') || line?.startsWith('💰') ? (
+                    <span className="text-yellow-400 font-medium">{line}</span>
+                  ) : line === 'ANALYZING_REQUIREMENTS...' || line === 'DEPLOYMENT_COMPLETE' ? (
+                    <span className="text-cyan-400 font-bold tracking-wider">{line}</span>
+                  ) : line?.startsWith('No ') ? (
+                    <span className="text-white/50 text-xs italic">{line}</span>
+                  ) : (
+                    <span className="text-white/90">{line ?? ''}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </TerminalWindow>
+        </div>
+
+        {/* Success Overlay - Positioned over the terminal */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+              animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
+              exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+              className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/40 rounded-xl"
+              onClick={handleSuccessDismiss}
+            >
+              <div className="max-w-md w-full shadow-2xl shadow-emerald-500/20" onClick={(e) => e.stopPropagation()}>
+                <DeploymentSuccess 
+                  onDismiss={handleSuccessDismiss} 
+                  platform={selectedPlatform} 
+                  deployedUrl={currentUrl}
                 />
-                {!userInput && <span className="w-2 h-4 bg-cyan-400 animate-terminal-blink" />}
-              </form>
-            )}
-
-            {deploymentLog.filter((line): line is string => line != null).map((line, idx) => (
-              <div key={idx} className="flex items-start gap-2">
-                {idx === 0 && line?.startsWith('swarm.deploy') ? (
-                  <>
-                    <span className="text-cyan-400">&gt;</span>
-                    <span className="text-white">{line}</span>
-                  </>
-                ) : line?.startsWith('✓') ? (
-                  <span className="text-emerald-400">{line}</span>
-                ) : line?.startsWith('⚡') || line?.startsWith('💰') ? (
-                  <span className="text-yellow-400">{line}</span>
-                ) : line === 'ANALYZING_REQUIREMENTS...' || line === 'DEPLOYMENT_COMPLETE' ? (
-                  <span className="text-cyan-400">{line}</span>
-                ) : line?.startsWith('No ') ? (
-                  <span className="text-white/50 text-xs italic">{line}</span>
-                ) : (
-                  <span className="text-white/70">{line ?? ''}</span>
-                )}
               </div>
-            ))}
-          </div>
-        </TerminalWindow>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* Success Overlay */}
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="mt-6"
-          >
-            <DeploymentSuccess onDismiss={handleSuccessDismiss} platform={selectedPlatform} />
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Confetti Celebration */}
       {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
