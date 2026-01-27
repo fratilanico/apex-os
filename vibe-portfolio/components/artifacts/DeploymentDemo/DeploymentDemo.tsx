@@ -2,8 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import { TerminalWindow } from '../../ui/Terminal/TerminalWindow';
-import { DEMO_EXAMPLES, PRICING_ROTATIONS, type DeploymentExample } from './DeploymentDemo.types';
+import { PRICING_ROTATIONS, type DeploymentExample } from './DeploymentDemo.types';
 import { PlatformLogo } from './PlatformLogos';
+import { useXP } from '@/hooks/useXP';
+import { routeTask } from '@/lib/apexRouter';
+import { useMCPStore } from '@/stores/useMCPStore';
 
 // ============================================================================
 // Pipeline Stage Types & Constants
@@ -180,7 +183,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   return (
     <div className="mb-6 px-4">
       <div className="text-white/60 text-sm font-medium mb-3">Deploy to:</div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {PLATFORMS.map((platform) => {
           const isSelected = selectedPlatform.id === platform.id;
           return (
@@ -253,8 +256,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                   <div className="relative">
                     <PlatformLogo 
                       platformId={platform.id} 
-                      size={44}
-                      className={`transition-all duration-300 ${
+                      className={`w-10 h-10 sm:w-11 sm:h-11 transition-all duration-300 ${
                         isSelected ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'
                       }`}
                     />
@@ -319,6 +321,12 @@ const CONFETTI_COLORS = [
 const Confetti: React.FC<{ onComplete?: () => void }> = ({ onComplete }) => {
   const [pieces, setPieces] = useState<ConfettiPiece[]>([]);
   const [isVisible, setIsVisible] = useState(true);
+  // FIX #4: Use ref to prevent memory leak with onComplete callback
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     // Generate 50 confetti pieces with varied properties
@@ -340,11 +348,11 @@ const Confetti: React.FC<{ onComplete?: () => void }> = ({ onComplete }) => {
     // Auto-cleanup after 4 seconds
     const timer = setTimeout(() => {
       setIsVisible(false);
-      onComplete?.();
+      onCompleteRef.current?.();
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, [onComplete]);
+  }, []); // FIX #4: Empty deps to prevent recreation
 
   if (!isVisible || pieces.length === 0) return null;
 
@@ -591,10 +599,11 @@ const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ deployedUrl }) =>
 // Main DeploymentDemo Component
 // ============================================================================
 export const DeploymentDemo = React.memo(function DeploymentDemo() {
+  const { addXP } = useXP();
+  const { getMountedTools } = useMCPStore();
   const [userInput, setUserInput] = useState('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentLog, setDeploymentLog] = useState<string[]>([]);
-  const [currentExample, setCurrentExample] = useState(0);
   const [currentPricing, setCurrentPricing] = useState(0);
   const [showPrompt, setShowPrompt] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -609,6 +618,8 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
   const autoDeployTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasUserInteractedRef = useRef(false);
+  const terminalBottomRef = useRef<HTMLDivElement>(null); // For auto-scroll
+  const isDeployingRef = useRef(false); // Prevent race conditions
 
   // Helper to generate a realistic URL
   const generateProjectUrl = useCallback((idea: string, platform: Platform) => {
@@ -666,23 +677,115 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-deploy demo if user doesn't interact
-  useEffect(() => {
-    if (!isDeploying && deploymentLog.length === 0) {
-      const example = DEMO_EXAMPLES[currentExample];
-      if (example) {
-        autoDeployTimeoutRef.current = setTimeout(() => {
-          runDeployment(example);
-        }, 3000);
-      }
+  // FIX #2 & #1: Wrap in useCallback with all dependencies and use ref to prevent race conditions
+  // INSTANT DEPLOYMENT - All animations removed
+  const runDeployment = useCallback(async (example: DeploymentExample) => {
+    // Prevent multiple simultaneous deployments
+    if (isDeployingRef.current) {
+      return;
     }
 
-    return () => {
-      if (autoDeployTimeoutRef.current) {
-        clearTimeout(autoDeployTimeoutRef.current);
+    if (autoDeployTimeoutRef.current) {
+      clearTimeout(autoDeployTimeoutRef.current);
+    }
+
+    isDeployingRef.current = true;
+    setShowPrompt(false);
+    setIsDeploying(true);
+    const deployedUrl = generateProjectUrl(example.idea, selectedPlatform);
+    setCurrentUrl(deployedUrl);
+
+    // Build the COMPLETE deployment log array instantly
+    const completeLogs: string[] = [];
+
+    // Command line
+    completeLogs.push(`swarm.deploy("${example.idea}")`);
+    completeLogs.push('');
+
+    // Apex Router Handshake
+    const mountedTools = getMountedTools();
+    completeLogs.push(`[ROUTER] Performing Cognitive Handshake...`);
+    
+    const decision = routeTask({
+      type: example.features.includes('database_schema') ? 'PLANNING' : 'CODING',
+      contextSize: Math.floor(Math.random() * 500000),
+      priority: 'VELOCITY',
+      simulationRequired: true
+    });
+
+    completeLogs.push(`[ROUTER] Selected Model: ${decision.modelId} (${decision.provider})`);
+    completeLogs.push(`[ROUTER] Reasoning Depth: ${decision.effort} EFFORT`);
+    completeLogs.push(`[ROUTER] Active Tools: ${mountedTools.length} MCP instances mounted`);
+    completeLogs.push('');
+
+    // Simulation Assessment
+    completeLogs.push(`[SIMULATION] Initiating Simulation Assessment...`);
+    completeLogs.push(`[SIMULATION] Mentally simulating deployment on ${selectedPlatform.name}...`);
+    completeLogs.push(`[SIMULATION] Mental-simulation score: 98.4% success probability`);
+    completeLogs.push(`[SIMULATION] Simulation Audit passed. Executing real-world deployment.`);
+    completeLogs.push('');
+
+    // Analyzing requirements
+    completeLogs.push('ANALYZING_REQUIREMENTS...');
+    completeLogs.push(`${selectedPlatform.emoji} Deploying to ${selectedPlatform.name}...`);
+
+    // Deploy each feature instantly
+    for (const feature of example.features) {
+      const variations = (feature in LOG_VARIATIONS ? LOG_VARIATIONS[feature] : LOG_VARIATIONS['general']) || [];
+      const randomLog = variations[Math.floor(Math.random() * variations.length)];
+      
+      if (randomLog) {
+        completeLogs.push(randomLog);
       }
-    };
-  }, [currentExample, isDeploying, deploymentLog.length]);
+
+      const featureTime = Math.floor((selectedPlatform.deployTime / example.features.length) * (0.8 + Math.random() * 0.4));
+      completeLogs.push(`✓ ${feature}_complete (${featureTime}s)`);
+    }
+
+    // Success message
+    const randomSuccess = SUCCESS_MESSAGES[Math.floor(Math.random() * SUCCESS_MESSAGES.length)];
+    if (randomSuccess) {
+      completeLogs.push(`[${randomSuccess}]`);
+    }
+
+    // Final deployment info
+    completeLogs.push('');
+    completeLogs.push('DEPLOYMENT_COMPLETE');
+    completeLogs.push(`⚡ Total: ${selectedPlatform.deployTime} seconds`);
+    completeLogs.push(`💰 API costs: $${example.cost.toFixed(2)}`);
+    completeLogs.push(`🌐 Live at: ${deployedUrl}`);
+    completeLogs.push('');
+    completeLogs.push('No equity given. No salary negotiation.');
+    completeLogs.push('No risk they quit after 12 months.');
+
+    // Set ALL logs at once - INSTANT!
+    setDeploymentLog(completeLogs);
+    setIsDeploying(false);
+    isDeployingRef.current = false;
+    
+    // Trigger XP gain for successful deployment
+    addXP(250, `Successfully deployed prototype to ${selectedPlatform.name}`);
+  }, [selectedPlatform, generateProjectUrl, addXP, getMountedTools]);
+
+
+  // DISABLED: Auto-deploy removed - user must click "Deploy" button to start
+  // useEffect(() => {
+  //   if (!isDeploying && !hasDeployedRef.current && deploymentLog.length === 0) {
+  //     const example = DEMO_EXAMPLES[currentExample];
+  //     if (example) {
+  //       hasDeployedRef.current = true;
+  //       autoDeployTimeoutRef.current = setTimeout(() => {
+  //         runDeployment(example);
+  //       }, 3000);
+  //     }
+  //   }
+
+  //   return () => {
+  //     if (autoDeployTimeoutRef.current) {
+  //       clearTimeout(autoDeployTimeoutRef.current);
+  //     }
+  //   };
+  // }, [currentExample, isDeploying, runDeployment]);
 
   // Cleanup success timeout on unmount
   useEffect(() => {
@@ -693,16 +796,40 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
     };
   }, []);
 
-  // Handle success overlay dismissal and transition to next demo
+  // FIX #1: Auto-scroll terminal to bottom when logs update
+  useEffect(() => {
+    if (terminalBottomRef.current && deploymentLog.length > 0) {
+      terminalBottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [deploymentLog.length]);
+
+  // DISABLED: Auto-reset removed - keep deployment visible when platform changes
+  // useEffect(() => {
+  //   // Always reset state on platform change to enable new auto-deploy
+  //   setDeploymentLog([]);
+  //   setShowSuccess(false);
+  //   setShowConfetti(false);
+  //   setShowPrompt(true);
+  //   hasDeployedRef.current = false; // Critical: reset deploy flag for new platform
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedPlatform.id]);
+
+  // Handle success overlay dismissal - NO AUTO-ROTATION to next demo
   const handleSuccessDismiss = useCallback(() => {
+    // FIX #5: Clear timeout to prevent double-firing
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+      successTimeoutRef.current = null;
+    }
     setShowSuccess(false);
     setShowConfetti(false);
-    setDeploymentLog([]);
-    setShowPrompt(true);
-    setCurrentExample((prev) => (prev + 1) % DEMO_EXAMPLES.length);
+    // REMOVED: Auto-rotation - keep current example and deployment log visible
+    // setDeploymentLog([]);
+    // setCurrentExample((prev) => (prev + 1) % DEMO_EXAMPLES.length);
+    // hasDeployedRef.current = false;
   }, []);
 
-  // Rotate examples after completion (now waits for success overlay)
+  // Show success overlay after completion - NO AUTO-DISMISS
   useEffect(() => {
     if (!(deploymentLog.length > 0 && !isDeploying && !showSuccess)) return;
     
@@ -717,96 +844,20 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
     };
   }, [deploymentLog.length, isDeploying, showSuccess]);
 
-  // Auto-dismiss success overlay after 5 seconds
-  useEffect(() => {
-    if (!showSuccess) return undefined;
-    
-    successTimeoutRef.current = setTimeout(() => {
-      handleSuccessDismiss();
-    }, 5000);
+  // DISABLED: Auto-dismiss removed - user must manually dismiss success overlay
+  // useEffect(() => {
+  //   if (!showSuccess) return undefined;
+  //   
+  //   successTimeoutRef.current = setTimeout(() => {
+  //     handleSuccessDismiss();
+  //   }, 5000);
 
-      return () => {
-        if (successTimeoutRef.current) {
-          clearTimeout(successTimeoutRef.current);
-        }
-      };
-  }, [showSuccess, handleSuccessDismiss]);
-
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const typeText = async (text: string, callback: (char: string) => void) => {
-    for (const char of text) {
-      callback(char);
-      await sleep(Math.random() * 15 + 10); // Snappier typing speed
-    }
-  };
-
-  const runDeployment = async (example: DeploymentExample) => {
-    if (autoDeployTimeoutRef.current) {
-      clearTimeout(autoDeployTimeoutRef.current);
-    }
-
-    setShowPrompt(false);
-    setIsDeploying(true);
-    setDeploymentLog([]);
-    const deployedUrl = generateProjectUrl(example.idea, selectedPlatform);
-    setCurrentUrl(deployedUrl);
-
-    // Type the deploy command
-    let command = '';
-    await typeText(`swarm.deploy("${example.idea}")`, (char) => {
-      command += char;
-      setDeploymentLog([command]);
-    });
-
-    await sleep(500);
-    setDeploymentLog(prev => [...prev, '']);
-
-    // Add "ANALYZING_REQUIREMENTS..." with platform-specific messaging
-    setDeploymentLog(prev => [...prev, 'ANALYZING_REQUIREMENTS...']);
-    setDeploymentLog(prev => [...prev, `${selectedPlatform.emoji} Deploying to ${selectedPlatform.name}...`]);
-    await sleep(800);
-
-    // Deploy each feature
-    for (let i = 0; i < example.features.length; i++) {
-      const feature = example.features[i];
-      if (!feature) continue;
-
-      const variations = (feature in LOG_VARIATIONS ? LOG_VARIATIONS[feature] : LOG_VARIATIONS['general']) || [];
-      const randomLog = variations[Math.floor(Math.random() * variations.length)];
-      
-      if (randomLog) {
-        setDeploymentLog(prev => [...prev, randomLog]);
-        await sleep(400);
-      }
-
-      const featureTime = Math.floor((selectedPlatform.deployTime / example.features.length) * (0.8 + Math.random() * 0.4));
-      setDeploymentLog(prev => [...prev, `✓ ${feature}_complete (${featureTime}s)`]);
-      await sleep(600);
-    }
-
-    await sleep(300);
-    
-    // Add a random success check
-    const randomSuccess = SUCCESS_MESSAGES[Math.floor(Math.random() * SUCCESS_MESSAGES.length)];
-    if (randomSuccess) {
-      setDeploymentLog(prev => [...prev, `[${randomSuccess}]`]);
-      await sleep(400);
-    }
-
-    setDeploymentLog(prev => [...prev, '']);
-    setDeploymentLog(prev => [...prev, 'DEPLOYMENT_COMPLETE']);
-    setDeploymentLog(prev => [...prev, `⚡ Total: ${selectedPlatform.deployTime} seconds`]);
-    setDeploymentLog(prev => [...prev, `💰 API costs: $${example.cost.toFixed(2)}`]);
-    setDeploymentLog(prev => [...prev, `🌐 Live at: ${deployedUrl}`]);
-    
-    await sleep(500);
-    setDeploymentLog(prev => [...prev, '']);
-    setDeploymentLog(prev => [...prev, 'No equity given. No salary negotiation.']);
-    setDeploymentLog(prev => [...prev, 'No risk they quit after 12 months.']);
-
-    setIsDeploying(false);
-  };
+  //     return () => {
+  //       if (successTimeoutRef.current) {
+  //         clearTimeout(successTimeoutRef.current);
+  //       }
+  //     };
+  // }, [showSuccess, handleSuccessDismiss]);
 
   const handleUserSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -843,7 +894,7 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
       <div className="relative group">
         <div onClick={handleTerminalClick} className="cursor-text">
           <TerminalWindow title={selectedPlatform.scriptName}>
-            <div className="font-mono text-sm space-y-1 h-[400px] max-h-[400px] overflow-y-auto p-4">
+            <div className="font-mono text-sm space-y-1 h-[300px] sm:h-[400px] max-h-[400px] overflow-y-auto p-4">
               {showPrompt && deploymentLog.length === 0 && (
                 <form onSubmit={handleUserSubmit} className="flex flex-col gap-1 mb-4">
                   <div className="flex items-center gap-2">
@@ -887,6 +938,7 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
                   )}
                 </div>
               ))}
+              <div ref={terminalBottomRef} />
             </div>
           </TerminalWindow>
         </div>
@@ -898,10 +950,10 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
               initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
               animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
               exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-              className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/40 rounded-xl"
+              className="absolute inset-0 z-30 flex items-center justify-center p-2 sm:p-4 bg-black/40 rounded-xl"
               onClick={handleSuccessDismiss}
             >
-              <div className="max-w-md w-full shadow-2xl shadow-emerald-500/20" onClick={(e) => e.stopPropagation()}>
+              <div className="max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-emerald-500/20" onClick={(e) => e.stopPropagation()}>
                 <DeploymentSuccess 
                   onDismiss={handleSuccessDismiss} 
                   platform={selectedPlatform} 

@@ -15,7 +15,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useMatrixStore } from './useMatrixStore';
 import { useSkillTreeStore } from './useSkillTreeStore';
-import { QUESTS } from '../data/questsData';
+import { MAIN_QUESTS } from '../data/questsData';
 import type { MatrixNode } from '../types/matrix';
 
 /**
@@ -217,7 +217,7 @@ export const useGameEngine = create<GameEngineState>()(
 
       // Challenge Actions
       startChallenge: (nodeId: string, questId: string) => {
-        const quest = QUESTS.find(q => q.id === questId);
+        const quest = MAIN_QUESTS.find(q => q.id === questId);
         if (!quest) {
           console.warn(`Quest ${questId} not found`);
           return false;
@@ -276,7 +276,7 @@ export const useGameEngine = create<GameEngineState>()(
 
       // Quest Integration
       syncQuestToMatrix: (questId: string) => {
-        const quest = QUESTS.find(q => q.id === questId);
+        const quest = MAIN_QUESTS.find(q => q.id === questId);
         if (!quest) return;
 
         const skillTreeStore = useSkillTreeStore.getState();

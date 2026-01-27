@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useMatrixStore } from '@/stores/useMatrixStore';
 import { useGameEngine } from '@/stores/useGameEngine';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
-import { QUESTS } from '@/data/questsData';
+import { MAIN_QUESTS } from '@/data/questsData';
 import * as CLIFormatter from '@/lib/cliFormatter';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -495,7 +495,7 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
           }
 
           // Find quest for this node
-          const quest = QUESTS.find(q => q.skillsUnlocked.includes(currentNode.id));
+          const quest = MAIN_QUESTS.find(q => q.skillsUnlocked.includes(currentNode.id));
           if (!quest) {
             addLine('error', CLIFormatter.formatError('No challenge available at this node', 1));
             break;

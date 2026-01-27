@@ -193,18 +193,22 @@ const useSwipe = (onSwipe: (direction: string) => void) => {
   const touchStart = useRef<{x: number, y: number} | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {
+    const touch = e.targetTouches[0];
+    if (!touch) return;
     touchStart.current = {
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
+      x: touch.clientX,
+      y: touch.clientY
     };
   };
 
   const onTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart.current) return;
     
+    const touch = e.changedTouches[0];
+    if (!touch) return;
     const touchEnd = {
-        x: e.changedTouches[0].clientX,
-        y: e.changedTouches[0].clientY
+        x: touch.clientX,
+        y: touch.clientY
     };
 
     const deltaX = touchEnd.x - touchStart.current.x;
@@ -234,7 +238,7 @@ export const TerminalContactV2: React.FC = () => {
   const [output, setOutput] = useState<string[]>([]);
   const [formData, setFormData] = useState<FormData>({ name: '', email: '', message: '' });
   const [inputValue, setInputValue] = useState('');
-  const [chatHistory, setChatHistory] = useState<Array<{ question: string; answer: string }>>([]);
+  const [_chatHistory, setChatHistory] = useState<Array<{ question: string; answer: string }>>([]);
   const [konamiIndex, setKonamiIndex] = useState(0);
   const [konamiActivated, setKonamiActivated] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -331,8 +335,6 @@ export const TerminalContactV2: React.FC = () => {
     handleKonamiKey({ code: dir });
   });
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
   const validateEmail = (email: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -368,7 +370,7 @@ export const TerminalContactV2: React.FC = () => {
       '✓ CONTACT_VERIFIED',
       '',
       '# Project description (what are you building?):',
-      '# Type your message and press CTRL+ENTER to send'
+      '# Type your message and press ENTER or tap Send'
     ]);
     setInputValue('');
     setState('message');
@@ -378,7 +380,8 @@ export const TerminalContactV2: React.FC = () => {
     if (!inputValue.trim()) return;
 
     const message = inputValue.trim();
-    setFormData(prev => ({ ...prev, message }));
+    const completeFormData = { ...formData, message };
+    setFormData(completeFormData);
     
     setOutput(prev => [
       ...prev,
@@ -389,20 +392,52 @@ export const TerminalContactV2: React.FC = () => {
     ]);
     
     setState('processing');
-    setOutput(prev => [...prev, 'PROCESSING...']);
-    await sleep(1200);
+    setOutput(prev => [...prev, 'TRANSMITTING_DATA...']);
 
-    setOutput(prev => [
-      ...prev,
-      '✓ MESSAGE_QUEUED',
-      'RESPONSE_ETA: <24H',
-      '',
-      'Need immediate help? Email vibe@infoacademy.ro directly.',
-      '',
-      'Continue chatting? [Y/n]: '
-    ]);
+    try {
+      const response = await fetch('https://formspree.io/f/xwpkgpvd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          name: completeFormData.name,
+          email: completeFormData.email,
+          message: completeFormData.message,
+          _subject: `[Vibe Contact] New message from ${completeFormData.name}`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Transmission failed');
+      }
+
+      setOutput(prev => [
+        ...prev,
+        '✓ TRANSMISSION_COMPLETE',
+        '✓ MESSAGE_QUEUED',
+        'RESPONSE_ETA: <24H',
+        '',
+        'Need immediate help? Email vibe@infoacademy.ro directly.',
+        '',
+        'Continue chatting? [Y/n]: '
+      ]);
+      
+      setState('success');
+    } catch (error) {
+      setOutput(prev => [
+        ...prev,
+        '✗ TRANSMISSION_FAILED',
+        'ERROR: Network or server issue',
+        '',
+        'Alternative: Email vibe@infoacademy.ro directly.',
+        '',
+        'Retry? [Y/n]: '
+      ]);
+      setState('success'); // Allow retry through the continue flow
+    }
     
-    setState('success');
     setInputValue('');
   };
 
@@ -433,126 +468,14 @@ export const TerminalContactV2: React.FC = () => {
     setInputValue('');
   };
 
-  const handleChatSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-
-    const question = inputValue.trim().toLowerCase();
-    
-    if (question === 'exit' || question === 'quit') {
-      setOutput(prev => [
-        ...prev,
-        `> ${inputValue}`,
-        '',
-        '✓ CHAT_SESSION_ENDED',
-        'Thank you! Check your email for confirmation.',
-        ''
-      ]);
-      setInputValue('');
-      return;
-    }
-
-    // Check for hidden commands FIRST
-    const command = HIDDEN_COMMANDS[question];
-    if (command) {
-      const commandOutput = command();
-      
-      // Handle special 'clear' command
-      if (commandOutput[0] === '__CLEAR__') {
-        setOutput([
-          '✓ TERMINAL_CLEARED',
-          '',
-          'Chat mode active. Type your question or \'help\' for commands:',
-        ]);
-        setInputValue('');
-        return;
-      }
-
-      // Handle special 'admin' command
-      if (commandOutput[0] === '__ADMIN__') {
-        setOutput(prev => [
-          ...prev,
-          `> ${inputValue}`,
-          '',
-          '🔒 SECURITY PROTOCOL INITIATED...',
-          '✓ IDENTITY_VERIFIED',
-          'Redirecting to Admin Console...',
-        ]);
-        setInputValue('');
-        setTimeout(() => navigate('/admin'), 1500);
-        return;
-      }
-      
-      setOutput(prev => [
-        ...prev,
-        `> ${inputValue}`,
-        ...commandOutput,
-      ]);
-      setInputValue('');
-      return;
-    }
-
-    // Find matching FAQ
-    let response = '';
-    for (const [key, value] of Object.entries(FAQ_RESPONSES)) {
-      if (question.includes(key) || question.includes(key.replace('_', ' '))) {
-        response = value;
-        break;
-      }
-    }
-
-    if (!response) {
-      response = `
-I'll make sure our team addresses this question personally.
-Check your email (${formData.email}) for a detailed response within 24h.
-
-Type another question or 'exit' to finish.`;
-    }
-
-    setChatHistory(prev => [...prev, { question: inputValue, answer: response }]);
-    setOutput(prev => [
-      ...prev,
-      `> ${inputValue}`,
-      '',
-      ...response.split('\n').filter((line): line is string => line != null),
-      ''
-    ]);
-    
-    setInputValue('');
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (state === 'message' && e.ctrlKey && e.key === 'Enter') {
+    // Submit on Enter (without shift for newline) or Ctrl+Enter
+    if (state === 'message' && e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleMessageSubmit();
     }
   };
 
-  // Helper to run quick command
-  const runQuickCommand = (cmd: string) => {
-    setInputValue(cmd);
-    // Simulate form submission process
-    // We can't call handleChatSubmit directly because it expects an event
-    // So we manually update the output as if the user typed it, or refactor logic.
-    // Simpler: Just set inputValue and let user press enter?
-    // Or better: Re-use the logic by splitting it out.
-    // For now, I'll just reuse the state and call the logic manually.
-    
-    // Actually, calling the logic is better.
-    // Refactoring handleChatSubmit to not need an event is cleaner, but for now:
-    // I'll create a synthetic event.
-    setTimeout(() => {
-        const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
-        // Check if we are in chat mode. If so, run handleChatSubmit.
-        if (state === 'chat') {
-            // Need to set the value first, which we did. But React state might not be ready in same tick unless we pass it.
-            // So we'll pass the command directly to a shared function.
-            // But handleChatSubmit reads 'inputValue'.
-            // I'll make a specialized version or modify handleChatSubmit to accept optional text.
-        }
-    }, 0);
-  };
-  
   // Refactored submission logic
   const processCommand = (cmd: string) => {
     const question = cmd.toLowerCase();
@@ -687,7 +610,7 @@ Type another question or 'exit' to finish.`;
                   <div className="flex items-center justify-between gap-2 mt-1">
                     <div className="text-xs text-white/30">
                       {inputValue.length} chars {/* Desktop hint */}
-                      <span className="hidden md:inline">| CTRL+ENTER to send</span>
+                      <span className="hidden md:inline">| ENTER to send (SHIFT+ENTER for newline)</span>
                     </div>
                     {/* Mobile Send Button */}
                     <button
