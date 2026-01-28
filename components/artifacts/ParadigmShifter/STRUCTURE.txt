@@ -1,0 +1,149 @@
+ParadigmShifter Component Architecture
+=====================================
+
+┌─────────────────────────────────────────────────────────────────┐
+│                     ParadigmShifter.tsx                         │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │        Toggle Pill (Legacy ⟷ Vibe Coder)                 │  │
+│  │  ┌─────────────┐           ┌─────────────┐               │  │
+│  │  │ Legacy Dev  │  ←→       │ Vibe Coder  │               │  │
+│  │  └─────────────┘           └─────────────┘               │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │           Content Area (AnimatePresence)                  │  │
+│  │                                                           │  │
+│  │  IF mode === 'legacy':                                   │  │
+│  │  ┌─────────────────────────────────────────────────────┐ │  │
+│  │  │              LegacyState.tsx                        │ │  │
+│  │  │  ┌────────────────┬──────────────────────────────┐  │ │  │
+│  │  │  │ Left Column    │  Right Column                │  │ │  │
+│  │  │  │                │                              │  │ │  │
+│  │  │  │ ⊗ DEPRECATED   │  ┌────────────────────────┐  │  │ │  │
+│  │  │  │   MINDSET      │  │  TerminalOutput.tsx    │  │  │  │
+│  │  │  │                │  │  ┌──────────────────┐  │  │  │  │
+│  │  │  │ The Autocomplete│  │ │ TerminalWindow   │  │  │  │
+│  │  │  │ Trap           │  │  │ (UI Component)   │  │  │  │
+│  │  │  │                │  │  │                  │  │  │  │
+│  │  │  │ ✗ Bullet 1     │  │  │ > git commit...  │  │  │  │
+│  │  │  │ ✗ Bullet 2     │  │  │ > npm build      │  │  │  │
+│  │  │  │ ✗ Bullet 3     │  │  │ Error: ...       │  │  │  │
+│  │  │  │                │  │  │ // debugging...  │  │  │  │
+│  │  │  │ [Context Box]  │  │  └──────────────────┘  │  │  │  │
+│  │  │  │                │  └────────────────────────┘  │  │  │
+│  │  │  └────────────────┴──────────────────────────────┘  │ │  │
+│  │  └─────────────────────────────────────────────────────┘ │  │
+│  │                                                           │  │
+│  │  IF mode === 'vibe':                                     │  │
+│  │  ┌─────────────────────────────────────────────────────┐ │  │
+│  │  │               VibeState.tsx                         │ │  │
+│  │  │  ┌────────────────┬──────────────────────────────┐  │ │  │
+│  │  │  │ Left Column    │  Right Column                │  │ │  │
+│  │  │  │                │                              │  │ │  │
+│  │  │  │ ✓ CURRENT META │  ┌────────────────────────┐  │  │ │  │
+│  │  │  │                │  │  TerminalOutput.tsx    │  │  │  │
+│  │  │  │ The Orchestrator│ │  ┌──────────────────┐  │  │  │  │
+│  │  │  │                │  │  │ TerminalWindow   │  │  │  │
+│  │  │  │ ✓ Bullet 1     │  │  │ (UI Component)   │  │  │  │
+│  │  │  │ ✓ Bullet 2     │  │  │                  │  │  │  │
+│  │  │  │ ✓ Bullet 3     │  │  │ → initializing.. │  │  │  │
+│  │  │  │                │  │  │ → agent_1 [DONE] │  │  │  │
+│  │  │  │ [Context Box]  │  │  │ → agent_2 [DONE] │  │  │  │
+│  │  │  │                │  │  │ SUCCESS: 42s     │  │  │  │
+│  │  │  │                │  │  └──────────────────┘  │  │  │  │
+│  │  │  │                │  └────────────────────────┘  │  │  │
+│  │  │  └────────────────┴──────────────────────────────┘  │ │  │
+│  │  └─────────────────────────────────────────────────────┘ │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+
+Component Tree:
+===============
+
+ParadigmShifter
+├── Toggle Pill (Buttons)
+│   ├── Motion Background Slider
+│   ├── Legacy Dev Button
+│   └── Vibe Coder Button
+│
+└── AnimatePresence
+    ├── LegacyState (mode === 'legacy')
+    │   ├── Badge Component
+    │   ├── Title
+    │   ├── BulletPoint × 3 (with X icons)
+    │   ├── Context Box
+    │   └── TerminalOutput
+    │       └── TerminalWindow
+    │           └── Terminal Lines (red theme)
+    │
+    └── VibeState (mode === 'vibe')
+        ├── Badge Component
+        ├── Title
+        ├── BulletPoint × 3 (with ✓ icons)
+        ├── Context Box
+        └── TerminalOutput
+            └── TerminalWindow
+                └── Terminal Lines (cyan theme)
+
+File Structure:
+===============
+
+components/artifacts/ParadigmShifter/
+├── index.ts                    (1 line)   - Public exports
+├── ParadigmShifter.tsx         (72 lines) - Main toggle component
+├── LegacyState.tsx            (106 lines) - Red/deprecated view
+├── VibeState.tsx              (106 lines) - Cyan/current view
+├── TerminalOutput.tsx          (53 lines) - Reusable terminal renderer
+├── README.md                               - Component documentation
+├── INTEGRATION.md                          - Usage guide
+└── STRUCTURE.txt                           - This file
+
+Total: 338 lines of TypeScript/TSX code
+
+Dependencies:
+=============
+- React 19
+- Framer Motion (animations)
+- Tailwind CSS (styling)
+- TerminalWindow from @/components/ui/Terminal
+
+State Management:
+=================
+ParadigmShifter:
+  - mode: 'legacy' | 'vibe' (useState)
+  
+LegacyState & VibeState:
+  - No local state (pure presentation)
+  - Receive animations from parent variants
+
+Animation Flow:
+===============
+1. User clicks toggle button
+2. mode state updates (legacy ↔ vibe)
+3. AnimatePresence detects key change
+4. Exit animation plays on current component (200ms fade)
+5. Entry animation plays on new component:
+   - Container: stagger children (0.1s delay)
+   - Badge: 400ms fade-up
+   - Title: 400ms fade-up (staggered)
+   - Bullets: 400ms fade-up (staggered)
+   - Terminal: Lines animate in sequence (100ms delay each)
+
+Responsive Breakpoints:
+=======================
+< 768px  : Mobile (stack vertically)
+≥ 1024px : Desktop (side-by-side layout)
+
+Color Schemes:
+==============
+Legacy Mode:
+  - Primary: red-400 (#f87171)
+  - Border: red-500/30-40
+  - Background: red-500/5-20
+  - Icon: X mark (red)
+
+Vibe Mode:
+  - Primary: cyan-400 (#22d3ee)
+  - Border: cyan-500/30-40
+  - Background: cyan-500/5-20
+  - Icon: Checkmark (cyan)
