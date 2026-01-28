@@ -1,7 +1,7 @@
 import { LucideIcon } from 'lucide-react';
 
 export type NodeStatus = 'locked' | 'discovered' | 'active' | 'completed' | 'remedial';
-export type NodeType = 'COGNITIVE_BASE' | 'AGENT_LOGIC' | 'CLI_INTERFACE' | 'LOW_LEVEL_ENGINE' | 'VALIDATION' | 'BRANCH' | 'FORK';
+export type NodeType = 'COGNITIVE_BASE' | 'AGENT_LOGIC' | 'CLI_INTERFACE' | 'LOW_LEVEL_ENGINE' | 'VALIDATION' | 'BRANCH' | 'FORK' | 'KNOWLEDGE_CELL';
 
 export interface MatrixNodeData {
   id: string;

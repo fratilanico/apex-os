@@ -33,6 +33,17 @@ export interface SkillDefinition {
 }
 
 /**
+ * Orchestration log definition
+ */
+export interface OrchestrationLog {
+  id: string;
+  from: string;
+  to: string;
+  message: string;
+  timestamp: string;
+}
+
+/**
  * Skill tree store state interface
  */
 interface SkillTreeState {
@@ -45,6 +56,7 @@ interface SkillTreeState {
   completedQuests: string[];
   narrativeContext: string;
   dmLogs: string[];
+  orchestrationStream: OrchestrationLog[];
 
   // Actions
   unlockSkill: (skillId: string) => void;
@@ -55,6 +67,8 @@ interface SkillTreeState {
   completeQuest: (questId: string) => void;
   setNarrative: (context: string) => void;
   addDMLog: (log: string) => void;
+  addOrchestrationLog: (log: Omit<OrchestrationLog, 'id' | 'timestamp'>) => void;
+  clearOrchestrationStream: () => void;
   canUnlock: (
     skillId: string,
     skillDef: SkillDefinition
@@ -86,6 +100,7 @@ export const useSkillTreeStore = create<SkillTreeState>()(
       completedQuests: [],
       narrativeContext: 'Welcome to the Frontier, Player One.',
       dmLogs: [],
+      orchestrationStream: [],
 
       // Actions
       unlockSkill: (skillId: string) => {
@@ -189,6 +204,19 @@ export const useSkillTreeStore = create<SkillTreeState>()(
         set((state) => ({ dmLogs: [...state.dmLogs.slice(-19), log] })); // Keep last 20 logs
       },
 
+      addOrchestrationLog: (log) => {
+        const newLog: OrchestrationLog = {
+          ...log,
+          id: `orch-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: new Date().toISOString(),
+        };
+        set((state) => ({ 
+          orchestrationStream: [...state.orchestrationStream.slice(-9), newLog] 
+        }));
+      },
+
+      clearOrchestrationStream: () => set({ orchestrationStream: [] }),
+
       canUnlock: (skillId: string, skillDef: SkillDefinition) => {
         const { isSkillUnlocked, getSkillProgress, currentXP } = get();
 
@@ -287,6 +315,7 @@ export const useSkillTreeStore = create<SkillTreeState>()(
         completedQuests: state.completedQuests,
         narrativeContext: state.narrativeContext,
         dmLogs: state.dmLogs,
+        orchestrationStream: state.orchestrationStream,
       }),
     }
   )

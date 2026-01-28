@@ -29,7 +29,10 @@ const ToolCard: React.FC<{
     </div>
     
     <div className="inline-flex w-12 h-12 rounded-lg bg-white/5 items-center justify-center mb-4 group-hover:bg-cyan-500/10 transition-colors flex-shrink-0">
-      <Icon className="w-6 h-6 text-white/80 group-hover:text-cyan-400 transition-colors flex-shrink-0" strokeWidth={2} />
+      {React.createElement(Icon as any, {
+        className: "w-6 h-6 text-white/80 group-hover:text-cyan-400 transition-colors flex-shrink-0",
+        strokeWidth: 2
+      })}
     </div>
     
     <h3 className="text-xl font-bold text-white mb-2">{title}</h3>

@@ -2,7 +2,9 @@
  * Multi-agent task router with RLM-informed decisions.
  */
 
-import { AGENTS, AgentId, TaskType, RoutingDecision } from './types';
+import { AGENTS, AgentId, TaskType, type RoutingDecision } from './types';
+
+export type { RoutingDecision };
 
 interface RoutingContext {
   taskType?: TaskType;

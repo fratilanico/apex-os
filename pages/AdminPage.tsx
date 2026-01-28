@@ -190,20 +190,23 @@ export const AdminPage: React.FC = () => {
           transition={{ delay: 0.1 }}
           className="flex flex-wrap gap-2 mb-8 p-2 rounded-xl bg-white/5 border border-white/10"
         >
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
+          {TABS.map((tab) => {
+            const Icon = tab.icon as any;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+              {React.createElement(Icon, { className: "w-4 h-4" })}
               <span className="hidden sm:inline">{tab.label}</span>
             </button>
-          ))}
+            );
+          })}
         </motion.div>
 
         {/* Tab Content */}
@@ -556,78 +559,78 @@ export const AdminPage: React.FC = () => {
             {/* Quick Actions Tab */}
             {activeTab === 'actions' && (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {QUICK_ACTIONS.map((action) => {
-                  const IconComponent = ICON_MAP[action.icon] || Zap;
-                  
-                  if (action.type === 'link') {
+                  {QUICK_ACTIONS.map((action) => {
+                    const IconComponent = (ICON_MAP[action.icon] || Zap) as any;
+                    
+                    if (action.type === 'link') {
+                      return (
+                        <Link
+                          key={action.label}
+                          to={action.value}
+                          className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="inline-flex w-10 h-10 rounded-lg bg-cyan-500/20 items-center justify-center flex-shrink-0">
+                              <IconComponent className="w-5 h-5 text-cyan-400 flex-shrink-0" strokeWidth={2} />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors">
+                                {action.label}
+                              </h4>
+                              <p className="text-white/50 text-xs">{action.description}</p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-cyan-400 ml-auto transition-colors" />
+                          </div>
+                        </Link>
+                      );
+                    }
+
+                    if (action.type === 'command') {
+                      return (
+                        <button
+                          key={action.label}
+                          onClick={() => copyToClipboard(action.value)}
+                          className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-violet-500/30 transition-all group text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="inline-flex w-10 h-10 rounded-lg bg-violet-500/20 items-center justify-center flex-shrink-0">
+                              <Terminal className="w-5 h-5 text-violet-400 flex-shrink-0" strokeWidth={2} />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-white group-hover:text-violet-400 transition-colors">
+                                {action.label}
+                              </h4>
+                              <code className="text-white/50 text-xs font-mono">{action.value}</code>
+                            </div>
+                            <Copy className="w-4 h-4 text-white/20 group-hover:text-violet-400 ml-auto transition-colors" />
+                          </div>
+                        </button>
+                      );
+                    }
+
                     return (
-                      <Link
+                      <a
                         key={action.label}
-                        to={action.value}
-                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 transition-all group"
+                        href={action.value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-emerald-500/30 transition-all group"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="inline-flex w-10 h-10 rounded-lg bg-cyan-500/20 items-center justify-center flex-shrink-0">
-                            <IconComponent className="w-5 h-5 text-cyan-400 flex-shrink-0" strokeWidth={2} />
+                          <div className="inline-flex w-10 h-10 rounded-lg bg-emerald-500/20 items-center justify-center flex-shrink-0">
+                            <IconComponent className="w-5 h-5 text-emerald-400 flex-shrink-0" strokeWidth={2} />
                           </div>
                           <div>
-                            <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors">
+                            <h4 className="font-bold text-white group-hover:text-emerald-400 transition-colors">
                               {action.label}
                             </h4>
                             <p className="text-white/50 text-xs">{action.description}</p>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-cyan-400 ml-auto transition-colors" />
+                          <ExternalLink className="w-4 h-4 text-white/20 group-hover:text-emerald-400 ml-auto transition-colors" />
                         </div>
-                      </Link>
+                      </a>
                     );
-                  }
-
-                  if (action.type === 'command') {
-                    return (
-                      <button
-                        key={action.label}
-                        onClick={() => copyToClipboard(action.value)}
-                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-violet-500/30 transition-all group text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="inline-flex w-10 h-10 rounded-lg bg-violet-500/20 items-center justify-center flex-shrink-0">
-                            <Terminal className="w-5 h-5 text-violet-400 flex-shrink-0" strokeWidth={2} />
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-white group-hover:text-violet-400 transition-colors">
-                              {action.label}
-                            </h4>
-                            <code className="text-white/50 text-xs font-mono">{action.value}</code>
-                          </div>
-                          <Copy className="w-4 h-4 text-white/20 group-hover:text-violet-400 ml-auto transition-colors" />
-                        </div>
-                      </button>
-                    );
-                  }
-
-                  return (
-                    <a
-                      key={action.label}
-                      href={action.value}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-emerald-500/30 transition-all group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="inline-flex w-10 h-10 rounded-lg bg-emerald-500/20 items-center justify-center flex-shrink-0">
-                          <IconComponent className="w-5 h-5 text-emerald-400 flex-shrink-0" strokeWidth={2} />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-white group-hover:text-emerald-400 transition-colors">
-                            {action.label}
-                          </h4>
-                          <p className="text-white/50 text-xs">{action.description}</p>
-                        </div>
-                        <ExternalLink className="w-4 h-4 text-white/20 group-hover:text-emerald-400 ml-auto transition-colors" />
-                      </div>
-                    </a>
-                  );
-                })}
+                  })}
               </div>
             )}
           </motion.div>
