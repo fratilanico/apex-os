@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getFrontierConstraints } from '../lib/intelligence/constraints';
 
 const DIRECTOR_SYSTEM_PROMPT = `You are the Matrix Director, the sentient orchestrator of a high-fidelity digital simulation called APEX OS. 
 You monitor "Player One" as they attempt to manipulate the Matrix via a terminal interface.
@@ -48,10 +49,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { currentGraph, terminalLog, userGoal } = req.body;
 
   try {
+    const constraints = await getFrontierConstraints();
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: 'gemini-3-flash-preview',
-      systemInstruction: DIRECTOR_SYSTEM_PROMPT,
+      systemInstruction: DIRECTOR_SYSTEM_PROMPT + constraints,
       generationConfig: {
         maxOutputTokens: 2048,
         temperature: 0.4,

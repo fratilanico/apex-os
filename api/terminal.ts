@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import { getFrontierConstraints } from '../lib/intelligence/constraints';
 
 // Types
 interface ChatMessage {
@@ -67,11 +68,12 @@ async function callGemini(
   genAI: GoogleGenerativeAI,
   message: string,
   history: ChatMessage[],
-  modelName: string
+  modelName: string,
+  constraints: string = ''
 ): Promise<{ text: string; model: string }> {
   const model = genAI.getGenerativeModel({
     model: modelName,
-    systemInstruction: TERMINAL_SYSTEM_PROMPT,
+    systemInstruction: TERMINAL_SYSTEM_PROMPT + constraints,
     generationConfig: {
       temperature: 0.3,
       topP: 0.85,
@@ -137,7 +139,8 @@ export default async function handler(
   const genAI = new GoogleGenerativeAI(apiKey);
 
   try {
-    const { text, model } = await callGemini(genAI, message, history, PRIMARY_MODEL);
+    const constraints = await getFrontierConstraints();
+    const { text, model } = await callGemini(genAI, message, history, PRIMARY_MODEL, constraints);
     res.status(200).json({ response: text, model });
     return;
     
@@ -152,7 +155,8 @@ export default async function handler(
 
     try {
       console.log(`Attempting fallback model: ${FALLBACK_MODEL}`);
-      const { text, model } = await callGemini(genAI, message, history, FALLBACK_MODEL);
+      const constraints = await getFrontierConstraints();
+      const { text, model } = await callGemini(genAI, message, history, FALLBACK_MODEL, constraints);
       res.status(200).json({ response: text, model });
       return;
       

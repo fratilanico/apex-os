@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import { getFrontierConstraints } from '../lib/intelligence/constraints';
 
 // System prompt for GPT-5.2 Architect Companion
 const SYSTEM_PROMPT = `You are GPT-5.2 Architect Companion, an AI guide for the Vibe Coder Academy.
@@ -40,10 +41,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   try {
+    const constraints = await getFrontierConstraints();
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: 'gemini-3-flash-preview',
-      systemInstruction: SYSTEM_PROMPT,
+      systemInstruction: SYSTEM_PROMPT + constraints,
       generationConfig: {
         maxOutputTokens: 512,
         temperature: 0.7,

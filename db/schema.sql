@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.knowledge_chunks (
 CREATE TABLE IF NOT EXISTS public.ingestion_sources (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT,  -- optional user scoping
-  source_type TEXT NOT NULL CHECK (source_type IN ('url', 'pdf', 'youtube', 'github', 'notion', 'markdown')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('url', 'pdf', 'youtube', 'github', 'notion', 'markdown', 'newsletter_hub')),
   source_url TEXT,
   title TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
@@ -26,6 +26,26 @@ CREATE TABLE IF NOT EXISTS public.ingestion_sources (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Frontier Intelligence (Staging area for auto-detected trends)
+CREATE TABLE IF NOT EXISTS public.frontier_intelligence (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  logic TEXT,  -- implementation logic for agents
+  source_url TEXT,
+  category TEXT NOT NULL DEFAULT 'AI', -- Frontend, Backend, AI, Infra
+  tags TEXT[] DEFAULT '{}',
+  is_active BOOLEAN DEFAULT FALSE,
+  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'manifested', 'archived')),
+  manifested_node_id TEXT, -- Link to Matrix node ID if manifested
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for active intelligence filtering
+CREATE INDEX IF NOT EXISTS idx_frontier_intelligence_active
+  ON public.frontier_intelligence(is_active);
 
 -- Knowledge graph edges (relationships between chunks)
 CREATE TABLE IF NOT EXISTS public.knowledge_edges (

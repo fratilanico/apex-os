@@ -29,6 +29,12 @@ import {
   GraduationCap,
   MessageSquare,
   CreditCard,
+  Rss,
+  RefreshCw,
+  ToggleLeft as Toggle,
+  Box,
+  Trash2,
+  Sparkle
 } from 'lucide-react';
 import {
   COMPONENT_REGISTRY,
@@ -40,8 +46,10 @@ import {
   CREDENTIALS,
 } from '../data/adminData';
 import { modules } from '../data/curriculumData';
+import type { FrontierIntelligence } from '../types/intelligence';
+import { useMatrixStore } from '../stores/useMatrixStore';
 
-type TabId = 'overview' | 'curriculum' | 'components' | 'easter-eggs' | 'tech-stack' | 'roadmap' | 'actions';
+type TabId = 'overview' | 'curriculum' | 'components' | 'easter-eggs' | 'tech-stack' | 'roadmap' | 'actions' | 'intelligence';
 
 interface Tab {
   id: TabId;
@@ -51,6 +59,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: 'overview', label: 'Overview', icon: Layers },
+  { id: 'intelligence', label: 'Neural Feed', icon: Rss },
   { id: 'curriculum', label: 'Curriculum', icon: BookOpen },
   { id: 'components', label: 'Components', icon: Code },
   { id: 'easter-eggs', label: 'Easter Eggs', icon: Sparkles },
@@ -76,6 +85,113 @@ export const AdminPage: React.FC = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [showCredentials, setShowCredentials] = useState(false);
+  const [intelligence, setIntelligence] = useState<FrontierIntelligence[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const { addNode, addEdge } = useMatrixStore();
+
+  // Fetch intelligence on mount or tab change
+  React.useEffect(() => {
+    if (activeTab === 'intelligence') {
+      fetchIntelligence();
+    }
+  }, [activeTab]);
+
+  const fetchIntelligence = async () => {
+    try {
+      const res = await fetch('/api/intelligence/items');
+      const data = await res.json();
+      if (data.items) setIntelligence(data.items);
+    } catch (err) {
+      console.error('Failed to fetch intelligence:', err);
+    }
+  };
+
+  const handleSyncHub = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/intelligence/sync', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        await fetchIntelligence();
+      }
+    } catch (err) {
+      console.error('Sync failed:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const toggleIntelligence = async (id: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch('/api/intelligence/items', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_active: !currentStatus }),
+      });
+      if (res.ok) {
+        setIntelligence(prev => prev.map(item => 
+          item.id === id ? { ...item, is_active: !currentStatus } : item
+        ));
+      }
+    } catch (err) {
+      console.error('Toggle failed:', err);
+    }
+  };
+
+  const deleteIntelligence = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this intelligence unit?')) return;
+    try {
+      const res = await fetch(`/api/intelligence/items?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setIntelligence(prev => prev.filter(item => item.id !== id));
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+    }
+  };
+
+  const manifestIntelligence = async (id: string) => {
+    try {
+      const res = await fetch('/api/intelligence/manifest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Update local list
+        setIntelligence(prev => prev.map(item => 
+          item.id === id ? { ...item, status: 'manifested', is_active: true } : item
+        ));
+
+        // Add to Matrix
+        const newNode = {
+          id: data.nodeProposal.id,
+          type: 'oasis' as const,
+          position: { x: 600, y: Math.random() * 400 + 100 },
+          data: {
+            id: data.nodeProposal.id.slice(-2),
+            label: data.nodeProposal.label,
+            type: 'AGENT_LOGIC' as any,
+            status: 'discovered' as any,
+            progress: 0,
+          }
+        };
+        addNode(newNode);
+        addEdge({
+          id: `e-core-${newNode.id}`,
+          source: '0',
+          target: newNode.id,
+          animated: true,
+          label: 'MANIFESTED'
+        });
+        alert('Intelligence manifested in the Matrix.');
+      }
+    } catch (err) {
+      console.error('Manifest failed:', err);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,7 +286,7 @@ export const AdminPage: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Admin Command Center</h1>
-                <p className="text-white/50">The Teacher's Bible - Everything you need</p>
+                <p className="text-white/50">The Teacher&apos;s Bible - Everything you need</p>
               </div>
             </div>
             <button
@@ -227,13 +343,13 @@ export const AdminPage: React.FC = () => {
                     { label: 'Components', value: SITE_STATS.totalComponents, icon: Code, color: 'cyan' },
                     { label: 'Pages', value: SITE_STATS.totalPages, icon: FileText, color: 'violet' },
                     { label: 'Easter Eggs', value: SITE_STATS.easterEggs, icon: Sparkles, color: 'amber' },
-                    { label: 'Bundle Size', value: SITE_STATS.bundleSize, icon: Package, color: 'emerald' },
+                    { label: 'Intelligence', value: intelligence.length, icon: Rss, color: 'emerald' },
                   ].map((stat) => (
                     <div
                       key={stat.label}
                       className={`p-4 rounded-xl bg-${stat.color}-500/10 border border-${stat.color}-500/20`}
                     >
-                      <stat.icon className={`w-5 h-5 text-${stat.color}-400 mb-2`} />
+                      {React.createElement(stat.icon as any, { className: `w-5 h-5 text-${stat.color}-400 mb-2` })}
                       <div className="text-2xl font-bold text-white">{stat.value}</div>
                       <div className="text-sm text-white/50">{stat.label}</div>
                     </div>
@@ -319,6 +435,104 @@ export const AdminPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Intelligence Tab */}
+            {activeTab === 'intelligence' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between p-6 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
+                  <div>
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Rss className="w-5 h-5 text-cyan-400" />
+                      Frontier Intelligence Sync
+                    </h3>
+                    <p className="text-white/50 text-sm mt-1">Auto-detecting tech trends from Newsletter Hub</p>
+                  </div>
+                  <button 
+                    onClick={handleSyncHub}
+                    disabled={isSyncing}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-cyan-500 text-white font-bold hover:shadow-lg hover:shadow-cyan-500/30 disabled:opacity-50 transition-all"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                    {isSyncing ? 'Scouting Hub...' : 'Sync Now'}
+                  </button>
+                </div>
+
+                <div className="grid gap-4">
+                  {intelligence.length === 0 ? (
+                    <div className="p-12 text-center border-2 border-dashed border-white/5 rounded-2xl opacity-20">
+                      <Box size={48} className="mx-auto mb-4" />
+                      <p className="font-mono uppercase tracking-widest">No Intelligence Drafted</p>
+                    </div>
+                  ) : (
+                    intelligence.map((item) => (
+                      <motion.div 
+                        key={item.id}
+                        layout
+                        className={`p-5 rounded-2xl border transition-all ${item.is_active ? 'bg-zinc-900/80 border-cyan-500/30' : 'bg-black/40 border-white/5 opacity-60'}`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                                item.category === 'AI' ? 'bg-purple-500/20 text-purple-400' :
+                                item.category === 'Frontend' ? 'bg-blue-500/20 text-blue-400' :
+                                'bg-emerald-500/20 text-emerald-400'
+                              }`}>
+                                {item.category}
+                              </span>
+                              <h4 className="font-bold text-white text-lg truncate">{item.title}</h4>
+                            </div>
+                            <p className="text-sm text-white/60 leading-relaxed mb-4">{item.description}</p>
+                            
+                            <div className="p-3 rounded-lg bg-black/50 border border-white/5 font-mono text-[11px] text-cyan-400/80 mb-4">
+                              <p className="text-[9px] text-white/20 uppercase font-bold mb-1 tracking-widest">Agent_Logic</p>
+                              {item.logic}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              {item.tags.map(tag => (
+                                <span key={tag} className="px-2 py-0.5 rounded-full bg-white/5 text-white/30 text-[9px] font-bold">
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2 shrink-0">
+                            <button 
+                              onClick={() => toggleIntelligence(item.id, item.is_active)}
+                              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs transition-all ${
+                                item.is_active 
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                  : 'bg-white/5 text-white/40 border border-white/10 hover:text-white'
+                              }`}
+                            >
+                              <Toggle className={`w-4 h-4 ${item.is_active ? 'rotate-180' : ''}`} />
+                              {item.is_active ? 'ACTIVE' : 'RESTRICTED'}
+                            </button>
+                            {item.status === 'draft' && (
+                              <button 
+                                onClick={() => manifestIntelligence(item.id)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold text-xs hover:bg-cyan-500/30 transition-all"
+                              >
+                                <Sparkle size={14} />
+                                MANIFEST
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => deleteIntelligence(item.id)}
+                              className="p-2 rounded-xl bg-white/5 text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center justify-center"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -559,78 +773,78 @@ export const AdminPage: React.FC = () => {
             {/* Quick Actions Tab */}
             {activeTab === 'actions' && (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {QUICK_ACTIONS.map((action) => {
-                    const IconComponent = (ICON_MAP[action.icon] || Zap) as any;
-                    
-                    if (action.type === 'link') {
-                      return (
-                        <Link
-                          key={action.label}
-                          to={action.value}
-                          className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 transition-all group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="inline-flex w-10 h-10 rounded-lg bg-cyan-500/20 items-center justify-center flex-shrink-0">
-                              <IconComponent className="w-5 h-5 text-cyan-400 flex-shrink-0" strokeWidth={2} />
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors">
-                                {action.label}
-                              </h4>
-                              <p className="text-white/50 text-xs">{action.description}</p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-cyan-400 ml-auto transition-colors" />
-                          </div>
-                        </Link>
-                      );
-                    }
-
-                    if (action.type === 'command') {
-                      return (
-                        <button
-                          key={action.label}
-                          onClick={() => copyToClipboard(action.value)}
-                          className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-violet-500/30 transition-all group text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="inline-flex w-10 h-10 rounded-lg bg-violet-500/20 items-center justify-center flex-shrink-0">
-                              <Terminal className="w-5 h-5 text-violet-400 flex-shrink-0" strokeWidth={2} />
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-white group-hover:text-violet-400 transition-colors">
-                                {action.label}
-                              </h4>
-                              <code className="text-white/50 text-xs font-mono">{action.value}</code>
-                            </div>
-                            <Copy className="w-4 h-4 text-white/20 group-hover:text-violet-400 ml-auto transition-colors" />
-                          </div>
-                        </button>
-                      );
-                    }
-
+                {QUICK_ACTIONS.map((action) => {
+                  const IconComponent = (ICON_MAP[action.icon] || Zap) as any;
+                  
+                  if (action.type === 'link') {
                     return (
-                      <a
+                      <Link
                         key={action.label}
-                        href={action.value}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-emerald-500/30 transition-all group"
+                        to={action.value}
+                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 transition-all group"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="inline-flex w-10 h-10 rounded-lg bg-emerald-500/20 items-center justify-center flex-shrink-0">
-                            <IconComponent className="w-5 h-5 text-emerald-400 flex-shrink-0" strokeWidth={2} />
+                          <div className="inline-flex w-10 h-10 rounded-lg bg-cyan-500/20 items-center justify-center flex-shrink-0">
+                            <IconComponent className="w-5 h-5 text-cyan-400 flex-shrink-0" strokeWidth={2} />
                           </div>
                           <div>
-                            <h4 className="font-bold text-white group-hover:text-emerald-400 transition-colors">
+                            <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors">
                               {action.label}
                             </h4>
                             <p className="text-white/50 text-xs">{action.description}</p>
                           </div>
-                          <ExternalLink className="w-4 h-4 text-white/20 group-hover:text-emerald-400 ml-auto transition-colors" />
+                          <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-cyan-400 ml-auto transition-colors" />
                         </div>
-                      </a>
+                      </Link>
                     );
-                  })}
+                  }
+
+                  if (action.type === 'command') {
+                    return (
+                      <button
+                        key={action.label}
+                        onClick={() => copyToClipboard(action.value)}
+                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-violet-500/30 transition-all group text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="inline-flex w-10 h-10 rounded-lg bg-violet-500/20 items-center justify-center flex-shrink-0">
+                            <Terminal className="w-5 h-5 text-violet-400 flex-shrink-0" strokeWidth={2} />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white group-hover:text-violet-400 transition-colors">
+                              {action.label}
+                            </h4>
+                            <code className="text-white/50 text-xs font-mono">{action.value}</code>
+                          </div>
+                          <Copy className="w-4 h-4 text-white/20 group-hover:text-violet-400 ml-auto transition-colors" />
+                        </div>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <a
+                      key={action.label}
+                      href={action.value}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-emerald-500/30 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="inline-flex w-10 h-10 rounded-lg bg-emerald-500/20 items-center justify-center flex-shrink-0">
+                          <IconComponent className="w-5 h-5 text-emerald-400 flex-shrink-0" strokeWidth={2} />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white group-hover:text-emerald-400 transition-colors">
+                            {action.label}
+                          </h4>
+                          <p className="text-white/50 text-xs">{action.description}</p>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-white/20 group-hover:text-emerald-400 ml-auto transition-colors" />
+                      </div>
+                    </a>
+                  );
+                })}
               </div>
             )}
           </motion.div>
