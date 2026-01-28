@@ -17,6 +17,7 @@ const AcademyPage = lazy(() => import('./pages/AcademyPage').then(m => ({ defaul
 const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const PricingPage = lazy(() => import('./pages/PricingPage').then(m => ({ default: m.PricingPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
+const GamePage = lazy(() => import('./pages/GamePage').then(m => ({ default: m.GamePage })));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -87,6 +88,12 @@ const App = (): React.ReactElement => {
                 </ErrorBoundary>
               } />
             </Route>
+            {/* Game page outside Layout - full-screen immersive experience */}
+            <Route path="/game" element={
+              <ErrorBoundary fallback={<RouteErrorFallback error={new Error('Game page error')} />}>
+                <GamePage />
+              </ErrorBoundary>
+            } />
           </Routes>
         </Suspense>
         <StickyCTA />

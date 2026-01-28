@@ -15,7 +15,23 @@ export default {
         emerald: {
           400: '#10b981',
           500: '#059669',
+        },
+        tron: {
+          cyan: '#00D4FF',
+          'cyan-dark': '#0099CC',
+          'cyan-glow': 'rgba(0, 212, 255, 0.3)',
+          orange: '#FF6B00',
+          green: '#00FF88',
+          magenta: '#FF00FF',
+          bg: '#0A0A12',
+          'bg-light': '#0F0F1A',
+          grid: '#1A1A2E',
+          panel: 'rgba(10, 10, 18, 0.8)',
         }
+      },
+      boxShadow: {
+        'tron-glow': '0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(0, 212, 255, 0.3)',
+        'tron-glow-sm': '0 0 10px rgba(0, 212, 255, 0.4)',
       },
       fontFamily: {
         mono: ['JetBrains Mono', 'monospace'],

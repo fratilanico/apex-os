@@ -49,7 +49,14 @@ export const TerminalChat: React.FC = () => {
   
   // Focus input on mount
   useEffect(() => {
-    inputRef.current?.focus();
+    const timer = setTimeout(() => {
+      try {
+        inputRef.current?.focus();
+      } catch (e) {
+        console.warn('Focus error in 3D context:', e);
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
   
   const handleSubmit = async (e: React.FormEvent) => {
