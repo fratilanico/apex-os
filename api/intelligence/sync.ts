@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { callGemini } from '../_lib/gemini';
 import { callPerplexity } from '../_lib/perplexity';
 

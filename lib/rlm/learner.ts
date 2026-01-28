@@ -2,7 +2,7 @@
  * RLM Learner — Updates procedural memory based on interaction outcomes.
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../supabase';
 import type { AgentId } from '../agents/types';
 import { calculateSuccessScore, InteractionOutcome } from './tracker';
 

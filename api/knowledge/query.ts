@@ -6,7 +6,7 @@
  * Returns: { success: boolean, results: Array<{ chunk, source, similarity }> }
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { embed } from './_lib/embedder';
 
 interface QueryRequest {

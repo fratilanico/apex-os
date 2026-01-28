@@ -6,7 +6,7 @@
  * Returns: { success: boolean, sourceId: string, chunkCount: number, title: string }
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { chunkText } from './_lib/chunker';
 import { generateEmbeddings } from './_lib/embedder';
 import { parseURL } from './_lib/parsers/url';

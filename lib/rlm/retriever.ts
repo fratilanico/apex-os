@@ -2,7 +2,7 @@
  * RLM Retriever — Fetches relevant memories for routing decisions.
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../supabase';
 import type { AgentId } from '../agents/types';
 import { getAgentScores } from './learner';
 
