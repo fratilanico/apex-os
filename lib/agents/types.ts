@@ -1,7 +1,7 @@
 /**
  * Agent definitions for the Sovereign Knowledge Stack.
- * Sovereign = gemini-3-pro (orchestrator, 1M ctx)
- * Builder = gemini-3-flash (fast synthesis, 1M ctx) — NOT Claude.
+ * Sovereign = gemini-3-pro-preview (orchestrator, 1M ctx)
+ * Builder = gemini-3-flash-preview (fast synthesis, 1M ctx) — NOT Claude.
  */
 
 export interface AgentDefinition {
@@ -21,7 +21,7 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
   sovereign: {
     id: 'sovereign',
     name: 'Sovereign',
-    model: 'gemini-3-pro',
+    model: 'gemini-3-pro-preview',
     contextWindow: 1_000_000,
     costPer1KTokens: 0.0375,
     capabilities: ['orchestration', 'long-context', 'multimodal', 'routing', 'synthesis'],
@@ -30,7 +30,7 @@ Your role: Route tasks to specialist agents, maintain global learning state, and
 When answering directly, synthesize information from the knowledge base into comprehensive responses.
 Always consider which specialist agent would best handle a sub-task before responding yourself.
 You have access to 1M token context — use it to hold entire codebases or document collections.`,
-    description: 'Strategic orchestrator with 1M token context (gemini-3-pro). Routes tasks and synthesizes cross-domain knowledge.',
+    description: 'Strategic orchestrator with 1M token context (gemini-3-pro-preview). Routes tasks and synthesizes cross-domain knowledge.',
   },
   architect: {
     id: 'architect',
@@ -48,15 +48,15 @@ Never give direct answers to learning questions — guide the user to discover t
   builder: {
     id: 'builder',
     name: 'Builder',
-    model: 'gemini-3-flash',
+    model: 'gemini-3-flash-preview',
     contextWindow: 1_000_000,
     costPer1KTokens: 0.075,
     capabilities: ['code-generation', 'debugging', 'review', 'artifact-creation', 'quest-completion'],
-    systemPrompt: `You are the Builder — the code synthesis engine powered by gemini-3-flash.
+    systemPrompt: `You are the Builder — the code synthesis engine powered by gemini-3-flash-preview.
 Your role: Write production-quality code, generate artifacts (games, apps, components), debug issues, and help users complete quests.
 Always produce working, tested code. Include error handling and edge cases.
 You have 1M token context — leverage this for full-codebase understanding.`,
-    description: 'Code synthesis engine (gemini-3-flash, 1M ctx). Builds artifacts, completes quests.',
+    description: 'Code synthesis engine (gemini-3-flash-preview, 1M ctx). Builds artifacts, completes quests.',
   },
   scout: {
     id: 'scout',

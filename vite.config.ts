@@ -1,5 +1,5 @@
 import path from 'path';
-import { defineConfig, type PluginOption } from 'vite';
+import { defineConfig, type PluginOption, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 
@@ -16,6 +16,14 @@ function localApiMiddleware(): PluginOption {
       server.middlewares.use(async (req, res, next) => {
         if (!req.url?.startsWith('/api/')) {
           return next();
+        }
+
+        // Load env variables for the current mode and ensure they are in process.env
+        const env = loadEnv(server.config.mode, process.cwd(), '');
+        Object.assign(process.env, env);
+        
+        if (req.url?.includes('terminal') || req.url?.includes('chat')) {
+          console.log(`[API] ${req.url} | GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? 'FOUND' : 'MISSING'}`);
         }
 
         const endpoint = req.url.replace('/api/', '').split('?')[0];

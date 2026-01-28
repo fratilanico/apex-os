@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3-flash',
+      model: 'gemini-3-flash-preview',
       systemInstruction: DIRECTOR_SYSTEM_PROMPT,
       generationConfig: {
         maxOutputTokens: 2048,

@@ -47,8 +47,8 @@ PERSONALITY:
 - You're the architect's trusted companion on the Frontier`;
 
 // Model configuration - Gemini 3 Flash
-const PRIMARY_MODEL = 'gemini-3-flash';
-const FALLBACK_MODEL = 'gemini-3-flash';
+const PRIMARY_MODEL = 'gemini-3-flash-preview';
+const FALLBACK_MODEL = 'gemini-3-flash-preview';
 
 /**
  * Format chat history for Gemini API

@@ -776,22 +776,22 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                               ║
 ║  [1] Builder Agent                                            ║
-║      Model:   gemini-3-flash                                  ║
+║      Model:   gemini-3-flash-preview                          ║
 ║      Context: 1M tokens                                       ║
 ║      Role:    Code generation & architecture decisions        ║
 ║                                                               ║
 ║  [2] Analyst Agent                                            ║
-║      Model:   gemini-3-flash                                  ║
+║      Model:   gemini-3-flash-preview                          ║
 ║      Context: 1M tokens                                       ║
 ║      Role:    Pattern recognition & data analysis             ║
 ║                                                               ║
 ║  [3] Curator Agent                                            ║
-║      Model:   gemini-3-flash                                  ║
+║      Model:   gemini-3-flash-preview                          ║
 ║      Context: 1M tokens                                       ║
 ║      Role:    Knowledge base curation & source ranking        ║
 ║                                                               ║
 ║  [4] Orchestrator Agent                                       ║
-║      Model:   gemini-3-pro                                    ║
+║      Model:   gemini-3-pro-preview                            ║
 ║      Context: 1M tokens                                       ║
 ║      Role:    Task routing & multi-agent coordination         ║
 ║                                                               ║

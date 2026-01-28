@@ -1,9 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { VertexAI, HarmCategory, HarmBlockThreshold } from '@google-cloud/vertexai';
-import { setupGoogleAuth } from './_lib/auth';
-
-// Initialize Google Cloud auth
-setupGoogleAuth();
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 // System prompt for GPT-5.2 Architect Companion
 const SYSTEM_PROMPT = `You are GPT-5.2 Architect Companion, an AI guide for the Vibe Coder Academy.
@@ -29,11 +25,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  const project = process.env.GCP_PROJECT_ID;
-  const location = process.env.GCP_LOCATION || 'us-central1';
+  const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!project) {
-    res.status(500).json({ error: 'GCP_PROJECT_ID not configured' });
+  if (!apiKey) {
+    res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
     return;
   }
 
@@ -45,14 +40,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   try {
-    const vertexAI = new VertexAI({ project, location });
-    
-    const generativeModel = vertexAI.getGenerativeModel({
-      model: 'gemini-3-flash',
-      systemInstruction: {
-        role: 'system',
-        parts: [{ text: SYSTEM_PROMPT }]
-      },
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3-flash-preview',
+      systemInstruction: SYSTEM_PROMPT,
       generationConfig: {
         maxOutputTokens: 512,
         temperature: 0.7,
@@ -67,20 +58,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       ],
     });
 
-    // Format history for Vertex AI
+    // Format history for Gemini SDK
     const formattedHistory = history.map((h: { role: string; content: string }) => ({
       role: h.role === 'assistant' ? 'model' : 'user' as const,
       parts: [{ text: h.content }],
     }));
 
-    const chat = generativeModel.startChat({ history: formattedHistory });
+    const chat = model.startChat({ history: formattedHistory });
     const result = await chat.sendMessage(message);
-    const response = result.response;
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const response = await result.response;
+    const text = response.text() || '';
 
     res.status(200).json({ response: text });
   } catch (error: any) {
-    console.error('Vertex AI Chat Error:', error);
+    console.error('Gemini API Chat Error:', error);
     res.status(500).json({ 
       error: error.message || 'Failed to generate response',
     });
