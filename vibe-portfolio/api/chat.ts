@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const vertexAI = new VertexAI({ project, location });
     
     const generativeModel = vertexAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-001',
+      model: 'gemini-3-flash',
       systemInstruction: {
         role: 'system',
         parts: [{ text: SYSTEM_PROMPT }]

@@ -1,15 +1,88 @@
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 
+/**
+ * Local API middleware plugin.
+ * Intercepts /api/* requests and executes the corresponding
+ * serverless handler (api/*.ts) via Vite's SSR module loader.
+ * Mirrors Vercel's file-based routing for local development.
+ */
+function localApiMiddleware(): PluginOption {
+  return {
+    name: 'local-api-middleware',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith('/api/')) {
+          return next();
+        }
+
+        const endpoint = req.url.replace('/api/', '').split('?')[0];
+        if (!endpoint) return next();
+
+        try {
+          // Parse request body for POST/PUT/PATCH
+          let body: Record<string, unknown> = {};
+          if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+            const rawBody = await new Promise<string>((resolve, reject) => {
+              let data = '';
+              req.on('data', (chunk: Buffer) => (data += chunk.toString()));
+              req.on('end', () => resolve(data));
+              req.on('error', reject);
+            });
+            if (rawBody) body = JSON.parse(rawBody);
+          }
+
+          // Mock Vercel request shape
+          const mockReq = {
+            method: req.method,
+            body,
+            headers: req.headers,
+            query: Object.fromEntries(
+              new URL(req.url!, `http://${req.headers.host}`).searchParams
+            ),
+            url: req.url,
+          };
+
+          // Mock Vercel response shape
+          let statusCode = 200;
+          const mockRes = {
+            status(code: number) {
+              statusCode = code;
+              return mockRes;
+            },
+            json(data: unknown) {
+              res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(data));
+            },
+            send(data: unknown) {
+              res.writeHead(statusCode);
+              res.end(typeof data === 'string' ? data : JSON.stringify(data));
+            },
+          };
+
+          // Use Vite's SSR loader — handles TypeScript, env vars, imports
+          const module = await server.ssrLoadModule(`./api/${endpoint}.ts`);
+          await module.default(mockReq, mockRes);
+        } catch (err: any) {
+          console.error(`[API] /api/${endpoint}:`, err.message);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err.message || 'Internal server error' }));
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => ({
   server: {
-    port: 3000,
+    port: 5173,
     host: '0.0.0.0',
   },
   
   plugins: [
+    localApiMiddleware(),
     react(),
     visualizer({
       filename: './dist/stats.html',

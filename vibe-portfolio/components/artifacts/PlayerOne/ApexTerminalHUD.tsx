@@ -61,7 +61,8 @@ interface TerminalLine {
 const COMMANDS = [
   'help', 'clear', 'vibe', 'ask', 'code', 'explain', 'debug',
   'status', 'inventory', 'quests', 'map', 'cd', 'ls', 'pwd',
-  'fork', 'solve', 'submit', 'abandon'
+  'fork', 'solve', 'submit', 'abandon',
+  'ingest', 'recall', 'sources', 'forget', 'stats'
 ];
 
 const HELP_TEXT = `
@@ -94,6 +95,16 @@ const HELP_TEXT = `
 │    fork status      Show available paths                    │
 │    fork choose <n>  Select path at fork                     │
 │    fork preview <n> Preview path outcome                    │
+│                                                             │
+│  KNOWLEDGE BASE                                             │
+│    ingest <url>         Ingest URL into knowledge base      │
+│    ingest --yt <id>     Ingest YouTube transcript           │
+│    ingest --gh <repo>   Ingest GitHub repo                  │
+│    ingest --notion <id> Ingest Notion page                  │
+│    recall <query>       Search your knowledge base          │
+│    sources              List all ingested sources           │
+│    forget <id>          Remove a source                     │
+│    stats                RLM learning statistics             │
 │                                                             │
 │  UTILITIES                                                  │
 │    help             Show this menu                          │
@@ -494,8 +505,28 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
             break;
           }
 
-          // Find quest for this node
-          const quest = MAIN_QUESTS.find(q => q.skillsUnlocked.includes(currentNode.id));
+          // Map matrix node IDs → quest IDs (node IDs and skill IDs are separate namespaces)
+          const NODE_QUEST_MAP: Record<string, string> = {
+            '0': 'main-01', // Sovereign_Core  → The Awakening
+            '1': 'main-03', // Orchestration_Log → First Delegation
+            '2': 'main-02', // Neural_Terminal → Meeting The Architect
+            '3': 'main-06', // WASM_Forge      → Building the Swarm
+          };
+          // Fallback: match node type → quest category for dynamically added nodes
+          const NODE_TYPE_QUEST_CATEGORY: Record<string, string> = {
+            'AGENT_LOGIC': 'ORCHESTRATION',
+            'CLI_INTERFACE': 'REASONING',
+            'LOW_LEVEL_ENGINE': 'CODING',
+            'COGNITIVE_BASE': 'ORCHESTRATION',
+            'VALIDATION': 'REASONING',
+            'BRANCH': 'ORCHESTRATION',
+          };
+
+          const directQuestId = NODE_QUEST_MAP[currentNode.id];
+          const quest = directQuestId
+            ? MAIN_QUESTS.find(q => q.id === directQuestId)
+            : MAIN_QUESTS.find(q => q.category === NODE_TYPE_QUEST_CATEGORY[currentNode.data.type]);
+
           if (!quest) {
             addLine('error', CLIFormatter.formatError('No challenge available at this node', 1));
             break;
@@ -577,6 +608,198 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
             default:
               addLine('error', CLIFormatter.formatError('Usage: fork <status|choose|preview> [args]', 1));
           }
+        }
+        break;
+
+      // ========== KNOWLEDGE BASE COMMANDS ==========
+      case 'ingest':
+        {
+          if (!argument) {
+            addLine('system', `Usage:\n  ingest <url>           Ingest a URL into the knowledge base\n  ingest --yt <id>       Ingest a YouTube transcript\n  ingest --gh <repo>     Ingest a GitHub repository\n  ingest --notion <id>   Ingest a Notion page\n[exit 0]`);
+            break;
+          }
+
+          let ingestType = 'url';
+          let ingestTarget = argument;
+
+          if (args[0] === '--yt') {
+            ingestType = 'youtube';
+            ingestTarget = args.slice(1).join(' ');
+          } else if (args[0] === '--gh') {
+            ingestType = 'github';
+            ingestTarget = args.slice(1).join(' ');
+          } else if (args[0] === '--notion') {
+            ingestType = 'notion';
+            ingestTarget = args.slice(1).join(' ');
+          } else if (args[0] === '--md') {
+            ingestType = 'markdown';
+            ingestTarget = args.slice(1).join(' ');
+          }
+
+          if (!ingestTarget) {
+            addLine('error', CLIFormatter.formatError(`Usage: ingest --${ingestType === 'youtube' ? 'yt' : ingestType === 'github' ? 'gh' : ingestType === 'markdown' ? 'md' : 'notion'} <target>`, 1));
+            break;
+          }
+
+          setIsProcessing(true);
+          try {
+            const ingestRes = await fetch('/api/knowledge/ingest', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: ingestType, target: ingestTarget }),
+            });
+
+            const ingestData = await ingestRes.json();
+
+            if (!ingestRes.ok) {
+              addLine('error', CLIFormatter.formatError(ingestData.error || 'Ingest failed', 1));
+            } else {
+              addLine('system', CLIFormatter.formatSuccess(`Source ingested successfully`, 0) + `\n  Title:      ${ingestData.title || 'Untitled'}\n  Source ID:  ${ingestData.sourceId}\n  Chunks:     ${ingestData.chunkCount}\n[exit 0]`);
+            }
+          } catch (err: any) {
+            addLine('error', CLIFormatter.formatError(`Ingest failed: ${err.message || 'Network error'}`, 1));
+          }
+          setIsProcessing(false);
+        }
+        break;
+
+      case 'recall':
+        {
+          if (!argument) {
+            addLine('error', CLIFormatter.formatError('Usage: recall <query>', 1));
+            break;
+          }
+
+          setIsProcessing(true);
+          try {
+            const recallRes = await fetch('/api/knowledge/query', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: argument, limit: 3 }),
+            });
+
+            const recallData = await recallRes.json();
+
+            if (!recallRes.ok) {
+              addLine('error', CLIFormatter.formatError(recallData.error || 'Query failed', 1));
+            } else if (!recallData.results || recallData.results.length === 0) {
+              addLine('system', `No results found. Try ingesting sources first with: ingest <url>\n[exit 0]`);
+            } else {
+              let recallOutput = `┌─────────────────────────────────────────────────────────────┐\n│  RECALL RESULTS                                             │\n├─────────────────────────────────────────────────────────────┤\n`;
+              recallData.results.forEach((result: any, idx: number) => {
+                const truncated = (result.content || '').slice(0, 200) + ((result.content || '').length > 200 ? '...' : '');
+                recallOutput += `│  [${idx + 1}] ${(result.sourceTitle || 'Unknown').padEnd(40)}       │\n`;
+                recallOutput += `│      Similarity: ${(String(Math.round((result.similarity || 0) * 100)) + '%').padEnd(42)}│\n`;
+                recallOutput += `│      ${truncated.padEnd(57)}│\n`;
+                if (idx < recallData.results.length - 1) recallOutput += `├─────────────────────────────────────────────────────────────┤\n`;
+              });
+              recallOutput += `└─────────────────────────────────────────────────────────────┘\n[exit 0]`;
+              addLine('system', recallOutput);
+            }
+          } catch (err: any) {
+            addLine('error', CLIFormatter.formatError(`Recall failed: ${err.message || 'Network error'}`, 1));
+          }
+          setIsProcessing(false);
+        }
+        break;
+
+      case 'sources':
+        {
+          setIsProcessing(true);
+          try {
+            const sourcesRes = await fetch('/api/knowledge/sources');
+            const sourcesData = await sourcesRes.json();
+
+            if (!sourcesRes.ok) {
+              addLine('error', CLIFormatter.formatError(sourcesData.error || 'Failed to fetch sources', 1));
+            } else if (!sourcesData.sources || sourcesData.sources.length === 0) {
+              addLine('system', `No sources ingested yet. Use: ingest <url>\n[exit 0]`);
+            } else {
+              let sourcesOutput = `┌────────┬──────────┬──────────────────────────────┬────────┬────────┐\n│  ID    │  TYPE    │  TITLE                       │  STATUS│  CHUNKS│\n├────────┼──────────┼──────────────────────────────┼────────┼────────┤\n`;
+              sourcesData.sources.forEach((source: any) => {
+                const id = String(source.id || '').slice(0, 6).padEnd(6);
+                const type = (source.type || 'unknown').slice(0, 8).padEnd(8);
+                const title = (source.title || 'Untitled').slice(0, 28).padEnd(28);
+                const status = (source.status || 'ok').slice(0, 6).padEnd(6);
+                const chunks = String(source.chunkCount || 0).padEnd(6);
+                sourcesOutput += `│  ${id}│  ${type}│  ${title}│  ${status}│  ${chunks}│\n`;
+              });
+              sourcesOutput += `└────────┴──────────┴──────────────────────────────┴────────┴────────┘\n[exit 0]`;
+              addLine('system', sourcesOutput);
+            }
+          } catch (err: any) {
+            addLine('error', CLIFormatter.formatError(`Sources failed: ${err.message || 'Network error'}`, 1));
+          }
+          setIsProcessing(false);
+        }
+        break;
+
+      case 'forget':
+        {
+          if (!argument) {
+            addLine('error', CLIFormatter.formatError('Usage: forget <source-id>', 1));
+            break;
+          }
+
+          setIsProcessing(true);
+          try {
+            const forgetRes = await fetch(`/api/knowledge/sources?id=${encodeURIComponent(argument)}`, {
+              method: 'DELETE',
+            });
+
+            const forgetData = await forgetRes.json();
+
+            if (!forgetRes.ok) {
+              addLine('error', CLIFormatter.formatError(forgetData.error || 'Failed to remove source', 1));
+            } else {
+              addLine('system', CLIFormatter.formatSuccess(`Source ${argument} removed from knowledge base`, 0) + '\n[exit 0]');
+            }
+          } catch (err: any) {
+            addLine('error', CLIFormatter.formatError(`Forget failed: ${err.message || 'Network error'}`, 1));
+          }
+          setIsProcessing(false);
+        }
+        break;
+
+      case 'stats':
+        {
+          const statsOutput = `╔═══════════════════════════════════════════════════════════════╗
+║  RLM — REINFORCEMENT LEARNING MEMORY                        ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  Architecture:  Multi-Agent Retrieval-Augmented Generation    ║
+║  Vector Store:  Semantic chunking + cosine similarity         ║
+║  Reranking:     Cross-encoder hybrid scoring                  ║
+║                                                               ║
+╠═══════════════════════════════════════════════════════════════╣
+║  AGENT FLEET                                                  ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  [1] Builder Agent                                            ║
+║      Model:   gemini-3-flash                                  ║
+║      Context: 1M tokens                                       ║
+║      Role:    Code generation & architecture decisions        ║
+║                                                               ║
+║  [2] Analyst Agent                                            ║
+║      Model:   gemini-3-flash                                  ║
+║      Context: 1M tokens                                       ║
+║      Role:    Pattern recognition & data analysis             ║
+║                                                               ║
+║  [3] Curator Agent                                            ║
+║      Model:   gemini-3-flash                                  ║
+║      Context: 1M tokens                                       ║
+║      Role:    Knowledge base curation & source ranking        ║
+║                                                               ║
+║  [4] Orchestrator Agent                                       ║
+║      Model:   gemini-3-pro                                    ║
+║      Context: 1M tokens                                       ║
+║      Role:    Task routing & multi-agent coordination         ║
+║                                                               ║
+╠═══════════════════════════════════════════════════════════════╣
+║  TIP: Use 'ingest' to load sources, 'recall' to query them   ║
+╚═══════════════════════════════════════════════════════════════╝
+[exit 0]`;
+          addLine('system', statsOutput);
         }
         break;
 

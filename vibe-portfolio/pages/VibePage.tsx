@@ -4,45 +4,84 @@ import { MindsetCard } from '../components/VibePage';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
+const MINDSETS = [
+  {
+    number: '1',
+    title: 'Autocomplete',
+    description: 'AI suggests the next line. You hit tab. You\'re still writing every function.',
+    icon: Zap,
+    features: [
+      'Faster typing, same workflow',
+      'You remain the bottleneck',
+      'Incremental productivity gains',
+    ],
+    status: 'deprecated' as const,
+  },
+  {
+    number: '2',
+    title: 'Chatbot',
+    description: 'You prompt, AI generates, you review. Delegating features instead of lines.',
+    icon: MessageSquare,
+    features: [
+      'Generate entire components at once',
+      'Still requires constant oversight',
+      'Loses context after 10 messages',
+    ],
+    status: 'limited' as const,
+  },
+  {
+    number: '3',
+    title: 'Orchestrator',
+    description: 'Design systems where specialized agents collaborate. You architect, they execute.',
+    icon: Workflow,
+    features: [
+      'Multiple agents work in parallel',
+      'Automatic handoffs and verification',
+      'Context persists across workflows',
+    ],
+    status: 'current' as const,
+  },
+];
+
+const OLD_WAY_ITEMS = [
+  { icon: '💬', text: 'You write prompts for every task', sub: 'Manual, repetitive, exhausting' },
+  { icon: '🧠', text: 'AI forgets context constantly', sub: 'Start from scratch each time' },
+  { icon: '👀', text: 'You review every line of code', sub: 'Quality control is on you' },
+  { icon: '⏸️', text: 'Work stops when you stop', sub: 'Zero parallelization' },
+] as const;
+
+const NEW_WAY_ITEMS = [
+  { icon: '🎯', text: 'Design workflows once', sub: 'Reusable, systematic, scalable' },
+  { icon: '🔄', text: 'Agents maintain context automatically', sub: 'State persists across sessions' },
+  { icon: '✅', text: 'Review verified outcomes', sub: 'Agents check each other' },
+  { icon: '⚡', text: 'Agents work in parallel 24/7', sub: 'True parallelization' },
+] as const;
+
+const BEFORE_ITEMS = [
+  'You write prompts for every task',
+  'AI forgets context every session',
+  'You review every line of code',
+  'Work stops when you stop',
+] as const;
+
+const AFTER_ITEMS = [
+  'You design agent workflows once',
+  'Agents maintain context automatically',
+  'You review verified outcomes',
+  'Agents work in parallel 24/7',
+] as const;
+
+const BACKEND_SCANLINE_STYLE: React.CSSProperties = {
+  background: 'linear-gradient(rgba(139,92,246,0.03) 50%, transparent 50%)',
+  backgroundSize: '100% 4px',
+};
+
+const TESTING_SCANLINE_STYLE: React.CSSProperties = {
+  background: 'linear-gradient(rgba(16,185,129,0.03) 50%, transparent 50%)',
+  backgroundSize: '100% 4px',
+};
+
 export const VibePage: React.FC = () => {
-  const mindsets = [
-    {
-      number: '1',
-      title: 'Autocomplete',
-      description: 'AI suggests the next line. You hit tab. You\'re still writing every function.',
-      icon: Zap,
-      features: [
-        'Faster typing, same workflow',
-        'You remain the bottleneck',
-        'Incremental productivity gains',
-      ],
-      status: 'deprecated' as const,
-    },
-    {
-      number: '2',
-      title: 'Chatbot',
-      description: 'You prompt, AI generates, you review. Delegating features instead of lines.',
-      icon: MessageSquare,
-      features: [
-        'Generate entire components at once',
-        'Still requires constant oversight',
-        'Loses context after 10 messages',
-      ],
-      status: 'limited' as const,
-    },
-    {
-      number: '3',
-      title: 'Orchestrator',
-      description: 'Design systems where specialized agents collaborate. You architect, they execute.',
-      icon: Workflow,
-      features: [
-        'Multiple agents work in parallel',
-        'Automatic handoffs and verification',
-        'Context persists across workflows',
-      ],
-      status: 'current' as const,
-    },
-  ];
 
   const [hoveredPhase, setHoveredPhase] = useState<number | null>(null);
   const [selectedView, setSelectedView] = useState<'before' | 'after'>('before');
@@ -154,12 +193,7 @@ export const VibePage: React.FC = () => {
                   </div>
 
                   <div className="space-y-4">
-                    {[
-                      { icon: '💬', text: 'You write prompts for every task', sub: 'Manual, repetitive, exhausting' },
-                      { icon: '🧠', text: 'AI forgets context constantly', sub: 'Start from scratch each time' },
-                      { icon: '👀', text: 'You review every line of code', sub: 'Quality control is on you' },
-                      { icon: '⏸️', text: 'Work stops when you stop', sub: 'Zero parallelization' },
-                    ].map((item, idx) => (
+                    {OLD_WAY_ITEMS.map((item, idx) => (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: -20 }}
@@ -221,12 +255,7 @@ export const VibePage: React.FC = () => {
                   </div>
 
                   <div className="space-y-4">
-                    {[
-                      { icon: '🎯', text: 'Design workflows once', sub: 'Reusable, systematic, scalable' },
-                      { icon: '🔄', text: 'Agents maintain context automatically', sub: 'State persists across sessions' },
-                      { icon: '✅', text: 'Review verified outcomes', sub: 'Agents check each other' },
-                      { icon: '⚡', text: 'Agents work in parallel 24/7', sub: 'True parallelization' },
-                    ].map((item, idx) => (
+                    {NEW_WAY_ITEMS.map((item, idx) => (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: 20 }}
@@ -276,7 +305,7 @@ export const VibePage: React.FC = () => {
           {/* Premium Agent Cards with Terminal Aesthetic */}
           <div className="relative max-w-5xl mx-auto">
             {/* Animated Data Flow Lines */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: 1 }}>
               {/* Flow from orchestrator to agents */}
               <defs>
                 <linearGradient id="flow-gradient-1" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -302,54 +331,54 @@ export const VibePage: React.FC = () => {
 
               {/* Animated flow particles */}
               <motion.circle
-                r="3"
+                r="1.5"
                 fill="#22d3ee"
                 filter="url(#glow)"
-                initial={{ opacity: 0 }}
+                initial={{ cx: 10, cy: 50, opacity: 0 }}
                 animate={{
-                  cx: ['10%', '30%'],
-                  cy: ['50%', '50%'],
+                  cx: [10, 90],
+                  cy: [30, 70],
                   opacity: [0, 1, 0],
                 }}
                 transition={{
-                  duration: 2,
+                  duration: 3,
                   repeat: Infinity,
                   ease: "linear",
                   delay: 0,
                 }}
               />
               <motion.circle
-                r="3"
+                r="1.5"
                 fill="#a78bfa"
                 filter="url(#glow)"
-                initial={{ opacity: 0 }}
+                initial={{ cx: 10, cy: 50, opacity: 0 }}
                 animate={{
-                  cx: ['10%', '30%'],
-                  cy: ['50%', '50%'],
+                  cx: [10, 90],
+                  cy: [50, 50],
                   opacity: [0, 1, 0],
                 }}
                 transition={{
-                  duration: 2,
+                  duration: 3,
                   repeat: Infinity,
                   ease: "linear",
-                  delay: 0.7,
+                  delay: 1,
                 }}
               />
               <motion.circle
-                r="3"
+                r="1.5"
                 fill="#10b981"
                 filter="url(#glow)"
-                initial={{ opacity: 0 }}
+                initial={{ cx: 10, cy: 50, opacity: 0 }}
                 animate={{
-                  cx: ['10%', '30%'],
-                  cy: ['50%', '50%'],
+                  cx: [10, 90],
+                  cy: [70, 30],
                   opacity: [0, 1, 0],
                 }}
                 transition={{
-                  duration: 2,
+                  duration: 3,
                   repeat: Infinity,
                   ease: "linear",
-                  delay: 1.4,
+                  delay: 2,
                 }}
               />
             </svg>
@@ -518,10 +547,7 @@ export const VibePage: React.FC = () => {
 
                     <motion.div
                       className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background: 'linear-gradient(rgba(139,92,246,0.03) 50%, transparent 50%)',
-                        backgroundSize: '100% 4px',
-                      }}
+                      style={BACKEND_SCANLINE_STYLE}
                       animate={{
                         opacity: hoveredPhase === 1 ? 1 : 0,
                       }}
@@ -611,10 +637,7 @@ export const VibePage: React.FC = () => {
 
                     <motion.div
                       className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background: 'linear-gradient(rgba(16,185,129,0.03) 50%, transparent 50%)',
-                        backgroundSize: '100% 4px',
-                      }}
+                      style={TESTING_SCANLINE_STYLE}
                       animate={{
                         opacity: hoveredPhase === 2 ? 1 : 0,
                       }}
@@ -689,7 +712,7 @@ export const VibePage: React.FC = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-          {mindsets.map((mindset) => (
+          {MINDSETS.map((mindset) => (
             <MindsetCard key={mindset.number} {...mindset} />
           ))}
         </div>
@@ -786,17 +809,12 @@ export const VibePage: React.FC = () => {
               Before
             </div>
             <div className="space-y-3">
-              {[
-                'You write prompts for every task',
-                'AI forgets context every session',
-                'You review every line of code',
-                'Work stops when you stop',
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-start gap-2 text-sm text-white/60">
-                  <span className="text-red-400 mt-0.5">×</span>
-                  <span>{item}</span>
-                </div>
-              ))}
+               {BEFORE_ITEMS.map((item, idx) => (
+                 <div key={idx} className="flex items-start gap-2 text-sm text-white/60">
+                   <span className="text-red-400 mt-0.5">×</span>
+                   <span>{item}</span>
+                 </div>
+               ))}
             </div>
           </div>
 
@@ -807,17 +825,12 @@ export const VibePage: React.FC = () => {
               After
             </div>
             <div className="space-y-3">
-              {[
-                'You design agent workflows once',
-                'Agents maintain context automatically',
-                'You review verified outcomes',
-                'Agents work in parallel 24/7',
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-start gap-2 text-sm text-white/70">
-                  <span className="text-cyan-400 mt-0.5">✓</span>
-                  <span>{item}</span>
-                </div>
-              ))}
+               {AFTER_ITEMS.map((item, idx) => (
+                 <div key={idx} className="flex items-start gap-2 text-sm text-white/70">
+                   <span className="text-cyan-400 mt-0.5">✓</span>
+                   <span>{item}</span>
+                 </div>
+               ))}
             </div>
           </div>
         </div>

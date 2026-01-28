@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface Event {
@@ -86,6 +86,8 @@ const SocialProofTicker = React.memo(function SocialProofTicker() {
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [isPaused, setIsPaused] = useState(false);
 
+  const loopedEvents = useMemo(() => [...events, ...events, ...events], [events]);
+
   useEffect(() => {
     if (isPaused) return;
 
@@ -122,7 +124,7 @@ const SocialProofTicker = React.memo(function SocialProofTicker() {
           }}
         >
           {/* Duplicate events for seamless loop */}
-          {[...events, ...events, ...events].map((event, index) => (
+          {loopedEvents.map((event, index) => (
             <motion.div
               key={`${event.id}-${index}`}
               className="flex items-center gap-3 whitespace-nowrap"

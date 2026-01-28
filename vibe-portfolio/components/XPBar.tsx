@@ -59,11 +59,10 @@ export const XPBar = React.memo<XPBarProps>(function XPBar({
   useEffect(() => {
     if (currentLevel > previousLevel) {
       setShowLevelUp(true);
-      const timer = setTimeout(() => setShowLevelUp(false), 3000);
       setPreviousLevel(currentLevel);
+      const timer = setTimeout(() => setShowLevelUp(false), 3000);
       return () => clearTimeout(timer);
     }
-    setPreviousLevel(currentLevel);
     return undefined;
   }, [currentLevel, previousLevel]);
 

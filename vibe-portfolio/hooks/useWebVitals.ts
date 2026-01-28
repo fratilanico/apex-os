@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
+const noop = () => {};
+
 export function useWebVitals() {
   useEffect(() => {
-    onCLS(console.log);
-    onFCP(console.log);
-    onINP(console.log);
-    onLCP(console.log);
-    onTTFB(console.log);
+    const reporter = process.env.NODE_ENV === 'development' ? console.log : noop;
+    onCLS(reporter);
+    onFCP(reporter);
+    onINP(reporter);
+    onLCP(reporter);
+    onTTFB(reporter);
   }, []);
 }

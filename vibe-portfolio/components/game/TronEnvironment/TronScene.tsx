@@ -14,8 +14,6 @@ interface TronSceneProps {
 export function TronScene({ children, className }: TronSceneProps) {
   const { quality } = useAdaptivePerformance();
   
-  console.log('[TronScene] Rendering with quality:', quality);
-
   return (
     <Canvas
       className={className}
@@ -37,7 +35,7 @@ export function TronScene({ children, className }: TronSceneProps) {
         </div>
       }>
         {/* Camera Setup */}
-        <PerspectiveCamera makeDefault position={[0, 5, 10]} fov={60} onUpdate={() => console.log('[TronScene] Inside Canvas - 3D context active')} />
+        <PerspectiveCamera makeDefault position={[0, 5, 10]} fov={60} />
 
         {/* Controls with limited rotation and smooth damping */}
         <OrbitControls

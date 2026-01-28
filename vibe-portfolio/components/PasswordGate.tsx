@@ -1,5 +1,23 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Terminal, Lock, ArrowRight, KeyRound } from 'lucide-react';
+
+const CYAN_GLOW_STYLE: React.CSSProperties = {
+  top: '-10%',
+  left: '-5%',
+  width: '60%',
+  height: '60%',
+  background: 'radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%)',
+  filter: 'blur(60px)',
+};
+
+const VIOLET_GLOW_STYLE: React.CSSProperties = {
+  bottom: '-10%',
+  right: '-5%',
+  width: '55%',
+  height: '55%',
+  background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)',
+  filter: 'blur(60px)',
+};
 
 // Authentication configuration
 const VALID_CREDENTIALS = [
@@ -98,27 +116,13 @@ export const PasswordGate: React.FC<PasswordGateProps> = ({ children }) => {
       {/* Background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
         <div 
-          className="absolute"
-          style={{
-            top: '-10%',
-            left: '-5%',
-            width: '60%',
-            height: '60%',
-            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-          }}
-        />
-        <div 
-          className="absolute"
-          style={{
-            bottom: '-10%',
-            right: '-5%',
-            width: '55%',
-            height: '55%',
-            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-          }}
-        />
+           className="absolute"
+           style={CYAN_GLOW_STYLE}
+         />
+         <div 
+           className="absolute"
+           style={VIOLET_GLOW_STYLE}
+         />
       </div>
 
       <div className="relative z-10 w-full max-w-sm">
