@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -34,7 +34,6 @@ import {
   ToggleLeft as Toggle,
   Box,
   Trash2,
-  Sparkle
 } from 'lucide-react';
 import {
   COMPONENT_REGISTRY,
@@ -91,7 +90,7 @@ export const AdminPage: React.FC = () => {
   const { addNode, addEdge } = useMatrixStore();
 
   // Fetch intelligence on mount or tab change
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeTab === 'intelligence') {
       fetchIntelligence();
     }
@@ -195,8 +194,6 @@ export const AdminPage: React.FC = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: SECURITY WARNING - Move to backend authentication with proper session management
-    // This client-side password check is NOT secure for production
     if (password === CREDENTIALS.adminPassword) {
       setIsAuthenticated(true);
       setError('');
@@ -307,7 +304,7 @@ export const AdminPage: React.FC = () => {
           className="flex flex-wrap gap-2 mb-8 p-2 rounded-xl bg-white/5 border border-white/10"
         >
           {TABS.map((tab) => {
-            const Icon = tab.icon as any;
+            const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
@@ -318,7 +315,7 @@ export const AdminPage: React.FC = () => {
                     : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
               >
-              {React.createElement(Icon, { className: "w-4 h-4" })}
+              {React.createElement(Icon as any, { className: "w-4 h-4" })}
               <span className="hidden sm:inline">{tab.label}</span>
             </button>
             );
@@ -448,7 +445,7 @@ export const AdminPage: React.FC = () => {
                       <Rss className="w-5 h-5 text-cyan-400" />
                       Frontier Intelligence Sync
                     </h3>
-                    <p className="text-white/50 text-sm mt-1">Auto-detecting tech trends from Newsletter Hub</p>
+                    <p className="text-white/50 text-sm mt-1">Auto-detecting tech trends powered by Perplexity Pro</p>
                   </div>
                   <button 
                     onClick={handleSyncHub}
@@ -456,7 +453,7 @@ export const AdminPage: React.FC = () => {
                     className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-cyan-500 text-white font-bold hover:shadow-lg hover:shadow-cyan-500/30 disabled:opacity-50 transition-all"
                   >
                     <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                    {isSyncing ? 'Scouting Hub...' : 'Sync Now'}
+                    {isSyncing ? 'Scouting the Web...' : 'Sync Now'}
                   </button>
                 </div>
 
@@ -518,7 +515,7 @@ export const AdminPage: React.FC = () => {
                                 onClick={() => manifestIntelligence(item.id)}
                                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold text-xs hover:bg-cyan-500/30 transition-all"
                               >
-                                <Sparkle size={14} />
+                                <Sparkles size={14} />
                                 MANIFEST
                               </button>
                             )}

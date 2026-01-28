@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { getFrontierConstraints } from '../lib/intelligence/constraints';
+import { callPerplexity } from './_lib/perplexity';
 
 // Types
 interface ChatMessage {
@@ -11,6 +12,7 @@ interface ChatMessage {
 interface RequestBody {
   message: string;
   history?: ChatMessage[];
+  mode?: 'chat' | 'research';
 }
 
 // System prompt for APEX Terminal - elite coding assistant
@@ -128,6 +130,22 @@ export default async function handler(
   if (message.length === 0) {
     res.status(400).json({ error: 'Message cannot be empty' });
     return;
+  }
+
+  // --- RESEARCH MODE ---
+  if (body.mode === 'research') {
+    try {
+      const research = await callPerplexity(
+        "You are a Senior Academic Researcher. Provide deep technical, cited reports on developer topics. Use professional markdown formatting.",
+        message
+      );
+      res.status(200).json({ response: research, model: 'sonar-reasoning-pro' });
+      return;
+    } catch (err: any) {
+      console.error('Research Error:', err);
+      res.status(500).json({ error: `Research failed: ${err.message}` });
+      return;
+    }
   }
 
   if (message.length > 10000) {

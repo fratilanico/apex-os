@@ -1,9 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { supabase } from '@/lib/supabase';
 import { callGemini } from '../_lib/gemini';
-import { parseURL } from '../knowledge/_lib/parsers/url';
+import { callPerplexity } from '../_lib/perplexity';
 
-const SYNC_SYSTEM_PROMPT = `You are the APEX Frontier Scout. Your role is to analyze tech news feeds and extract high-signal tool updates into modular "Atomic Intelligence" units.
+const SCOUT_RESEARCH_PROMPT = `Search the web for the top 5 emerging AI coding tools, libraries, architectural patterns, or frontier model updates released or trending in the last 7 days. 
+Focus on technologies relevant to high-velocity development (Vibe Coding), Next.js, AI Agents, and sovereign infrastructure. 
+Return a high-fidelity summary including technical impact and implementation details.`;
+
+const SYNC_SYSTEM_PROMPT = `You are the APEX Frontier Scout. Your role is to analyze research data and extract high-signal tool updates into modular "Atomic Intelligence" units.
 
 Your goal is to identify emerging technologies, new model releases, or architectural shifts that should be added to the APEX curriculum.
 
@@ -16,7 +20,7 @@ For each item, generate:
 
 Respond ONLY with a JSON array of objects.`;
 
-const SYNC_USER_PROMPT_TEMPLATE = (content: string) => `Analyze this tech feed and extract the top 5 most impactful updates:
+const SYNC_USER_PROMPT_TEMPLATE = (content: string) => `Analyze this research data and extract the top 5 most impactful updates into Atomic Modules:
 
 ${content}
 
@@ -38,14 +42,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // 1. Scrape the Hub
-    const hubUrl = 'https://news-source-hub.vercel.app';
-    const parsed = await parseURL(hubUrl);
+    // 1. Research via Perplexity (The Brain)
+    const researchData = await callPerplexity(
+      "You are a Senior Frontier Scout. Provide deep technical research on emerging AI and dev trends.",
+      SCOUT_RESEARCH_PROMPT
+    );
     
-    // 2. Draft via Gemini
+    // 2. Draft via Gemini (The Architect)
     const draftedJson = await callGemini(
       SYNC_SYSTEM_PROMPT,
-      SYNC_USER_PROMPT_TEMPLATE(parsed.content),
+      SYNC_USER_PROMPT_TEMPLATE(researchData),
       { jsonMode: true, temperature: 0.2 }
     );
 
@@ -54,7 +60,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 3. Filter duplicates and save to Supabase
     const savedItems = [];
     for (const draft of drafts) {
-      // Check if title exists
       const { data: existing } = await supabase
         .from('frontier_intelligence')
         .select('id')
@@ -68,7 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             title: draft.title,
             description: draft.description,
             logic: draft.logic,
-            source_url: draft.source_url || hubUrl,
+            source_url: draft.source_url || 'https://perplexity.ai',
             category: draft.category,
             tags: draft.tags,
             is_active: false,
@@ -86,7 +91,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       success: true,
       processed: drafts.length,
       new_items: savedItems.length,
-      items: savedItems
+      items: savedItems,
+      research_summary: researchData.slice(0, 500) + '...'
     });
 
   } catch (error: any) {

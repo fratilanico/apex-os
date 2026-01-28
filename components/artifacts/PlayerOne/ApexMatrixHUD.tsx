@@ -137,8 +137,10 @@ export const ApexMatrixHUD: React.FC = () => {
 
   // --- Dynamic Graph Construction ---
   React.useEffect(() => {
+    if (!sources) return;
+
     // 1. Construct Knowledge Nodes
-    const knowledgeNodes = sources.map((source, index) => {
+    const knowledgeNodes = (sources || []).map((source, index) => {
       const angle = (index / (sources.length || 1)) * Math.PI * 2;
       const radius = 400;
       return {

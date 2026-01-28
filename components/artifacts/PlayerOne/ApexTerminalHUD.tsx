@@ -59,7 +59,7 @@ interface TerminalLine {
 }
 
 const COMMANDS = [
-  'help', 'clear', 'vibe', 'ask', 'code', 'explain', 'debug',
+  'help', 'clear', 'vibe', 'ask', 'code', 'explain', 'debug', 'research',
   'status', 'inventory', 'quests', 'map', 'cd', 'ls', 'pwd',
   'fork', 'solve', 'submit', 'abandon',
   'ingest', 'recall', 'sources', 'forget', 'stats'
@@ -74,6 +74,7 @@ const HELP_TEXT = `
 │    code <desc>       Generate code                          │
 │    explain <topic>   Get explanation                        │
 │    debug <error>     Debug help                             │
+│    research <topic>  Deep cited report (Perplexity Pro)     │
 │                                                             │
 │  NAVIGATION                                                 │
 │    cd <node-id>      Navigate to node                       │
@@ -296,7 +297,7 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
     }
   }, [lines]);
 
-  const callAI = useCallback(async (message: string, retryCount = 0): Promise<string> => {
+  const callAI = useCallback(async (message: string, mode: 'chat' | 'research' = 'chat', retryCount = 0): Promise<string> => {
     try {
       const history = lines
         .filter(l => l.type === 'input' || l.type === 'ai')
@@ -306,10 +307,10 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
           content: typeof l.content === 'string' ? l.content.replace(/^> /, '') : '',
         }));
 
-      const response = await fetch('/api/terminal-vertex', {
+      const response = await fetch('/api/terminal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history }),
+        body: JSON.stringify({ message, history, mode }),
       });
 
       const data = await response.json();
@@ -319,33 +320,34 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
         if (retryCount < 2) {
           console.warn(`AI Handshake failed (attempt ${retryCount + 1}). Retrying in 1s...`);
           await new Promise(r => setTimeout(r, 1000));
-          return callAI(message, retryCount + 1);
+          return callAI(message, mode, retryCount + 1);
         }
         throw new Error(data.error || `HTTP_${response.status}`);
       }
       
-      // SYNC WITH DIRECTOR
-      syncTerminalContext(data.response || '');
-      
-      // Fire and forget director sync to avoid blocking UI if it's slow
-      fetch('/api/matrix-director', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          currentGraph: { nodes, edges },
-          terminalLog: data.response,
-          userGoal: 'Achieve Sovereign Dominance'
-        }),
-      }).then(res => {
-        if (res.ok) res.json().then(processDirectorResponse);
-      }).catch(err => console.warn('Director sync failed:', err));
+      // SYNC WITH DIRECTOR (only for chat mode to avoid flooding with research data)
+      if (mode === 'chat') {
+        syncTerminalContext(data.response || '');
+        
+        fetch('/api/matrix-director', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            currentGraph: { nodes, edges },
+            terminalLog: data.response,
+            userGoal: 'Achieve Sovereign Dominance'
+          }),
+        }).then(res => {
+          if (res.ok) res.json().then(processDirectorResponse);
+        }).catch(err => console.warn('Director sync failed:', err));
+      }
 
       return data.response || 'Neural handshake complete.';
     } catch (err: any) {
       if (retryCount < 2) {
         console.warn(`Connection failed (attempt ${retryCount + 1}). Retrying in 1s...`);
         await new Promise(r => setTimeout(r, 1000));
-        return callAI(message, retryCount + 1);
+        return callAI(message, mode, retryCount + 1);
       }
       return `✗ SYSTEM_ERROR: ${err.message || 'Link failed'}. Check console for details.`;
     }
@@ -376,6 +378,17 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
 
       case 'vibe':
         addLine('system', `\n  ✦ "${VIBE_QUOTES[Math.floor(Math.random() * VIBE_QUOTES.length)]}"\n`);
+        break;
+
+      case 'research':
+        if (!argument) {
+          addLine('error', CLIFormatter.formatError('Usage: research <topic>', 1));
+        } else {
+          setIsProcessing(true);
+          const res = await callAI(argument, 'research');
+          setIsProcessing(false);
+          addLine('system', CLIFormatter.convertMarkdownToCLI(res));
+        }
         break;
 
       // ========== AI COMMANDS ==========
