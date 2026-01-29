@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
+import { callPerplexity } from './_lib/perplexity.js';
 
 // Inline supabase for serverless
 const supabase = createClient(
@@ -164,7 +165,33 @@ export default async function handler(
   }
 
   const history = Array.isArray(body.history) ? body.history : [];
+  const mode = body.mode || 'chat';
   const genAI = new GoogleGenerativeAI(apiKey);
+
+  // Research mode: Use Perplexity for real-time web search
+  if (mode === 'research') {
+    try {
+      const researchSystemPrompt = `You are a senior research analyst providing comprehensive reports on technical topics.
+
+Your task: Research the given topic and provide a detailed, well-cited report.
+
+Format your response with:
+- Executive summary (2-3 sentences)
+- Key findings (bullet points with citations)
+- Technical details (with code examples where relevant)
+- Sources and references
+
+Be specific, cite sources, and focus on actionable insights.`;
+
+      const researchResponse = await callPerplexity(researchSystemPrompt, message);
+      res.status(200).json({ response: researchResponse, model: 'sonar-reasoning-pro', mode: 'research' });
+      return;
+    } catch (perplexityError: unknown) {
+      const errorMessage = perplexityError instanceof Error ? perplexityError.message : String(perplexityError);
+      console.warn('Perplexity research failed, falling back to Gemini:', errorMessage);
+      // Fall through to Gemini as backup
+    }
+  }
 
   try {
     const constraints = await getFrontierConstraints();
