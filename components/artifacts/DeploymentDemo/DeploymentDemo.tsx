@@ -907,9 +907,6 @@ export const DeploymentDemo = React.memo(function DeploymentDemo() {
                     <input
                       ref={inputRef}
                       type="text"
-                      id="startup-idea"
-                      name="startupIdea"
-                      aria-label="Startup idea"
                       value={userInput}
                       onChange={(e) => setUserInput(e.target.value)}
                       className="flex-1 bg-transparent outline-none text-white caret-cyan-400"

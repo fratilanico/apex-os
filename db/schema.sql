@@ -1,15 +1,23 @@
 -- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public;
 
--- ============================================================================
--- TABLES (in dependency order)
--- ============================================================================
+-- Knowledge chunks (vector store for ingested content)
+CREATE TABLE IF NOT EXISTS public.knowledge_chunks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_id UUID REFERENCES public.ingestion_sources(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  embedding vector(1536) NOT NULL,  -- OpenAI text-embedding-3-small dimension
+  metadata JSONB DEFAULT '{}',
+  chunk_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- 1. Ingestion sources (track what has been ingested) - NO DEPENDENCIES
+-- Ingestion sources (track what has been ingested)
 CREATE TABLE IF NOT EXISTS public.ingestion_sources (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT,  -- optional user scoping
-  source_type TEXT NOT NULL CHECK (source_type IN ('url', 'pdf', 'youtube', 'github', 'notion', 'markdown', 'newsletter_hub')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('url', 'pdf', 'youtube', 'github', 'notion', 'markdown')),
   source_url TEXT,
   title TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
@@ -18,38 +26,6 @@ CREATE TABLE IF NOT EXISTS public.ingestion_sources (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- 2. Knowledge chunks (vector store) - DEPENDS ON ingestion_sources
-CREATE TABLE IF NOT EXISTS public.knowledge_chunks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  source_id UUID REFERENCES public.ingestion_sources(id) ON DELETE CASCADE,
-  content TEXT NOT NULL,
-  embedding vector(768) NOT NULL,  -- Gemini text-embedding-004 dimension
-  metadata JSONB DEFAULT '{}',
-  chunk_index INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Frontier Intelligence (Staging area for auto-detected trends)
-CREATE TABLE IF NOT EXISTS public.frontier_intelligence (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  description TEXT,
-  logic TEXT,  -- implementation logic for agents
-  source_url TEXT,
-  category TEXT NOT NULL DEFAULT 'AI', -- Frontend, Backend, AI, Infra
-  tags TEXT[] DEFAULT '{}',
-  is_active BOOLEAN DEFAULT FALSE,
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'manifested', 'archived')),
-  manifested_node_id TEXT, -- Link to Matrix node ID if manifested
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Index for active intelligence filtering
-CREATE INDEX IF NOT EXISTS idx_frontier_intelligence_active
-  ON public.frontier_intelligence(is_active);
 
 -- Knowledge graph edges (relationships between chunks)
 CREATE TABLE IF NOT EXISTS public.knowledge_edges (
@@ -95,7 +71,7 @@ CREATE TABLE IF NOT EXISTS public.agent_learnings (
 
 -- Similarity search function
 CREATE OR REPLACE FUNCTION public.match_knowledge_chunks(
-  query_embedding vector(768),
+  query_embedding vector(1536),
   match_threshold FLOAT DEFAULT 0.75,
   match_count INTEGER DEFAULT 10
 )

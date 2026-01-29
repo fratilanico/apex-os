@@ -1,5 +1,5 @@
 import path from 'path';
-import { defineConfig, type PluginOption, loadEnv } from 'vite';
+import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 
@@ -16,14 +16,6 @@ function localApiMiddleware(): PluginOption {
       server.middlewares.use(async (req, res, next) => {
         if (!req.url?.startsWith('/api/')) {
           return next();
-        }
-
-        // Load env variables for the current mode and ensure they are in process.env
-        const env = loadEnv(server.config.mode, process.cwd(), '');
-        Object.assign(process.env, env);
-        
-        if (req.url?.includes('terminal') || req.url?.includes('chat')) {
-          console.log(`[API] ${req.url} | GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? 'FOUND' : 'MISSING'}`);
         }
 
         const endpoint = req.url.replace('/api/', '').split('?')[0];
@@ -83,7 +75,7 @@ function localApiMiddleware(): PluginOption {
   };
 }
 
-export default defineConfig(() => ({
+export default defineConfig(({ mode }) => ({
   server: {
     port: 5173,
     host: '0.0.0.0',
@@ -121,17 +113,13 @@ export default defineConfig(() => ({
       'remark-gfm',
     ],
   },
-
-  esbuild: {
-    sourcemap: true,
-  },
   
   build: {
     // Increase chunk size warning limit
     chunkSizeWarningLimit: 600,
     
-    // Keep sourcemaps for tooling, but hide in output
-    sourcemap: 'hidden',
+    // Disable sourcemaps in production
+    sourcemap: mode !== 'production',
     
     // Use terser for better minification
     minify: 'terser',
@@ -148,15 +136,6 @@ export default defineConfig(() => ({
     
     // Rollup options for advanced code splitting
     rollupOptions: {
-      onwarn(warning, warn) {
-        if (warning.code === 'SOURCEMAP_ERROR' || warning.code === 'SOURCEMAP_INVALID') {
-          return;
-        }
-        if (typeof warning.message === 'string' && warning.message.includes('sourcemap')) {
-          return;
-        }
-        warn(warning);
-      },
       output: {
         // Manual chunk splitting strategy
         manualChunks: (id): string | undefined => {

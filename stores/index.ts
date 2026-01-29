@@ -46,7 +46,6 @@ export const resetAllStores = () => {
     'vibe-academy-storage',
     'vibe-skills-storage',
     'vibe-quiz-storage',
-    'vibe-curriculum-sessions',
   ];
 
   storeKeys.forEach((key) => {

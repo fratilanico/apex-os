@@ -19,7 +19,7 @@ export interface Quest {
   goldReward: number;
   prerequisites: string[]; // Quest IDs
   skillsUnlocked: string[]; // Skill IDs
-  category: 'ORCHESTRATION' | 'CODING' | 'REASONING' | 'MULTIMODAL' | 'SECURITY' | 'WORKFLOW';
+  category: 'ORCHESTRATION' | 'CODING' | 'REASONING' | 'MULTIMODAL' | 'SECURITY';
   act: number;
 }
 
@@ -468,117 +468,6 @@ export const ACT_4_QUESTS: Quest[] = [
 ];
 
 // ============================================================================
-// WORKFLOW MASTERY QUESTS
-// ============================================================================
-
-export const WORKFLOW_QUESTS: Quest[] = [
-  {
-    id: 'workflow-01',
-    title: 'Voice of the Machine',
-    description: 'Master the JARVIS Voice Pipeline',
-    narrative: 'The terminal crackles with static. "Can you hear me, Player One? We need a direct link. A voice to bridge the worlds."',
-    difficulty: 'MEDIUM',
-    xpReward: 400,
-    goldReward: 200,
-    prerequisites: ['main-06'],
-    skillsUnlocked: ['jarvis-voice-pipeline'],
-    category: 'WORKFLOW',
-    act: 2,
-  },
-  {
-    id: 'workflow-02',
-    title: 'The Browser Whisperer',
-    description: 'Master Chrome DevTools MCP',
-    narrative: 'The web is vast and chaotic. Learn to bend it to your will. Automate the machine, control the stream.',
-    difficulty: 'MEDIUM',
-    xpReward: 350,
-    goldReward: 175,
-    prerequisites: ['main-06'],
-    skillsUnlocked: ['chrome-devtools-mcp'],
-    category: 'WORKFLOW',
-    act: 2,
-  },
-  {
-    id: 'workflow-03',
-    title: 'Swarm Intelligence',
-    description: 'Master Multi-Agent Orchestration',
-    narrative: 'One agent is a tool. Many agents are a force. Orchestrate the symphony of autonomous intent.',
-    difficulty: 'HARD',
-    xpReward: 500,
-    goldReward: 250,
-    prerequisites: ['main-12'],
-    skillsUnlocked: ['multi-agent-orchestration'],
-    category: 'WORKFLOW',
-    act: 2,
-  },
-  {
-    id: 'workflow-04',
-    title: 'Deep Research Oracle',
-    description: 'Master Perplexity Research Agents',
-    narrative: 'Search is no longer enough. You need TRUTH. Dig deep into the data streams and find the citations that matter.',
-    difficulty: 'MEDIUM',
-    xpReward: 350,
-    goldReward: 175,
-    prerequisites: ['main-10'],
-    skillsUnlocked: ['perplexity-research'],
-    category: 'WORKFLOW',
-    act: 2,
-  },
-  {
-    id: 'workflow-05',
-    title: 'Feed Curator',
-    description: 'Master Headless Agent API',
-    narrative: 'The information flood is overwhelming. Build the filters. Curate the signal. Forget the noise.',
-    difficulty: 'MEDIUM',
-    xpReward: 300,
-    goldReward: 150,
-    prerequisites: ['main-03'],
-    skillsUnlocked: ['headless-agent-api'],
-    category: 'WORKFLOW',
-    act: 1,
-  },
-  {
-    id: 'workflow-06',
-    title: 'Video Stream Analyst',
-    description: 'Master X.com and YouTube Video Analysis',
-    narrative: 'The feeds are endless. Videos stream past like data rivers. Learn to extract insights from the visual noise.',
-    difficulty: 'MEDIUM',
-    xpReward: 250,
-    goldReward: 125,
-    prerequisites: ['main-10'],
-    skillsUnlocked: ['x-video-analysis', 'youtube-video-analysis'],
-    category: 'WORKFLOW',
-    act: 2,
-  },
-  {
-    id: 'workflow-07',
-    title: 'Serverless Architect',
-    description: 'Master Vercel Serverless API patterns',
-    narrative: 'The cloud awaits. Functions spin up and vanish like ghosts. Learn the ephemeral architecture of the edge.',
-    difficulty: 'MEDIUM',
-    xpReward: 250,
-    goldReward: 125,
-    prerequisites: ['main-06'],
-    skillsUnlocked: ['vercel-serverless-api'],
-    category: 'WORKFLOW',
-    act: 2,
-  },
-  {
-    id: 'workflow-08',
-    title: 'The Standards Keeper',
-    description: 'Master AGENTS.md coding standards',
-    narrative: 'Code without standards is chaos. The AGENTS.md is your codex. Learn its rules, live by its principles.',
-    difficulty: 'EASY',
-    xpReward: 300,
-    goldReward: 150,
-    prerequisites: ['main-02'],
-    skillsUnlocked: ['agents-md-standards'],
-    category: 'WORKFLOW',
-    act: 1,
-  }
-];
-
-// ============================================================================
 // COMBINED EXPORTS
 // ============================================================================
 
@@ -587,7 +476,6 @@ export const MAIN_QUESTS: Quest[] = [
   ...ACT_2_QUESTS,
   ...ACT_3_QUESTS,
   ...ACT_4_QUESTS,
-  ...WORKFLOW_QUESTS,
 ];
 
 export const QUEST_MAP = new Map(

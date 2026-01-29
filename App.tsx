@@ -1,13 +1,13 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { PasswordGate } from './components/PasswordGate';
 import { ScrollToTop } from './components/ScrollToTop';
+import { StickyCTA } from './components/StickyCTA';
 import { EasterEggHints } from './components/EasterEggHints';
 import { PlayerOneHUD } from './components/artifacts/PlayerOne/PlayerOneHUD';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useWebVitals } from './hooks/useWebVitals';
-import { useAnalytics } from './hooks/useAnalytics';
 
 // Lazy load all page components for better performance
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
@@ -24,17 +24,6 @@ const PageLoader = () => (
     <div className="text-cyan-400 font-mono animate-pulse">Loading...</div>
   </div>
 );
-
-const AnalyticsTracker: React.FC = () => {
-  const location = useLocation();
-  const { track } = useAnalytics();
-
-  React.useEffect(() => {
-    track('page_view', { path: location.pathname });
-  }, [location.pathname, track]);
-
-  return null;
-};
 
 const RouteErrorFallback: React.FC<{ error: Error }> = ({ error }) => (
   <div className="min-h-screen flex items-center justify-center px-4">
@@ -58,7 +47,6 @@ const App = (): React.ReactElement => {
   return (
     <PasswordGate>
       <BrowserRouter>
-        <AnalyticsTracker />
         <ScrollToTop />
         <PlayerOneHUD />
         <Suspense fallback={<PageLoader />}>
@@ -108,6 +96,7 @@ const App = (): React.ReactElement => {
             } />
           </Routes>
         </Suspense>
+        <StickyCTA />
         <ErrorBoundary fallback={null}>
           <EasterEggHints />
         </ErrorBoundary>

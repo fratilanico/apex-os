@@ -105,7 +105,7 @@ export const StatsBar: React.FC = () => {
       <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-sm p-6 sm:p-8">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           {stats.map((stat, idx) => {
-            const Icon = stat.icon as any;
+            const Icon = stat.icon;
             const colors = colorClasses[stat.color as keyof typeof colorClasses];
             const animatedValue = useAnimatedCounter(stat.value, 2000, idx * 100);
             
@@ -127,8 +127,8 @@ export const StatsBar: React.FC = () => {
                     whileHover={{ rotate: [0, -10, 10, -10, 0] }}
                     transition={{ duration: 0.5 }}
                   >
-                    {React.createElement(Icon, { 
-                      className: `w-5 h-5 sm:w-6 sm:h-6 ${colors.text} transition-all duration-300` 
+                    {React.createElement(Icon as any, {
+                      className: `w-5 h-5 sm:w-6 sm:h-6 ${colors.text} transition-all duration-300`
                     })}
                   </motion.div>
                   

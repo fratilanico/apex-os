@@ -1,34 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
-import { createClient } from '@supabase/supabase-js';
-import { callPerplexity } from './_lib/perplexity.js';
-
-// Inline supabase for serverless
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_ANON_KEY || ''
-);
-
-async function getFrontierConstraints(): Promise<string> {
-  try {
-    const { data, error } = await supabase
-      .from('frontier_intelligence')
-      .select('title, category, logic, is_active');
-    if (error || !data) return '';
-    const restricted = data.filter((item: any) => !item.is_active);
-    const active = data.filter((item: any) => item.is_active);
-    let block = '\n\n## FRONTIER_KNOWLEDGE_CONSTRAINTS\n';
-    if (restricted.length > 0) {
-      block += '\n[RESTRICTED]:\n';
-      restricted.forEach((item: any) => { block += `- ${item.title}\n`; });
-    }
-    if (active.length > 0) {
-      block += '\n[AUTHORIZED]:\n';
-      active.forEach((item: any) => { block += `- ${item.title}: ${item.logic}\n`; });
-    }
-    return block;
-  } catch { return ''; }
-}
 
 // Types
 interface ChatMessage {
@@ -39,7 +10,6 @@ interface ChatMessage {
 interface RequestBody {
   message: string;
   history?: ChatMessage[];
-  mode?: 'chat' | 'research';
 }
 
 // System prompt for APEX Terminal - elite coding assistant
@@ -77,8 +47,8 @@ PERSONALITY:
 - You're the architect's trusted companion on the Frontier`;
 
 // Model configuration - Gemini 3 Flash
-const PRIMARY_MODEL = 'gemini-2.0-flash';
-const FALLBACK_MODEL = 'gemini-2.0-flash';
+const PRIMARY_MODEL = 'gemini-3-flash-preview';
+const FALLBACK_MODEL = 'gemini-3-flash-preview';
 
 /**
  * Format chat history for Gemini API
@@ -97,12 +67,11 @@ async function callGemini(
   genAI: GoogleGenerativeAI,
   message: string,
   history: ChatMessage[],
-  modelName: string,
-  constraints: string = ''
+  modelName: string
 ): Promise<{ text: string; model: string }> {
   const model = genAI.getGenerativeModel({
     model: modelName,
-    systemInstruction: TERMINAL_SYSTEM_PROMPT + constraints,
+    systemInstruction: TERMINAL_SYSTEM_PROMPT,
     generationConfig: {
       temperature: 0.3,
       topP: 0.85,
@@ -165,37 +134,10 @@ export default async function handler(
   }
 
   const history = Array.isArray(body.history) ? body.history : [];
-  const mode = body.mode || 'chat';
   const genAI = new GoogleGenerativeAI(apiKey);
 
-  // Research mode: Use Perplexity for real-time web search
-  if (mode === 'research') {
-    try {
-      const researchSystemPrompt = `You are a senior research analyst providing comprehensive reports on technical topics.
-
-Your task: Research the given topic and provide a detailed, well-cited report.
-
-Format your response with:
-- Executive summary (2-3 sentences)
-- Key findings (bullet points with citations)
-- Technical details (with code examples where relevant)
-- Sources and references
-
-Be specific, cite sources, and focus on actionable insights.`;
-
-      const researchResponse = await callPerplexity(researchSystemPrompt, message);
-      res.status(200).json({ response: researchResponse, model: 'sonar-reasoning-pro', mode: 'research' });
-      return;
-    } catch (perplexityError: unknown) {
-      const errorMessage = perplexityError instanceof Error ? perplexityError.message : String(perplexityError);
-      console.warn('Perplexity research failed, falling back to Gemini:', errorMessage);
-      // Fall through to Gemini as backup
-    }
-  }
-
   try {
-    const constraints = await getFrontierConstraints();
-    const { text, model } = await callGemini(genAI, message, history, PRIMARY_MODEL, constraints);
+    const { text, model } = await callGemini(genAI, message, history, PRIMARY_MODEL);
     res.status(200).json({ response: text, model });
     return;
     
@@ -210,8 +152,7 @@ Be specific, cite sources, and focus on actionable insights.`;
 
     try {
       console.log(`Attempting fallback model: ${FALLBACK_MODEL}`);
-      const constraints = await getFrontierConstraints();
-      const { text, model } = await callGemini(genAI, message, history, FALLBACK_MODEL, constraints);
+      const { text, model } = await callGemini(genAI, message, history, FALLBACK_MODEL);
       res.status(200).json({ response: text, model });
       return;
       

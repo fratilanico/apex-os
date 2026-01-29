@@ -2,9 +2,7 @@
  * Multi-agent task router with RLM-informed decisions.
  */
 
-import { AGENTS, AgentId, TaskType, type RoutingDecision } from './types';
-
-export type { RoutingDecision };
+import { AGENTS, AgentId, TaskType, RoutingDecision } from './types';
 
 interface RoutingContext {
   taskType?: TaskType;
@@ -26,16 +24,6 @@ const TASK_KEYWORDS: Record<TaskType, string[]> = {
   'knowledge-recall': ['recall', 'remember', 'from my notes', 'in my knowledge', 'sources', 'what did i'],
   'strategy': ['plan', 'strategy', 'architecture', 'design', 'approach', 'roadmap', 'structure'],
   'assessment': ['test me', 'quiz', 'assess', 'how well', 'skill check', 'evaluate'],
-};
-
-const WORKFLOW_KEYWORDS: Record<string, string[]> = {
-  'jarvis-voice-pipeline': ['voice', 'speech', 'jarvis', 'wake word', 'tts', 'elevenlabs'],
-  'chrome-devtools-mcp': ['browser', 'automation', 'chrome', 'click', 'mcp', 'navigate'],
-  'multi-agent-orchestration': ['swarm', 'agents', 'orchestrate', 'orchestration', 'multi-agent'],
-  'perplexity-research-agents': ['deep research', 'perplexity', 'sonar', 'search report'],
-  'headless-agent-api': ['agent api', 'feed curation', 'headless content', 'automated feed'],
-  'apex-os-development': ['apex os', 'cyberpunk ui', 'tron theme', 'vibe portfolio'],
-  'video-analysis': ['video analysis', 'transcribe video', 'youtube shorts', 'x post video']
 };
 
 const TASK_AGENT_MAP: Record<TaskType, AgentId[]> = {
@@ -66,19 +54,8 @@ function classifyTask(query: string): { taskType: TaskType; confidence: number }
   return { taskType: bestMatch, confidence: Math.max(bestScore * 3, 0.4) };
 }
 
-function detectWorkflowIntent(query: string): string | null {
-  const lower = query.toLowerCase();
-  for (const [id, keywords] of Object.entries(WORKFLOW_KEYWORDS)) {
-    if (keywords.some(kw => lower.includes(kw))) {
-      return id;
-    }
-  }
-  return null;
-}
-
 export function routeTask(context: RoutingContext): RoutingDecision {
   const { taskType, confidence: classConf } = classifyTask(context.query);
-  const detectedWorkflow = detectWorkflowIntent(context.query);
   const resolvedType = context.taskType || taskType;
   const preferredAgents = TASK_AGENT_MAP[resolvedType] || ['sovereign'];
 
@@ -106,7 +83,7 @@ export function routeTask(context: RoutingContext): RoutingDecision {
   return {
     agentId: best.agentId,
     confidence: Math.min(best.score, 1.0),
-    reasoning: `Task: "${resolvedType}"${detectedWorkflow ? ` [WF: ${detectedWorkflow}]` : ''} (conf: ${classConf.toFixed(2)}). Agent: "${best.agentId}" (score: ${best.score.toFixed(2)}).${context.pastSuccessData ? ' RLM-informed.' : ''}`,
+    reasoning: `Task: "${resolvedType}" (conf: ${classConf.toFixed(2)}). Agent: "${best.agentId}" (score: ${best.score.toFixed(2)}).${context.pastSuccessData ? ' RLM-informed.' : ''}`,
     fallbackAgentId: scores[1]?.agentId,
   };
 }

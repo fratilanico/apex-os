@@ -4,12 +4,12 @@ import { persist } from 'zustand/middleware';
 /**
  * Academy view types (for navigation state)
  */
-export type AcademyView = 'dashboard' | 'module' | 'section' | 'registry';
+export type AcademyView = 'dashboard' | 'module' | 'section';
 
 /**
  * Display mode types (for UI presentation)
  */
-export type DisplayMode = 'grid' | 'terminal' | 'registry';
+export type DisplayMode = 'grid' | 'terminal';
 
 /**
  * Module progress tracking

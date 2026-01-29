@@ -27,7 +27,6 @@ interface SearchResult {
 
 interface RLMStats {
   totalLearnings: number;
-  agentScores: Record<string, number>;
   bestAgent: { agentId: string; avgScore: number } | null;
   lastUpdated: number;
 }

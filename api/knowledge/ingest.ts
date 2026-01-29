@@ -6,13 +6,7 @@
  * Returns: { success: boolean, sourceId: string, chunkCount: number, title: string }
  */
 
-import { createClient } from '@supabase/supabase-js';
-
-// Use service role key for admin writes (bypasses RLS)
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
-);
+import { supabase } from '@/lib/supabase';
 import { chunkText } from './_lib/chunker';
 import { generateEmbeddings } from './_lib/embedder';
 import { parseURL } from './_lib/parsers/url';

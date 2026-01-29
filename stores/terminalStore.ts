@@ -4,7 +4,6 @@
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { 
   AIMode, 
   ClawBotMessage, 
@@ -17,8 +16,6 @@ interface TerminalStore {
   // Mode
   mode: AIMode;
   setMode: (mode: AIMode) => void;
-  geminiSessionId: string | null;
-  lastActiveAt: number | null;
   
   // ClawBot state
   clawbot: {
@@ -38,21 +35,15 @@ interface TerminalStore {
     messages: Array<{ role: 'user' | 'assistant'; content: string }>;
     isProcessing: boolean;
   };
-  setGeminiMessages: (messages: Array<{ role: 'user' | 'assistant'; content: string }>) => void;
-  setClawBotSession: (session: ClawBotSession | null) => void;
   
   // Gemini actions
   sendToGemini: (message: string) => Promise<void>;
   clearGeminiHistory: () => void;
 }
 
-export const useTerminalStore = create<TerminalStore>()(
-  persist(
-    (set, get) => ({
+export const useTerminalStore = create<TerminalStore>((set, get) => ({
   // Initial mode
   mode: 'gemini',
-  geminiSessionId: null,
-  lastActiveAt: null,
   
   // ClawBot initial state
   clawbot: {
@@ -70,29 +61,13 @@ export const useTerminalStore = create<TerminalStore>()(
     messages: [],
     isProcessing: false
   },
-
-  setGeminiMessages: (messages) => set((state) => ({
-    gemini: {
-      ...state.gemini,
-      messages,
-    },
-    lastActiveAt: Date.now(),
-  })),
-
-  setClawBotSession: (session) => set((state) => ({
-    clawbot: {
-      ...state.clawbot,
-      session,
-    },
-    lastActiveAt: Date.now(),
-  })),
   
   /**
    * Set AI mode (Gemini or ClawBot)
    */
   setMode: (mode: AIMode) => {
     console.log(`[Terminal] Switching mode to: ${mode}`);
-    set({ mode, lastActiveAt: Date.now() });
+    set({ mode });
     
     // Auto-connect to ClawBot when switching to that mode
     if (mode === 'clawbot' && !get().clawbot.status.connected) {
@@ -130,8 +105,7 @@ export const useTerminalStore = create<TerminalStore>()(
               messages: [...state.clawbot.session.messages, message],
               isProcessing: false
             }
-          },
-          lastActiveAt: Date.now()
+          }
         };
       });
     });
@@ -164,28 +138,24 @@ export const useTerminalStore = create<TerminalStore>()(
     // Connect
     try {
       await client.connect();
-
-      const existingSession = get().clawbot.session;
-
-      // Create or resume session
+      
+      // Create new session
       set({
         clawbot: {
           client,
           session: {
-            id: existingSession?.id ?? crypto.randomUUID(),
+            id: crypto.randomUUID(),
             mode: 'clawbot',
-            messages: existingSession?.messages ?? [],
+            messages: [],
             isConnected: true,
-            isProcessing: false,
-            error: undefined
+            isProcessing: false
           },
           status: {
             connected: true,
             reconnecting: false,
             reconnectAttempts: 0
           }
-        },
-        lastActiveAt: Date.now()
+        }
       });
       
       console.log('[Terminal] ClawBot connected successfully');
@@ -205,23 +175,18 @@ export const useTerminalStore = create<TerminalStore>()(
       console.log('[Terminal] Disconnecting ClawBot...');
       client.disconnect();
     }
-
-    set((state) => ({
+    
+    set({
       clawbot: {
         client: null,
-        session: state.clawbot.session ? {
-          ...state.clawbot.session,
-          isConnected: false,
-          isProcessing: false
-        } : null,
+        session: null,
         status: {
           connected: false,
           reconnecting: false,
           reconnectAttempts: 0
         }
-      },
-      lastActiveAt: Date.now()
-    }));
+      }
+    });
   },
   
   /**
@@ -255,8 +220,7 @@ export const useTerminalStore = create<TerminalStore>()(
           isProcessing: true,
           error: undefined
         } : null
-      },
-      lastActiveAt: Date.now()
+      }
     }));
     
     // Send to ClawBot
@@ -272,8 +236,7 @@ export const useTerminalStore = create<TerminalStore>()(
             error: error instanceof Error ? error.message : String(error),
             isProcessing: false
           } : null
-        },
-        lastActiveAt: Date.now()
+        }
       }));
     }
   },
@@ -290,8 +253,7 @@ export const useTerminalStore = create<TerminalStore>()(
           messages: [],
           error: undefined
         } : null
-      },
-      lastActiveAt: Date.now()
+      }
     }));
   },
   
@@ -308,9 +270,7 @@ export const useTerminalStore = create<TerminalStore>()(
           { role: 'user', content: message }
         ],
         isProcessing: true
-      },
-      geminiSessionId: state.geminiSessionId ?? crypto.randomUUID(),
-      lastActiveAt: Date.now()
+      }
     }));
     
     try {
@@ -338,8 +298,7 @@ export const useTerminalStore = create<TerminalStore>()(
             { role: 'assistant', content: data.response }
           ],
           isProcessing: false
-        },
-        lastActiveAt: Date.now()
+        }
       }));
     } catch (error) {
       console.error('[Terminal] Gemini error:', error);
@@ -347,8 +306,7 @@ export const useTerminalStore = create<TerminalStore>()(
         gemini: {
           ...state.gemini,
           isProcessing: false
-        },
-        lastActiveAt: Date.now()
+        }
       }));
       throw error;
     }
@@ -362,29 +320,7 @@ export const useTerminalStore = create<TerminalStore>()(
       gemini: {
         messages: [],
         isProcessing: false
-      },
-      geminiSessionId: crypto.randomUUID(),
-      lastActiveAt: Date.now()
+      }
     });
   }
-    }),
-    {
-      name: 'apex-terminal-history',
-      version: 1,
-      partialize: (state) => ({
-        mode: state.mode,
-        gemini: state.gemini,
-        geminiSessionId: state.geminiSessionId,
-        lastActiveAt: state.lastActiveAt,
-        clawbot: {
-          session: state.clawbot.session,
-          status: {
-            connected: false,
-            reconnecting: false,
-            reconnectAttempts: 0
-          }
-        }
-      })
-    }
-  )
-);
+}));

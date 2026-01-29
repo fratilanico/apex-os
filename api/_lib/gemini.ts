@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
-const PRIMARY_MODEL = 'gemini-2.0-flash';
+const PRIMARY_MODEL = 'gemini-3-flash-preview';
 
 export async function callGemini(
   systemPrompt: string,

@@ -3,66 +3,6 @@
  */
 
 export type CommandType = 'ls' | 'mount' | 'cat' | 'help' | 'clear' | 'time' | 'admin' | 'unknown';
-export type CommandName = Exclude<CommandType, 'unknown'>;
-
-export interface CommandDescriptor {
-  name: CommandName;
-  description: string;
-  usage: string;
-  group: 'navigation' | 'content' | 'system';
-  hidden?: boolean;
-}
-
-const COMMAND_REGISTRY: CommandDescriptor[] = [
-  {
-    name: 'ls',
-    description: 'List all curriculum modules',
-    usage: 'ls',
-    group: 'navigation',
-  },
-  {
-    name: 'mount',
-    description: 'Expand module details',
-    usage: 'mount [id]',
-    group: 'content',
-  },
-  {
-    name: 'cat',
-    description: 'View section content',
-    usage: 'cat [section]',
-    group: 'content',
-  },
-  {
-    name: 'time',
-    description: 'Calculate your completion timeline',
-    usage: 'time',
-    group: 'navigation',
-  },
-  {
-    name: 'help',
-    description: 'Show available commands',
-    usage: 'help',
-    group: 'system',
-  },
-  {
-    name: 'clear',
-    description: 'Clear terminal history',
-    usage: 'clear',
-    group: 'system',
-  },
-  {
-    name: 'admin',
-    description: 'Open admin console',
-    usage: 'admin',
-    group: 'system',
-    hidden: true,
-  },
-];
-
-export const getCommandRegistry = (includeHidden = false): CommandDescriptor[] => {
-  if (includeHidden) return COMMAND_REGISTRY;
-  return COMMAND_REGISTRY.filter((cmd) => !cmd.hidden);
-};
 
 export interface CommandResult {
   type: 'output' | 'error' | 'success' | 'system';
@@ -108,8 +48,12 @@ export class CommandHandler {
   }
 
   getHelpText(): string {
-    const commands = getCommandRegistry();
-    const lines = commands.map((cmd) => `  ${cmd.usage.padEnd(14)} ${cmd.description}`);
-    return `AVAILABLE COMMANDS:\n${lines.join('\n')}`;
+    return `AVAILABLE COMMANDS:
+  ls              List all curriculum modules
+  mount [id]      Expand module details (e.g., 'mount 01')
+  cat [section]   View section content (e.g., 'cat 01.2')
+  time            Calculate your personalized completion timeline
+  help            Show this help message
+  clear           Clear terminal history`;
   }
 }

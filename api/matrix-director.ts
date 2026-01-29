@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getFrontierConstraints } from '../lib/intelligence/constraints';
 
 const DIRECTOR_SYSTEM_PROMPT = `You are the Matrix Director, the sentient orchestrator of a high-fidelity digital simulation called APEX OS. 
 You monitor "Player One" as they attempt to manipulate the Matrix via a terminal interface.
@@ -40,31 +39,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const fallbackResponse = {
-    newNodes: [],
-    newEdges: [],
-    narrativeUpdate: {
-      transmission: 'DIRECTOR_OFFLINE: Matrix sync unavailable.',
-      traceLevel: 0,
-      sentiment: 'neutral'
-    },
-    solvedNodeIds: []
-  };
-
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return res.status(200).json(fallbackResponse);
+    return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
   }
 
   const { currentGraph, terminalLog, userGoal } = req.body;
 
   try {
-    const constraints = await getFrontierConstraints();
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3-flash-preview',
-      systemInstruction: DIRECTOR_SYSTEM_PROMPT + constraints,
+      model: 'gemini-3-flash',
+      systemInstruction: DIRECTOR_SYSTEM_PROMPT,
       generationConfig: {
         maxOutputTokens: 2048,
         temperature: 0.4,
@@ -83,15 +70,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const result = await model.generateContent(prompt);
     const response = result.response;
     const text = response.text() || "{}";
-    try {
-      const parsed = JSON.parse(text);
-      return res.status(200).json(parsed);
-    } catch (parseError) {
-      console.warn('Director JSON parse failed. Returning fallback.', parseError);
-      return res.status(200).json(fallbackResponse);
-    }
+
+    return res.status(200).json(JSON.parse(text));
   } catch (error: any) {
     console.error('Director API Error:', error);
-    return res.status(200).json(fallbackResponse);
+    return res.status(500).json({ 
+      error: error.message || 'Director offline. Neural link severed.',
+    });
   }
 }

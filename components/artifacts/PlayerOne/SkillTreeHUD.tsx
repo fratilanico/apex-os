@@ -2,13 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
-import { tools } from '@/data/curriculumData';
-import { useCurriculumStore } from '@/stores/useCurriculumStore';
-import { useAcademyStore } from '@/stores/useAcademyStore';
-import { useWorkflowStore } from '@/stores/useWorkflowStore';
-import { Zap, Code2, Bot, Sparkles, Cloud, Rocket, Workflow, BookOpen, Palette, Bug, Terminal, Image, Video, ShieldCheck, Trophy, Target, ChevronRight, Award } from 'lucide-react';
+import { tools, modules } from '@/data/curriculumData';
+import { Zap, Code2, Bot, Sparkles, Cloud, Rocket, Workflow, BookOpen, Palette, Bug, Terminal, Image, Video, ShieldCheck, Trophy, Target, ChevronRight } from 'lucide-react';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Zap, Code2, Bot, Sparkles, Cloud, Rocket, Workflow, BookOpen, Palette, Bug, Terminal, Image, Video, ShieldCheck, Trophy, Target
@@ -20,14 +16,6 @@ const assetTools = tools.filter(t => t.tier === 'asset');
 
 export const SkillTreeHUD: React.FC = () => {
   const { unlockedSkills, currentXP, gold } = useSkillTreeStore();
-  const { modules, loadModules } = useCurriculumStore();
-  const { setNavigationView, setView, selectModule } = useAcademyStore();
-  const { workflows, progress } = useWorkflowStore();
-  const navigate = useNavigate();
-
-  React.useEffect(() => {
-    loadModules().catch(() => undefined);
-  }, [loadModules]);
 
   return (
     <div className="relative w-full h-auto min-h-[400px] md:h-[600px] overflow-hidden bg-zinc-950/80 rounded-2xl border border-white/5 backdrop-blur-xl flex flex-col">
@@ -63,9 +51,6 @@ export const SkillTreeHUD: React.FC = () => {
             {modules.map((module, idx) => {
               const isUnlocked = unlockedSkills.includes(module.id);
               const Icon = iconMap[module.icon] || Code2;
-              const objectivePreview = module.objective.length > 90
-                ? `${module.objective.slice(0, 87)}...`
-                : module.objective;
               
               return (
                 <motion.div
@@ -79,12 +64,6 @@ export const SkillTreeHUD: React.FC = () => {
                       ? 'bg-cyan-500/5 border-cyan-500/20 hover:bg-cyan-500/10' 
                       : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]'}
                   `}
-                  onClick={() => {
-                    selectModule(module.id);
-                    setNavigationView('module');
-                    setView('grid');
-                    navigate('/academy');
-                  }}
                 >
                   {/* Module Number */}
                   <div className={`
@@ -108,12 +87,6 @@ export const SkillTreeHUD: React.FC = () => {
                       {module.title}
                     </p>
                     <p className="text-[10px] text-white/30 truncate">{module.subtitle}</p>
-                    <p className="text-[10px] text-white/40 truncate">
-                      {module.duration} • {module.sections.length} sections
-                    </p>
-                    <p className="text-[9px] text-white/20 truncate">
-                      {objectivePreview}
-                    </p>
                   </div>
                   
                   {/* Status */}
@@ -125,48 +98,6 @@ export const SkillTreeHUD: React.FC = () => {
                 </motion.div>
               );
             })}
-          </div>
-        </div>
-
-        {/* WORKFLOW MASTERY SECTION */}
-        <div className="mb-8">
-          <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Award className="w-3 h-3" /> Workflow Mastery
-            </div>
-            <span className="text-cyan-400/60 font-mono">
-              {Object.values(progress).filter(p => p.mastered).length}/{workflows.length}
-            </span>
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {workflows.slice(0, 4).map((wf, idx) => {
-              const isMastered = progress[wf.id]?.mastered;
-              return (
-                <motion.div
-                  key={wf.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className={`p-3 rounded-xl border flex items-center justify-between gap-3
-                    ${isMastered ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/[0.02] border-white/5'}`}
-                >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isMastered ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-white/10'}`} />
-                    <span className={`text-xs font-medium truncate ${isMastered ? 'text-white' : 'text-white/40'}`}>{wf.name}</span>
-                  </div>
-                  {isMastered && <ShieldCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
-                </motion.div>
-              );
-            })}
-            <button 
-              onClick={() => {
-                setView('registry' as any); // Custom view or handled by AcademyStore
-                navigate('/academy');
-              }}
-              className="col-span-full py-2 rounded-lg border border-white/5 bg-white/[0.02] text-[10px] text-white/30 uppercase tracking-widest font-black hover:bg-white/5 hover:text-white transition-all"
-            >
-              Access Workflow Registry →
-            </button>
           </div>
         </div>
 

@@ -1,11 +1,11 @@
 /**
- * Generate embeddings using Google Gemini text-embedding-004.
- * Returns 768-dimensional vectors.
+ * Generate embeddings using OpenAI text-embedding-3-small.
+ * Returns 1536-dimensional vectors.
  */
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const EMBEDDING_MODEL = 'text-embedding-004';
-const BATCH_SIZE = 100;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const EMBEDDING_MODEL = 'text-embedding-3-small';
+const BATCH_SIZE = 100; // OpenAI allows up to 100 inputs per request
 
 interface EmbeddingResult {
   text: string;
@@ -14,8 +14,8 @@ interface EmbeddingResult {
 }
 
 export async function generateEmbeddings(texts: string[]): Promise<EmbeddingResult[]> {
-  if (!GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY is required for embedding generation');
+  if (!OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is required for embedding generation');
   }
 
   if (texts.length === 0) return [];
@@ -26,36 +26,30 @@ export async function generateEmbeddings(texts: string[]): Promise<EmbeddingResu
   for (let i = 0; i < texts.length; i += BATCH_SIZE) {
     const batch = texts.slice(i, i + BATCH_SIZE);
 
-    // Gemini batch embedding endpoint
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${EMBEDDING_MODEL}:batchEmbedContents?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requests: batch.map((text) => ({
-            model: `models/${EMBEDDING_MODEL}`,
-            content: { parts: [{ text }] },
-          })),
-        }),
-      }
-    );
+    const response = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        input: batch,
+        model: EMBEDDING_MODEL,
+      }),
+    });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Gemini embedding failed: ${response.status} — ${error}`);
+      throw new Error(`OpenAI embedding failed: ${response.status} — ${error}`);
     }
 
     const data = await response.json();
 
-    // Gemini returns { embeddings: [{ values: number[] }] }
-    const embeddings = data.embeddings as Array<{ values: number[] }>;
-
-    for (let j = 0; j < embeddings.length; j++) {
+    for (const item of (data.data as Array<{ index: number; embedding: number[] }>)) {
       results.push({
-        text: batch[j] as string,
-        embedding: embeddings[j]?.values ?? [],
-        index: i + j,
+        text: batch[item.index] as string,
+        embedding: item.embedding,
+        index: i + item.index,
       });
     }
   }
@@ -69,29 +63,11 @@ export async function generateEmbeddings(texts: string[]): Promise<EmbeddingResu
  * Generate a single embedding (convenience wrapper)
  */
 export async function embed(text: string): Promise<number[]> {
-  if (!GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY is required for embedding generation');
-  }
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${EMBEDDING_MODEL}:embedContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: `models/${EMBEDDING_MODEL}`,
-        content: { parts: [{ text }] },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Gemini embedding failed: ${response.status} — ${error}`);
-  }
-
-  const data = await response.json();
-  return data.embedding?.values ?? [];
+  const results = await generateEmbeddings([text]);
+  if (results.length === 0) throw new Error('Embedding generation returned no results');
+  const first = results[0];
+  if (!first) throw new Error('Embedding generation returned no results');
+  return first.embedding;
 }
 
 /**

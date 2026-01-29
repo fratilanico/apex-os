@@ -5,14 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SkillTreeHUD } from './SkillTreeHUD';
 import { DungeonMasterSidebar } from './DungeonMasterSidebar';
 import { ApexRouterHUD } from './ApexRouterHUD';
-import { ApexTerminalHUD, TerminalTelemetry } from './ApexTerminalHUD';
+import { ApexTerminalHUD } from './ApexTerminalHUD';
 import { CodeMachineHUD } from './CodeMachineHUD';
 import { MCPRegistryHUD } from './MCPRegistryHUD';
 import { WASMForgeHUD } from './WASMForgeHUD';
 import { ApexMatrixHUD } from './ApexMatrixHUD';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
 import { Layout, Terminal as TerminalIcon, Cpu, User, X, Command, GripVertical, Maximize2, Minimize2 } from 'lucide-react';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const PlayerOneHUD: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +20,6 @@ export const PlayerOneHUD: React.FC = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [hasDragged, setHasDragged] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0, originX: 0, originY: 0 });
 
   const { addDMLog, narrativeContext } = useSkillTreeStore();
@@ -91,31 +89,17 @@ export const PlayerOneHUD: React.FC = () => {
 
   // --- Drag handlers ---
   const handleDragStart = useCallback((e: React.PointerEvent) => {
-    if (isMaximized) return;
-    // Don't start drag if clicking on a button
-    const target = e.target as HTMLElement;
-    if (target.closest('button')) return;
+    if (isMaximized || isMobile) return;
     e.preventDefault();
     setIsDragging(true);
-    setHasDragged(true);
-    let originX = position.x;
-    let originY = position.y;
-
-    if (isMobile && !hasDragged && typeof window !== 'undefined') {
-      const size = Math.min(window.innerWidth * 0.92, window.innerHeight * 0.85);
-      originX = (window.innerWidth - size) / 2;
-      originY = (window.innerHeight - size) / 2;
-      setPosition({ x: originX, y: originY });
-    }
-
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      originX,
-      originY
+      originX: position.x,
+      originY: position.y
     };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }, [isMaximized, isMobile, hasDragged, position]);
+  }, [isMaximized, isMobile, position]);
 
   const handleDragMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging) return;
@@ -163,20 +147,12 @@ export const PlayerOneHUD: React.FC = () => {
     }
     if (isMobile) {
       // Square on mobile — size is the min of 92vw and 85vh
-      if (!hasDragged) {
-        return {
-          width: 'min(92vw, 85vh)',
-          height: 'min(92vw, 85vh)',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)'
-        };
-      }
       return {
         width: 'min(92vw, 85vh)',
         height: 'min(92vw, 85vh)',
-        left: position.x,
-        top: position.y
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)'
       };
     }
     // Desktop windowed
@@ -215,21 +191,20 @@ export const PlayerOneHUD: React.FC = () => {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
-              className={[
-                'fixed z-[9999] bg-black/90 flex flex-col overflow-hidden will-change-transform',
-                isMobile ? 'backdrop-blur-md' : 'backdrop-blur-2xl',
-                isMaximized ? '' : 'rounded-2xl border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.7)]'
-              ].join(' ')}
-              style={{
-                ...getWindowStyle(),
-                transition: isDragging ? 'none' : 'top 0.25s ease-out, left 0.25s ease-out, width 0.25s ease-out, height 0.25s ease-out, right 0.25s ease-out, bottom 0.25s ease-out'
-              }}
-            >
+            className={[
+              'fixed z-[9999] bg-black/90 backdrop-blur-2xl flex flex-col overflow-hidden',
+              isMaximized ? '' : 'rounded-2xl border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.7)]'
+            ].join(' ')}
+            style={{
+              ...getWindowStyle(),
+              transition: isDragging ? 'none' : 'top 0.3s ease-out, left 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out, right 0.3s ease-out, bottom 0.3s ease-out'
+            }}
+          >
             {/* ─── Title Bar / Drag Handle ─── */}
             <div
               className={[
-                'flex items-center justify-between px-3 h-9 border-b border-white/10 bg-zinc-900/80 flex-shrink-0 select-none touch-none',
-                !isMaximized ? 'cursor-grab' : '',
+                'flex items-center justify-between px-3 h-9 border-b border-white/10 bg-zinc-900/80 flex-shrink-0 select-none',
+                !isMaximized && !isMobile ? 'cursor-grab' : '',
                 isDragging ? 'cursor-grabbing' : ''
               ].join(' ')}
               onPointerDown={handleDragStart}
@@ -343,30 +318,20 @@ export const PlayerOneHUD: React.FC = () => {
                     <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-y-auto no-scrollbar pb-4">
                       {/* Left Column: Skill Tree */}
                       <div className="flex-[2] space-y-6">
-                        <ErrorBoundary>
-                          <SkillTreeHUD />
-                        </ErrorBoundary>
+                        <SkillTreeHUD />
 
                         {/* Bottom Shelf: MCP Registry & WASM Forge */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
-                          <ErrorBoundary>
-                            <MCPRegistryHUD />
-                          </ErrorBoundary>
-                          <ErrorBoundary>
-                            <WASMForgeHUD />
-                          </ErrorBoundary>
+                          <MCPRegistryHUD />
+                          <WASMForgeHUD />
                         </div>
                       </div>
 
                       {/* Right Column: Routing & Stats */}
                       <div className="flex-1 space-y-6">
-                        <ErrorBoundary>
-                          <ApexRouterHUD />
-                        </ErrorBoundary>
+                        <ApexRouterHUD />
 
-                        <ErrorBoundary>
-                          <CodeMachineHUD />
-                        </ErrorBoundary>
+                        <CodeMachineHUD />
 
                         {/* Quick Stats Mini-HUD */}
                         <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl backdrop-blur-xl">
@@ -394,20 +359,13 @@ export const PlayerOneHUD: React.FC = () => {
 
                   {activeView === 'terminal' && (
                     <div className="flex-1 flex flex-col overflow-hidden">
-                      <div className="flex flex-col gap-4">
-                        <TerminalTelemetry />
-                        <ErrorBoundary>
-                          <ApexTerminalHUD />
-                        </ErrorBoundary>
-                      </div>
+                      <ApexTerminalHUD />
                     </div>
                   )}
 
                   {activeView === 'matrix' && (
                     <div className="flex-1 flex flex-col overflow-hidden bg-black/40 rounded-2xl border border-white/5 relative">
-                      <ErrorBoundary>
-                        <ApexMatrixHUD />
-                      </ErrorBoundary>
+                      <ApexMatrixHUD />
                     </div>
                   )}
                 </div>
