@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Terminal, Sparkles, Zap, Activity, Shield, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useMatrixStore } from '@/stores/useMatrixStore';
 import { useGameEngine } from '@/stores/useGameEngine';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
@@ -126,8 +126,57 @@ const VIBE_QUOTES = [
 const generateId = (): string => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 // --- NEW PREMIUM NEURAL PIXEL BRANDING (ACCESSIBILITY OPTIMIZED) ---
+export const TerminalTelemetry = () => (
+  <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md relative overflow-hidden group">
+    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-purple-500/5 opacity-50" />
+    <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+          <User className="w-5 h-5 text-cyan-400" />
+        </div>
+        <div>
+          <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-0.5">Operator</p>
+          <p className="text-white font-bold tracking-tight text-sm">PLAYER ONE</p>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+          <Activity className="w-5 h-5 text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-0.5">Credits</p>
+          <p className="text-emerald-400 font-bold tracking-tight text-sm">$300_LOADED</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+          <Zap className="w-5 h-5 text-yellow-400" />
+        </div>
+        <div>
+          <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-0.5">Intelligence</p>
+          <p className="text-white font-bold tracking-tight text-sm">G3_FLASH_PREV</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+          <Shield className="w-5 h-5 text-purple-400" />
+        </div>
+        <div>
+          <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-0.5">Security</p>
+          <p className="text-purple-400 font-bold tracking-tight text-sm">[ SOVEREIGN ]</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const NeuralPixelBranding = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+  const isSafari = typeof navigator !== 'undefined' && /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
   
   useEffect(() => {
     const timer = setTimeout(() => setIsAuthorized(true), 2500);
@@ -154,8 +203,8 @@ const NeuralPixelBranding = () => {
       {/* PLAYER 1 SECTION - Premium Neural Grid */}
       <div className="relative mb-12 ml-4">
         <motion.div 
-          animate={{ x: [0, 8, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          animate={prefersReducedMotion || isSafari ? undefined : { x: [0, 8, 0] }}
+          transition={prefersReducedMotion || isSafari ? undefined : { duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="relative inline-block"
         >
           {/* Symmetrical Chessboard Pixel Art Effect */}
@@ -171,13 +220,23 @@ const NeuralPixelBranding = () => {
                 return (
                   <motion.div
                     key={i}
-                    animate={!isAuthorized && isBlack ? { opacity: [0.1, 0.4, 0.1] } : { opacity: 0.1 }}
-                    transition={{ 
-                      duration: 4, 
-                      repeat: Infinity, 
-                      delay: i * 0.02,
-                      ease: "easeInOut" 
-                    }}
+                    animate={
+                      prefersReducedMotion || isSafari
+                        ? { opacity: 0.1 }
+                        : !isAuthorized && isBlack
+                          ? { opacity: [0.1, 0.4, 0.1] }
+                          : { opacity: 0.1 }
+                    }
+                    transition={
+                      prefersReducedMotion || isSafari
+                        ? undefined
+                        : {
+                          duration: 4,
+                          repeat: Infinity,
+                          delay: i * 0.02,
+                          ease: "easeInOut"
+                        }
+                    }
                     className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-sm ${isBlack ? 'bg-cyan-400' : 'bg-white/10'}`}
                   />
                 );
@@ -203,51 +262,6 @@ const NeuralPixelBranding = () => {
         </motion.div>
       </div>
       
-      {/* Telemetry Bar */}
-      <div className="mt-8 p-6 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-purple-500/5 opacity-50" />
-        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
-              <User className="w-5 h-5 text-cyan-400" />
-            </div>
-            <div>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-0.5">Operator</p>
-              <p className="text-white font-bold tracking-tight text-sm">PLAYER ONE</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-              <Activity className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-0.5">Credits</p>
-              <p className="text-emerald-400 font-bold tracking-tight text-sm">$300_LOADED</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.1)]">
-              <Zap className="w-5 h-5 text-yellow-400" />
-            </div>
-            <div>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-0.5">Intelligence</p>
-              <p className="text-white font-bold tracking-tight text-sm">G3_FLASH_PREV</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
-              <Shield className="w-5 h-5 text-purple-400" />
-            </div>
-            <div>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-0.5">Security</p>
-              <p className="text-purple-400 font-bold tracking-tight text-sm">[ SOVEREIGN ]</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
@@ -961,6 +975,8 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
           <input
             ref={inputRef}
             type="text"
+            id="apex-terminal-input"
+            name="apex-terminal-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
