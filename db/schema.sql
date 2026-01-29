@@ -1,19 +1,11 @@
 -- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public;
 
--- Knowledge chunks (vector store for ingested content)
-CREATE TABLE IF NOT EXISTS public.knowledge_chunks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  source_id UUID REFERENCES public.ingestion_sources(id) ON DELETE CASCADE,
-  content TEXT NOT NULL,
-  embedding vector(1536) NOT NULL,  -- OpenAI text-embedding-3-small dimension
-  metadata JSONB DEFAULT '{}',
-  chunk_index INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- ============================================================================
+-- TABLES (in dependency order)
+-- ============================================================================
 
--- Ingestion sources (track what has been ingested)
+-- 1. Ingestion sources (track what has been ingested) - NO DEPENDENCIES
 CREATE TABLE IF NOT EXISTS public.ingestion_sources (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT,  -- optional user scoping
@@ -27,7 +19,19 @@ CREATE TABLE IF NOT EXISTS public.ingestion_sources (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Frontier Intelligence (Staging area for auto-detected trends)
+-- 2. Knowledge chunks (vector store) - DEPENDS ON ingestion_sources
+CREATE TABLE IF NOT EXISTS public.knowledge_chunks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_id UUID REFERENCES public.ingestion_sources(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  embedding vector(768) NOT NULL,  -- Gemini text-embedding-004 dimension
+  metadata JSONB DEFAULT '{}',
+  chunk_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. Frontier Intelligence (Staging area for auto-detected trends)
 CREATE TABLE IF NOT EXISTS public.frontier_intelligence (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
@@ -91,7 +95,7 @@ CREATE TABLE IF NOT EXISTS public.agent_learnings (
 
 -- Similarity search function
 CREATE OR REPLACE FUNCTION public.match_knowledge_chunks(
-  query_embedding vector(1536),
+  query_embedding vector(768),
   match_threshold FLOAT DEFAULT 0.75,
   match_count INTEGER DEFAULT 10
 )
