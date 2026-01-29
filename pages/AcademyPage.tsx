@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Zap, 
@@ -17,8 +18,9 @@ import {
 import { BentoCard, StatsBar, ViewToggle } from '../components/AcademyPage';
 import { ToolArsenal } from '../components/artifacts/ToolArsenal/ToolArsenal';
 import { CurriculumLog } from '../components/artifacts/CurriculumLog/CurriculumLog';
+import { WorkflowRegistry } from '../components/artifacts/WorkflowRegistry/WorkflowRegistry';
 import { AuthenticatedTerminal } from '../components/artifacts/AuthenticatedTerminal';
-import { modules } from '../data/curriculumData';
+import { useCurriculumStore } from '../stores/useCurriculumStore';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useAuthStore } from '../stores';
 import { useAcademyStore } from '../stores';
@@ -27,6 +29,7 @@ export const AcademyPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAuthStore();
   const { displayMode, setView } = useAcademyStore();
+  const { modules, loadModules } = useCurriculumStore();
   const [showAuthTerminal, setShowAuthTerminal] = useState(false);
 
   const iconMap = {
@@ -46,6 +49,10 @@ export const AcademyPage: React.FC = () => {
   const handleModuleClick = (moduleId: string) => {
     navigate(`/#${moduleId}`);
   };
+
+  useEffect(() => {
+    loadModules().catch(() => undefined);
+  }, [loadModules]);
 
   return (
     <main className="relative z-10 px-4 sm:px-6 max-w-5xl mx-auto pb-16">
@@ -257,6 +264,15 @@ export const AcademyPage: React.FC = () => {
           <div className={displayMode !== 'terminal' ? 'hidden' : ''}>
             <ErrorBoundary>
               <CurriculumLog />
+            </ErrorBoundary>
+          </div>
+        )}
+
+        {/* Workflow Registry View */}
+        {isAuthenticated && (
+          <div className={displayMode !== 'registry' ? 'hidden' : ''}>
+            <ErrorBoundary>
+              <WorkflowRegistry />
             </ErrorBoundary>
           </div>
         )}

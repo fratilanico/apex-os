@@ -264,6 +264,9 @@ export const CodeMachineHUD: React.FC = () => {
           <input
             ref={inputRef}
             type="text"
+            id="code-machine-command"
+            name="codeMachineCommand"
+            aria-label="Code machine command"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}

@@ -6,7 +6,12 @@
  * Returns: { success: boolean, results: Array<{ chunk, source, similarity }> }
  */
 
-import { supabase } from '../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_ANON_KEY || ''
+);
 import { embed } from './_lib/embedder';
 
 interface QueryRequest {

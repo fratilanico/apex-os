@@ -190,6 +190,36 @@ VITE_SITE_PASSWORD=   # Optional: Password gate for staging
 2. Add lazy import in `App.tsx`
 3. Add route inside `<Routes>` with ErrorBoundary wrapper
 
+## Automation Scripts
+
+When terminal commands can't be executed directly (network issues, complex multi-line commands, authentication):
+1. Create a shell script in `scripts/automation/`
+2. Make it executable
+3. Run it for the user
+
+```
+scripts/automation/
+├── run-migration.sh     # Database migrations
+├── run-migration.mjs    # Node.js migration runner
+└── ...                  # Future automation scripts
+```
+
+## Database Connection
+
+**Supabase Project:** `lglhpsfrkhcbnecwduuk`
+
+Direct connection:
+```
+postgresql://postgres:[PASSWORD]@db.lglhpsfrkhcbnecwduuk.supabase.co:5432/postgres
+```
+
+Pooler connection (try different regions if needed):
+```
+postgresql://postgres.lglhpsfrkhcbnecwduuk:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
+```
+
+Regions to try: `eu-central-1`, `us-east-1`, `us-west-1`, `eu-west-1`, `eu-west-2`, `ap-southeast-1`
+
 ## Git Workflow
 
 Follow Conventional Commits:

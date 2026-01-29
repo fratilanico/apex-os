@@ -96,7 +96,7 @@ export const DungeonMasterSidebar: React.FC = () => {
 
   const fetchAIResponse = useCallback(async (message: string, history: ChatHistoryItem[]) => {
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api/terminal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, history }),

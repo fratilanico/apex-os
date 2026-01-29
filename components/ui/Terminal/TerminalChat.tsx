@@ -7,6 +7,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { TerminalWindow } from './TerminalWindow';
 import { ModeSwitcher } from './ModeSwitcher';
 import { useTerminalStore } from '../../../stores/terminalStore';
+import { getOrCreateUserId } from '../../../lib/userIdentity';
+import { useAnalytics } from '../../../hooks/useAnalytics';
 
 export const TerminalChat: React.FC = () => {
   const [input, setInput] = useState('');
@@ -20,8 +22,11 @@ export const TerminalChat: React.FC = () => {
     sendToGemini, 
     sendToClawBot,
     clearGeminiHistory,
-    clearClawBotHistory
+    clearClawBotHistory,
+    setGeminiMessages,
+    setClawBotSession
   } = useTerminalStore();
+  const { track } = useAnalytics();
   
   // Get messages based on current mode (normalized to ClawBotMessage format)
   const messages: Array<{
@@ -58,6 +63,69 @@ export const TerminalChat: React.FC = () => {
     }, 100);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    track('terminal_mode_view', { mode });
+  }, [mode, track]);
+
+  useEffect(() => {
+    const userId = getOrCreateUserId();
+    const controller = new AbortController();
+
+    fetch(`/api/sessions/terminal?userId=${userId}&mode=${mode}`, { signal: controller.signal })
+      .then((res) => res.ok ? res.json() : Promise.reject(res))
+      .then((data) => {
+        if (!data?.session?.messages) return;
+        if (mode === 'gemini') {
+          const messages = (data.session.messages as Array<{ role: string; content: string }>).
+            filter((msg) => msg.role === 'user' || msg.role === 'assistant')
+            .map((msg) => ({ role: msg.role as 'user' | 'assistant', content: msg.content }));
+          setGeminiMessages(messages);
+        } else {
+          const messages = (data.session.messages as Array<{ role: string; content: string }>).
+            map((msg) => ({
+              id: crypto.randomUUID(),
+              role: msg.role as 'user' | 'assistant' | 'system',
+              content: msg.content,
+              timestamp: Date.now(),
+            }));
+          setClawBotSession({
+            id: crypto.randomUUID(),
+            mode: 'clawbot',
+            messages,
+            isConnected: false,
+            isProcessing: false,
+          });
+        }
+      })
+      .catch(() => undefined);
+
+    return () => controller.abort();
+  }, [mode, setGeminiMessages, setClawBotSession]);
+
+  useEffect(() => {
+    const userId = getOrCreateUserId();
+    const payload = {
+      userId,
+      mode,
+      messages: mode === 'gemini'
+        ? gemini.messages
+        : (clawbot.session?.messages || []).map((msg) => ({ role: msg.role, content: msg.content })),
+      lastActiveAt: Date.now(),
+    };
+
+    if (payload.messages.length === 0) return undefined;
+
+    const timer = setTimeout(() => {
+      fetch('/api/sessions/terminal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(() => undefined);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [mode, gemini.messages, clawbot.session?.messages]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +133,8 @@ export const TerminalChat: React.FC = () => {
     
     const message = input.trim();
     setInput('');
+
+    track('terminal_command', { mode, input: message });
     
     try {
       if (mode === 'gemini') {
@@ -74,6 +144,7 @@ export const TerminalChat: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      track('terminal_command_error', { mode, input: message, error: String(error) });
       // Show error to user
       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -181,11 +252,11 @@ export const TerminalChat: React.FC = () => {
           }
           disabled={isProcessing || (mode === 'clawbot' && !clawbot.status.connected)}
           className="
-            flex-1 px-4 py-2.5 bg-black/40 border border-white/20 rounded-lg
-            text-white/90 font-mono text-sm
-            focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50
+            flex-1 px-4 py-2.5 bg-[#0c1116] border border-white/10 rounded-lg
+            text-slate-100 font-mono text-sm
+            focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30
             disabled:opacity-50 disabled:cursor-not-allowed
-            placeholder:text-white/30
+            placeholder:text-slate-500
           "
         />
         
@@ -193,9 +264,9 @@ export const TerminalChat: React.FC = () => {
           type="submit"
           disabled={!input.trim() || isProcessing || (mode === 'clawbot' && !clawbot.status.connected)}
           className="
-            px-6 py-2.5 bg-cyan-500/20 border border-cyan-500/50 rounded-lg
-            text-cyan-400 font-mono text-sm font-semibold
-            hover:bg-cyan-500/30 hover:border-cyan-500/70
+            px-6 py-2.5 bg-cyan-500/10 border border-cyan-400/40 rounded-lg
+            text-cyan-300 font-mono text-sm font-semibold
+            hover:bg-cyan-500/20 hover:border-cyan-400/60
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-all duration-200
           "

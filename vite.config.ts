@@ -83,7 +83,7 @@ function localApiMiddleware(): PluginOption {
   };
 }
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   server: {
     port: 5173,
     host: '0.0.0.0',
@@ -121,13 +121,17 @@ export default defineConfig(({ mode }) => ({
       'remark-gfm',
     ],
   },
+
+  esbuild: {
+    sourcemap: true,
+  },
   
   build: {
     // Increase chunk size warning limit
     chunkSizeWarningLimit: 600,
     
-    // Disable sourcemaps in production
-    sourcemap: mode !== 'production',
+    // Keep sourcemaps for tooling, but hide in output
+    sourcemap: 'hidden',
     
     // Use terser for better minification
     minify: 'terser',
@@ -144,6 +148,15 @@ export default defineConfig(({ mode }) => ({
     
     // Rollup options for advanced code splitting
     rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === 'SOURCEMAP_ERROR' || warning.code === 'SOURCEMAP_INVALID') {
+          return;
+        }
+        if (typeof warning.message === 'string' && warning.message.includes('sourcemap')) {
+          return;
+        }
+        warn(warning);
+      },
       output: {
         // Manual chunk splitting strategy
         manualChunks: (id): string | undefined => {

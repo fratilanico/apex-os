@@ -35,13 +35,18 @@ export const WASMForgeHUD: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-zinc-900/50 border border-white/5 rounded-2xl backdrop-blur-xl h-full flex flex-col">
+    <motion.div
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="relative p-6 bg-zinc-900/50 border border-white/5 rounded-2xl backdrop-blur-xl h-full flex flex-col group hover:border-purple-500/30 hover:bg-zinc-900/70 hover:shadow-[0_0_35px_rgba(168,85,247,0.12)]"
+    >
+      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-gradient-to-br from-purple-500/10 via-transparent to-cyan-500/10" />
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Hammer className="w-5 h-5 text-purple-400" />
+          <Hammer className="w-5 h-5 text-purple-400 group-hover:text-purple-300 transition-colors" />
           <h3 className="text-sm font-bold text-white uppercase tracking-widest">WASM Module Forge</h3>
         </div>
-        <div className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded text-[8px] font-black text-purple-400 uppercase tracking-tighter">
+        <div className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded text-[8px] font-black text-purple-400 uppercase tracking-tighter group-hover:border-purple-500/40 group-hover:text-purple-300 transition-colors">
           Edge Tooling SDK
         </div>
       </div>
@@ -124,6 +129,6 @@ export const WASMForgeHUD: React.FC = () => {
           WASM components run with zero server-side latency at the network edge.
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };

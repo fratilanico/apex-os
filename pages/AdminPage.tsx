@@ -30,6 +30,7 @@ import {
   MessageSquare,
   CreditCard,
   Rss,
+  Activity,
   RefreshCw,
   ToggleLeft as Toggle,
   Box,
@@ -44,11 +45,13 @@ import {
   SITE_STATS,
   CREDENTIALS,
 } from '../data/adminData';
-import { modules } from '../data/curriculumData';
+import { modules as fallbackModules } from '../data/curriculumData';
+import { useCurriculumStore } from '../stores/useCurriculumStore';
+import type { Module, Section, ContentBlockType } from '../types/curriculum';
 import type { FrontierIntelligence } from '../types/intelligence';
 import { useMatrixStore } from '../stores/useMatrixStore';
 
-type TabId = 'overview' | 'curriculum' | 'components' | 'easter-eggs' | 'tech-stack' | 'roadmap' | 'actions' | 'intelligence';
+type TabId = 'overview' | 'curriculum' | 'components' | 'easter-eggs' | 'tech-stack' | 'roadmap' | 'actions' | 'intelligence' | 'analytics';
 
 interface Tab {
   id: TabId;
@@ -59,6 +62,7 @@ interface Tab {
 const TABS: Tab[] = [
   { id: 'overview', label: 'Overview', icon: Layers },
   { id: 'intelligence', label: 'Neural Feed', icon: Rss },
+  { id: 'analytics', label: 'Analytics', icon: Activity },
   { id: 'curriculum', label: 'Curriculum', icon: BookOpen },
   { id: 'components', label: 'Components', icon: Code },
   { id: 'easter-eggs', label: 'Easter Eggs', icon: Sparkles },
@@ -86,8 +90,17 @@ export const AdminPage: React.FC = () => {
   const [showCredentials, setShowCredentials] = useState(false);
   const [intelligence, setIntelligence] = useState<FrontierIntelligence[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [analyticsSummary, setAnalyticsSummary] = useState<{ profiles: unknown[]; eventCounts: Record<string, number> } | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+  const [analyticsUserId, setAnalyticsUserId] = useState('');
+  const [analyticsProfile, setAnalyticsProfile] = useState<string>('');
+  const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
+  const [editableModules, setEditableModules] = useState<Module[]>(fallbackModules);
+  const [isSavingModules, setIsSavingModules] = useState(false);
+  const [modulesMessage, setModulesMessage] = useState('');
 
   const { addNode, addEdge } = useMatrixStore();
+  const { modules, loadModules, setModules } = useCurriculumStore();
 
   // Fetch intelligence on mount or tab change
   useEffect(() => {
@@ -95,6 +108,26 @@ export const AdminPage: React.FC = () => {
       fetchIntelligence();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'analytics') return;
+    setIsLoadingAnalytics(true);
+    fetch('/api/analytics?action=summary')
+      .then((res) => res.ok ? res.json() : Promise.reject(res))
+      .then((data) => setAnalyticsSummary(data))
+      .catch(() => setAnalyticsSummary(null))
+      .finally(() => setIsLoadingAnalytics(false));
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'curriculum') {
+      loadModules().catch(() => undefined);
+    }
+  }, [activeTab, loadModules]);
+
+  useEffect(() => {
+    setEditableModules(modules.length > 0 ? modules : fallbackModules);
+  }, [modules]);
 
   const fetchIntelligence = async () => {
     try {
@@ -204,6 +237,129 @@ export const AdminPage: React.FC = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const updateModule = (moduleId: string, updates: Partial<Module>) => {
+    setEditableModules((prev) => prev.map((module) => (
+      module.id === moduleId ? { ...module, ...updates } : module
+    )));
+  };
+
+  const updateSection = (moduleId: string, sectionId: string, updates: Partial<Section>) => {
+    setEditableModules((prev) => prev.map((module) => {
+      if (module.id !== moduleId) return module;
+      return {
+        ...module,
+        sections: module.sections.map((section) => (
+          section.id === sectionId ? { ...section, ...updates } : section
+        )),
+      };
+    }));
+  };
+
+  const addModule = () => {
+    const nextIndex = editableModules.length;
+    const moduleNumber = String(nextIndex).padStart(2, '0');
+    setEditableModules((prev) => ([
+      ...prev,
+      {
+        id: `module-${moduleNumber}`,
+        number: moduleNumber,
+        title: 'New Module',
+        subtitle: 'New module subtitle',
+        duration: '30 min',
+        objective: 'Define the learning objective',
+        sections: [],
+        keyTakeaways: [],
+        icon: 'Zap',
+      }
+    ]));
+  };
+
+  const addSection = (moduleId: string) => {
+    setEditableModules((prev) => prev.map((module) => {
+      if (module.id !== moduleId) return module;
+      const nextIndex = module.sections.length + 1;
+      const sectionId = `${module.number}.${nextIndex}`;
+      return {
+        ...module,
+        sections: [
+          ...module.sections,
+          {
+            id: sectionId,
+            title: 'New Section',
+            content: 'Add content here...',
+            tools: [],
+            duration: '10 min',
+            blocks: [],
+          }
+        ]
+      };
+    }));
+  };
+
+  const addBlock = (moduleId: string, sectionId: string, type: ContentBlockType) => {
+    setEditableModules((prev) => prev.map((module) => {
+      if (module.id !== moduleId) return module;
+      return {
+        ...module,
+        sections: module.sections.map((section) => {
+          if (section.id !== sectionId) return section;
+          const blocks = section.blocks ?? [];
+          return {
+            ...section,
+            blocks: [
+              ...blocks,
+              {
+                id: crypto.randomUUID(),
+                type,
+                content: '',
+              }
+            ]
+          };
+        })
+      };
+    }));
+  };
+
+  const updateBlock = (moduleId: string, sectionId: string, blockId: string, updates: { content?: string; type?: ContentBlockType; title?: string }) => {
+    setEditableModules((prev) => prev.map((module) => {
+      if (module.id !== moduleId) return module;
+      return {
+        ...module,
+        sections: module.sections.map((section) => {
+          if (section.id !== sectionId) return section;
+          return {
+            ...section,
+            blocks: (section.blocks ?? []).map((block) => (
+              block.id === blockId ? { ...block, ...updates } : block
+            )),
+          };
+        })
+      };
+    }));
+  };
+
+  const handleSaveModules = async () => {
+    setIsSavingModules(true);
+    setModulesMessage('');
+    try {
+      const res = await fetch('/api/curriculum/modules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminPassword: password, modules: editableModules }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.error || 'Failed to save curriculum');
+      }
+      setModules(editableModules);
+      setModulesMessage('Curriculum saved to Supabase.');
+    } catch (err) {
+      setModulesMessage(err instanceof Error ? err.message : 'Failed to save curriculum');
+    } finally {
+      setIsSavingModules(false);
+    }
   };
 
   // Password Gate
@@ -535,41 +691,228 @@ export const AdminPage: React.FC = () => {
             )}
 
             {/* Curriculum Tab */}
-            {activeTab === 'curriculum' && (
+            {activeTab === 'analytics' && (
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20 mb-6">
-                  <p className="text-cyan-400 text-sm">
-                    <strong>{modules.length} modules</strong> • {modules.reduce((acc, m) => acc + m.sections.length, 0)} sections • Full curriculum data in <code className="bg-black/30 px-2 py-0.5 rounded">/data/curriculumData.ts</code>
-                  </p>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <h3 className="text-sm font-bold text-white mb-2">Usage Summary</h3>
+                  {isLoadingAnalytics && (
+                    <p className="text-xs text-white/40">Loading analytics...</p>
+                  )}
+                  {!isLoadingAnalytics && analyticsSummary && (
+                    <div className="space-y-3 text-xs text-white/60">
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(analyticsSummary.eventCounts ?? {}).map(([key, value]) => (
+                          <span key={key} className="px-2 py-1 rounded-lg bg-black/40 border border-white/10">
+                            {key}: {value}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="text-white/50">
+                        Profiles: {analyticsSummary.profiles.length}
+                      </div>
+                    </div>
+                  )}
+                  {!isLoadingAnalytics && !analyticsSummary && (
+                    <p className="text-xs text-white/40">No analytics data yet.</p>
+                  )}
                 </div>
 
-                {modules.map((module, idx) => (
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                  <h3 className="text-sm font-bold text-white">Profile Generator</h3>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <input
+                      value={analyticsUserId}
+                      onChange={(e) => setAnalyticsUserId(e.target.value)}
+                      placeholder="User ID"
+                      className="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-xs"
+                    />
+                    <button
+                      onClick={async () => {
+                        if (!analyticsUserId) return;
+                        setIsGeneratingProfile(true);
+                        try {
+                          const res = await fetch('/api/analytics', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'profile', userId: analyticsUserId }),
+                          });
+                          const data = await res.json();
+                          setAnalyticsProfile(JSON.stringify(data.profile ?? data, null, 2));
+                        } catch (error) {
+                          setAnalyticsProfile(String(error));
+                        } finally {
+                          setIsGeneratingProfile(false);
+                        }
+                      }}
+                      disabled={isGeneratingProfile}
+                      className="px-3 py-2 rounded-lg bg-cyan-500/20 text-cyan-300 text-xs font-bold hover:bg-cyan-500/30 transition disabled:opacity-60"
+                    >
+                      {isGeneratingProfile ? 'Generating...' : 'Generate'}
+                    </button>
+                  </div>
+                  {analyticsProfile && (
+                    <pre className="text-[10px] text-white/70 bg-black/50 border border-white/10 rounded-lg p-3 overflow-x-auto">
+                      {analyticsProfile}
+                    </pre>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'curriculum' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20 mb-6 flex items-center justify-between gap-4">
+                  <p className="text-cyan-400 text-sm">
+                    <strong>{editableModules.length} modules</strong> • {editableModules.reduce((acc, m) => acc + m.sections.length, 0)} sections • Stored in Supabase
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={addModule}
+                      className="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 text-xs font-bold hover:bg-cyan-500/30 transition"
+                    >
+                      Add Module
+                    </button>
+                    <button
+                      onClick={handleSaveModules}
+                      disabled={isSavingModules}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-bold hover:bg-emerald-500/30 transition disabled:opacity-60"
+                    >
+                      {isSavingModules ? 'Saving...' : 'Save to Supabase'}
+                    </button>
+                  </div>
+                </div>
+
+                {modulesMessage && (
+                  <div className="text-xs text-white/60">{modulesMessage}</div>
+                )}
+
+                {editableModules.map((module, idx) => (
                   <motion.div
                     key={module.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="p-4 rounded-xl bg-white/5 border border-white/10"
+                    transition={{ delay: idx * 0.03 }}
+                    className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4"
                   >
                     <div className="flex items-start gap-4">
                       <div className="inline-flex w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-500 items-center justify-center font-bold text-white text-lg shrink-0">
                         {module.number}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-white">{module.title}</h3>
-                        <p className="text-white/50 text-sm">{module.subtitle}</p>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-xs">
-                            {module.duration}
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-400 text-xs">
-                            {module.sections.length} sections
-                          </span>
-                        </div>
-                        <div className="mt-3 text-sm text-white/60">
-                          <strong className="text-white/80">Objective:</strong> {module.objective}
-                        </div>
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input
+                          value={module.title}
+                          onChange={(e) => updateModule(module.id, { title: e.target.value })}
+                          className="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm"
+                          placeholder="Module title"
+                        />
+                        <input
+                          value={module.subtitle}
+                          onChange={(e) => updateModule(module.id, { subtitle: e.target.value })}
+                          className="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm"
+                          placeholder="Module subtitle"
+                        />
+                        <input
+                          value={module.duration}
+                          onChange={(e) => updateModule(module.id, { duration: e.target.value })}
+                          className="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm"
+                          placeholder="Duration"
+                        />
+                        <input
+                          value={module.icon}
+                          onChange={(e) => updateModule(module.id, { icon: e.target.value })}
+                          className="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm"
+                          placeholder="Icon name"
+                        />
+                        <textarea
+                          value={module.objective}
+                          onChange={(e) => updateModule(module.id, { objective: e.target.value })}
+                          className="md:col-span-2 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm min-h-[80px]"
+                          placeholder="Objective"
+                        />
                       </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs uppercase tracking-widest text-cyan-400">Sections</h4>
+                        <button
+                          onClick={() => addSection(module.id)}
+                          className="px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-xs hover:text-white transition"
+                        >
+                          Add Section
+                        </button>
+                      </div>
+                      {module.sections.map((section) => (
+                        <div key={section.id} className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <input
+                              value={section.id}
+                              onChange={(e) => updateSection(module.id, section.id, { id: e.target.value })}
+                              className="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-xs"
+                              placeholder="Section ID"
+                            />
+                            <input
+                              value={section.title}
+                              onChange={(e) => updateSection(module.id, section.id, { title: e.target.value })}
+                              className="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-xs md:col-span-2"
+                              placeholder="Section title"
+                            />
+                          </div>
+                          <textarea
+                            value={section.content}
+                            onChange={(e) => updateSection(module.id, section.id, { content: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-xs min-h-[120px]"
+                            placeholder="Section markdown content"
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => addBlock(module.id, section.id, 'markdown')}
+                              className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs"
+                            >
+                              Add Markdown Block
+                            </button>
+                            <button
+                              onClick={() => addBlock(module.id, section.id, 'code')}
+                              className="px-2 py-1 rounded-lg bg-violet-500/10 text-violet-300 text-xs"
+                            >
+                              Add Code Block
+                            </button>
+                          </div>
+                          {(section.blocks ?? []).length > 0 && (
+                            <div className="space-y-2">
+                              {(section.blocks ?? []).map((block) => (
+                                <div key={block.id} className="rounded-lg border border-white/10 bg-black/50 p-2 space-y-2">
+                                  <div className="flex gap-2">
+                                    <select
+                                      value={block.type}
+                                      onChange={(e) => updateBlock(module.id, section.id, block.id, { type: e.target.value as ContentBlockType })}
+                                      className="px-2 py-1 rounded bg-black/40 border border-white/10 text-white text-xs"
+                                    >
+                                      <option value="markdown">markdown</option>
+                                      <option value="code">code</option>
+                                      <option value="callout">callout</option>
+                                      <option value="checklist">checklist</option>
+                                      <option value="list">list</option>
+                                    </select>
+                                    <input
+                                      value={block.title ?? ''}
+                                      onChange={(e) => updateBlock(module.id, section.id, block.id, { title: e.target.value })}
+                                      className="flex-1 px-2 py-1 rounded bg-black/40 border border-white/10 text-white text-xs"
+                                      placeholder="Block title"
+                                    />
+                                  </div>
+                                  <textarea
+                                    value={block.content}
+                                    onChange={(e) => updateBlock(module.id, section.id, block.id, { content: e.target.value })}
+                                    className="w-full px-2 py-1 rounded bg-black/40 border border-white/10 text-white text-xs min-h-[80px]"
+                                    placeholder="Block content"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </motion.div>
                 ))}

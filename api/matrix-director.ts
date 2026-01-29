@@ -40,10 +40,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const fallbackResponse = {
+    newNodes: [],
+    newEdges: [],
+    narrativeUpdate: {
+      transmission: 'DIRECTOR_OFFLINE: Matrix sync unavailable.',
+      traceLevel: 0,
+      sentiment: 'neutral'
+    },
+    solvedNodeIds: []
+  };
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+    return res.status(200).json(fallbackResponse);
   }
 
   const { currentGraph, terminalLog, userGoal } = req.body;
@@ -72,12 +83,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const result = await model.generateContent(prompt);
     const response = result.response;
     const text = response.text() || "{}";
-
-    return res.status(200).json(JSON.parse(text));
+    try {
+      const parsed = JSON.parse(text);
+      return res.status(200).json(parsed);
+    } catch (parseError) {
+      console.warn('Director JSON parse failed. Returning fallback.', parseError);
+      return res.status(200).json(fallbackResponse);
+    }
   } catch (error: any) {
     console.error('Director API Error:', error);
-    return res.status(500).json({ 
-      error: error.message || 'Director offline. Neural link severed.',
-    });
+    return res.status(200).json(fallbackResponse);
   }
 }

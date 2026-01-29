@@ -124,6 +124,9 @@ export const ApexRouterHUD: React.FC = () => {
       >
         <input
           type="text"
+          id="router-task"
+          name="routerTask"
+          aria-label="Task to route"
           value={customInput}
           onChange={(e) => setCustomInput(e.target.value)}
           disabled={isRouting}

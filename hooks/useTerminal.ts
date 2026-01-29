@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react';
-
+import { useCallback, useEffect, useState } from 'react';
 export interface TerminalLine {
   text: string;
   type: 'input' | 'output' | 'error' | 'success' | 'system' | 'header';
@@ -8,8 +7,14 @@ export interface TerminalLine {
   showPrompt?: boolean;
 }
 
-export const useTerminal = () => {
-  const [lines, setLines] = useState<TerminalLine[]>([]);
+interface UseTerminalOptions {
+  initialLines?: TerminalLine[];
+  onLinesChange?: (lines: TerminalLine[]) => void;
+}
+
+export const useTerminal = (options: UseTerminalOptions = {}) => {
+  const { initialLines = [], onLinesChange } = options;
+  const [lines, setLines] = useState<TerminalLine[]>(initialLines);
   const [isTyping, setIsTyping] = useState(false);
 
   const addLine = useCallback((line: TerminalLine) => {
@@ -19,6 +24,12 @@ export const useTerminal = () => {
   const clearTerminal = useCallback(() => {
     setLines([]);
   }, []);
+
+  useEffect(() => {
+    if (onLinesChange) {
+      onLinesChange(lines);
+    }
+  }, [lines, onLinesChange]);
 
   // Memoize typeLine to prevent recreation on every render (flickering fix)
   const typeLine = useCallback(async (line: TerminalLine, speed = 20) => {
@@ -60,5 +71,6 @@ export const useTerminal = () => {
     typeLine,
     processSequence,
     clearTerminal,
+    setLines,
   };
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Terminal, Sparkles, Zap, Activity, Shield, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -8,6 +8,9 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { useMatrixStore } from '@/stores/useMatrixStore';
 import { useGameEngine } from '@/stores/useGameEngine';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
+import { useWorkflowStore } from '@/stores/useWorkflowStore';
+import { workflowsData } from '@/data/workflowsData';
+import { standardsData } from '@/data/standardsData';
 import { MAIN_QUESTS } from '@/data/questsData';
 import * as CLIFormatter from '@/lib/cliFormatter';
 
@@ -62,8 +65,48 @@ const COMMANDS = [
   'help', 'clear', 'vibe', 'ask', 'code', 'explain', 'debug', 'research',
   'status', 'inventory', 'quests', 'map', 'cd', 'ls', 'pwd',
   'fork', 'solve', 'submit', 'abandon',
-  'ingest', 'recall', 'sources', 'forget', 'stats'
+  'ingest', 'recall', 'sources', 'forget', 'stats',
+  'workflows', 'workflow', 'standards'
 ];
+
+const COMMAND_MENU = [
+  { name: 'help', description: 'Show command list', group: 'system' },
+  { name: 'clear', description: 'Clear terminal output', group: 'system' },
+  { name: 'vibe', description: 'Generate a vibe quote', group: 'system' },
+  { name: 'ask', description: 'Ask the AI anything', group: 'ai' },
+  { name: 'code', description: 'Generate code from a prompt', group: 'ai' },
+  { name: 'explain', description: 'Explain a concept', group: 'ai' },
+  { name: 'debug', description: 'Debug an issue', group: 'ai' },
+  { name: 'research', description: 'Deep cited report', group: 'ai' },
+  { name: 'status', description: 'Show XP, level, stats', group: 'player' },
+  { name: 'inventory', description: 'List unlocked skills', group: 'player' },
+  { name: 'quests', description: 'Show available quests', group: 'player' },
+  { name: 'cd', description: 'Navigate to node', group: 'nav' },
+  { name: 'ls', description: 'List adjacent nodes', group: 'nav' },
+  { name: 'pwd', description: 'Show current position', group: 'nav' },
+  { name: 'map', description: 'Display ASCII map', group: 'nav' },
+  { name: 'fork', description: 'Interact with forks', group: 'challenge' },
+  { name: 'solve', description: 'Start a challenge', group: 'challenge' },
+  { name: 'submit', description: 'Submit challenge answer', group: 'challenge' },
+  { name: 'abandon', description: 'Abandon active challenge', group: 'challenge' },
+  { name: 'ingest', description: 'Ingest knowledge source', group: 'knowledge' },
+  { name: 'recall', description: 'Query knowledge base', group: 'knowledge' },
+  { name: 'sources', description: 'List knowledge sources', group: 'knowledge' },
+  { name: 'forget', description: 'Remove a knowledge source', group: 'knowledge' },
+  { name: 'stats', description: 'Show memory system stats', group: 'knowledge' },
+  { name: 'workflows', description: 'List all workflows', group: 'knowledge' },
+  { name: 'workflow', description: 'Show workflow details', group: 'knowledge' },
+  { name: 'standards', description: 'Show AGENTS.md standards', group: 'knowledge' },
+];
+
+const MENU_GROUP_LABELS: Record<string, string> = {
+  system: 'System',
+  ai: 'AI Assist',
+  player: 'Player',
+  nav: 'Navigation',
+  challenge: 'Challenges',
+  knowledge: 'Knowledge',
+};
 
 const HELP_TEXT = `
 ┌─────────────────────────────────────────────────────────────┐
@@ -97,15 +140,15 @@ const HELP_TEXT = `
 │    fork choose <n>  Select path at fork                     │
 │    fork preview <n> Preview path outcome                    │
 │                                                             │
-│  KNOWLEDGE BASE                                             │
+│  KNOWLEDGE & WORKFLOWS                                         │
 │    ingest <url>         Ingest URL into knowledge base      │
-│    ingest --yt <id>     Ingest YouTube transcript           │
-│    ingest --gh <repo>   Ingest GitHub repo                  │
-│    ingest --notion <id> Ingest Notion page                  │
 │    recall <query>       Search your knowledge base          │
+│    workflows            List all documented workflows       │
+│    workflow <id>        Show detailed workflow & code       │
+│    standards            Show AGENTS.md standards            │
 │    sources              List all ingested sources           │
 │    forget <id>          Remove a source                     │
-│    stats                RLM learning statistics             │
+│    stats                Learning system statistics          │
 │                                                             │
 │  UTILITIES                                                  │
 │    help             Show this menu                          │
@@ -273,13 +316,56 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuIndex, setMenuIndex] = useState(0);
   
   const { syncTerminalContext, processDirectorResponse, nodes, edges } = useMatrixStore();
   const gameEngine = useGameEngine();
   const skillTree = useSkillTreeStore();
+  const workflowStore = useWorkflowStore();
   
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+
+  const menuQuery = input.trim().startsWith('/')
+    ? input.trim().slice(1).toLowerCase()
+    : '';
+
+  const menuItems = useMemo(() => {
+    if (!menuQuery) return COMMAND_MENU;
+    return COMMAND_MENU.filter((item) => (
+      item.name.startsWith(menuQuery)
+      || item.description.toLowerCase().includes(menuQuery)
+    ));
+  }, [menuQuery]);
+
+  const menuGroups = useMemo(() => {
+    const grouped = menuItems.reduce<Record<string, typeof COMMAND_MENU>>((acc, item) => {
+      const key = item.group;
+      acc[key] = acc[key] ? [...acc[key], item] : [item];
+      return acc;
+    }, {});
+
+    return Object.entries(grouped);
+  }, [menuItems]);
+
+  useEffect(() => {
+    if (!input.trim().startsWith('/')) {
+      if (menuOpen) setMenuOpen(false);
+      setMenuIndex(0);
+      return;
+    }
+    setMenuOpen(true);
+    setMenuIndex(0);
+  }, [input, menuOpen]);
+
+  useEffect(() => {
+    if (menuItems.length === 0) {
+      setMenuIndex(0);
+      return;
+    }
+    setMenuIndex((current) => Math.min(current, menuItems.length - 1));
+  }, [menuItems.length]);
 
   const addLine = useCallback((type: TerminalLine['type'], content: TerminalLine['content']) => {
     const newLine: TerminalLine = {
@@ -370,12 +456,14 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   const processCommand = useCallback(async (inputCommand: string) => {
     const trimmedCmd = inputCommand.trim();
     if (!trimmedCmd) return;
+    const normalizedCmd = trimmedCmd.startsWith('/') ? trimmedCmd.slice(1).trim() : trimmedCmd;
+    if (!normalizedCmd) return;
 
-    setCommandHistory(prev => [...prev.slice(-49), trimmedCmd]);
+    setCommandHistory(prev => [...prev.slice(-49), normalizedCmd]);
     setHistoryIndex(-1);
-    addLine('input', `> ${trimmedCmd}`);
+    addLine('input', `> ${normalizedCmd}`);
 
-    const [command, ...args] = trimmedCmd.split(' ');
+    const [command, ...args] = normalizedCmd.split(' ');
     const argument = args.join(' ');
 
     const cmd = command?.toLowerCase();
@@ -830,6 +918,93 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
         }
         break;
 
+      case 'workflows':
+        {
+          let output = `┌─────────────────────────────────────────────────────────────┐\n│  DOCUMENTED WORKFLOWS                                       │\n├─────────────────────────────────────────────────────────────┤\n`;
+          workflowsData.forEach((w) => {
+            const status = workflowStore.progress[w.id]?.mastered ? ' [✓] ' : ' [ ] ';
+            output += `│ ${status} ${w.name.padEnd(30)} | ${w.category.padEnd(20)} │\n`;
+          });
+          output += `└─────────────────────────────────────────────────────────────┘\nUse: workflow <id> for details\n[exit 0]`;
+          addLine('system', output);
+        }
+        break;
+
+      case 'workflow':
+        {
+          if (!argument) {
+            addLine('error', CLIFormatter.formatError('Usage: workflow <id>', 1));
+            break;
+          }
+          const workflow = workflowsData.find(w => w.id === argument || w.name.toLowerCase().includes(argument.toLowerCase()));
+          if (!workflow) {
+            addLine('error', CLIFormatter.formatError(`Workflow "${argument}" not found.`, 1));
+          } else {
+            let output = `╔═══════════════════════════════════════════════════════════════╗\n║  WORKFLOW: ${workflow.name.padEnd(50)} ║\n╠═══════════════════════════════════════════════════════════════╣\n║  Category: ${workflow.category.padEnd(50)} ║\n║  Confidence: ${workflow.confidence.toUpperCase().padEnd(48)} ║\n╠═══════════════════════════════════════════════════════════════╣\n║  ${workflow.description.padEnd(61)} ║\n╚═══════════════════════════════════════════════════════════════╝\n\n`;
+            
+            if (workflow.triggerPhrases.length > 0) {
+              output += `TRIGGER PHRASES:\n${workflow.triggerPhrases.map(p => `  - "${p}"`).join('\n')}\n\n`;
+            }
+
+            if (workflow.prerequisites.length > 0) {
+              output += `PREREQUISITES:\n${workflow.prerequisites.map(p => `  [ ] ${p.name} (${p.type})`).join('\n')}\n\n`;
+            }
+
+            if (workflow.flow) {
+              output += `FLOW:\n  ${workflow.flow}\n\n`;
+            }
+
+            addLine('system', output);
+
+            if (workflow.codePatterns.length > 0) {
+              workflow.codePatterns.forEach(pattern => {
+                addLine('system', `CODE PATTERN: ${pattern.description}`);
+                addLine('ai', `\`\`\`${pattern.language}\n${pattern.code}\n\`\`\``);
+              });
+            }
+            
+            addLine('system', `[exit 0]`);
+          }
+        }
+        break;
+
+      case 'standards':
+        {
+          if (!argument) {
+            let output = `┌─────────────────────────────────────────────────────────────┐\n│  AGENTS.md CODING STANDARDS                                 │\n├─────────────────────────────────────────────────────────────┤\n`;
+            standardsData.forEach((s) => {
+              output += `│  [${s.priority}] ${s.title.padEnd(30)} | ${s.category.padEnd(15)} │\n`;
+            });
+            output += `└─────────────────────────────────────────────────────────────┘\nUse: standards <query> to search or show details\n[exit 0]`;
+            addLine('system', output);
+          } else {
+            const query = argument.toLowerCase();
+            const matching = standardsData.filter(s => 
+              s.title.toLowerCase().includes(query) || 
+              s.category.toLowerCase().includes(query) ||
+              s.description.toLowerCase().includes(query)
+            );
+
+            if (matching.length === 0) {
+              addLine('error', CLIFormatter.formatError(`No standards matching "${argument}" found.`, 1));
+            } else {
+              matching.forEach(s => {
+                let output = `\n【 ${s.priority} 】 ${s.title.toUpperCase()}\n`;
+                output += `Category: ${s.category}\n`;
+                output += `Description: ${s.description}\n`;
+                addLine('system', output);
+
+                s.examples.forEach(ex => {
+                  addLine('system', `Example (${ex.type}): ${ex.explanation || ''}`);
+                  addLine('ai', `\`\`\`typescript\n${ex.code}\n\`\`\``);
+                });
+              });
+              addLine('system', `\n[exit 0]`);
+            }
+          }
+        }
+        break;
+
       // ========== DEFAULT: AI NATURAL LANGUAGE ==========
       default:
         setIsProcessing(true);
@@ -841,6 +1016,46 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   }, [addLine, callAI, gameEngine, skillTree]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (menuOpen) {
+      const hasArgs = input.trim().includes(' ');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (menuItems.length > 0) {
+          setMenuIndex((idx) => (idx + 1) % menuItems.length);
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (menuItems.length > 0) {
+          setMenuIndex((idx) => (idx - 1 + menuItems.length) % menuItems.length);
+        }
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        if (!hasArgs && menuItems.length > 0) {
+          e.preventDefault();
+          const selected = menuItems[menuIndex];
+          if (!selected) return;
+          setInput(`${selected.name} `);
+          setMenuOpen(false);
+          return;
+        }
+        setMenuOpen(false);
+      }
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMenuOpen(false);
+        if (input.startsWith('/')) {
+          setInput(input.slice(1));
+        }
+        return;
+      }
+    }
+
     // Ctrl+C to cancel
     if (e.ctrlKey && e.key === 'c') {
       e.preventDefault();
@@ -885,7 +1100,7 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
         setInput(nextIdx === -1 ? '' : commandHistory[nextIdx] || '');
       }
     }
-  }, [input, isProcessing, processCommand, commandHistory, historyIndex]);
+  }, [input, isProcessing, processCommand, commandHistory, historyIndex, menuOpen, menuItems, menuIndex]);
 
   return (
     <div 
@@ -951,6 +1166,10 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
       </div>
 
       <div className="border-t border-white/5 bg-zinc-900/50 p-4">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-white/30 mb-2">
+          <span>APEX OS Interface</span>
+          <span className="text-white/20">Type / for menu</span>
+        </div>
         <form 
           onSubmit={(e) => {
             e.preventDefault();
@@ -991,6 +1210,52 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
             spellCheck="false"
           />
         </form>
+        {menuOpen && (
+          <div className="mt-3 rounded-lg border border-cyan-500/20 bg-black/70 backdrop-blur-sm shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden">
+            <div className="px-3 py-2 text-[10px] uppercase tracking-[0.3em] text-cyan-400/70 border-b border-cyan-500/10">
+              APEX OS Menu
+            </div>
+            <div className="max-h-56 overflow-y-auto custom-scrollbar">
+              {menuItems.length === 0 ? (
+                <div className="px-3 py-3 text-xs text-white/40">No matching commands.</div>
+              ) : (
+                menuGroups.map(([group, items]) => (
+                  <div key={group} className="border-t border-white/5 first:border-t-0">
+                    <div className="px-3 py-2 text-[10px] uppercase tracking-[0.3em] text-white/30">
+                      {MENU_GROUP_LABELS[group] || group}
+                    </div>
+                    {items.map((item) => {
+                      const index = menuItems.findIndex((entry) => entry.name === item.name);
+                      const isActive = index === menuIndex;
+                      return (
+                        <button
+                          key={item.name}
+                          type="button"
+                          onMouseEnter={() => setMenuIndex(index)}
+                          onClick={() => {
+                            setInput(`${item.name} `);
+                            setMenuOpen(false);
+                            setTimeout(() => inputRef.current?.focus(), 10);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-xs font-mono transition ${isActive ? 'bg-cyan-500/15 text-cyan-100' : 'text-white/70 hover:bg-white/5'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>/{item.name}</span>
+                            <span className="text-white/40">{item.group}</span>
+                          </div>
+                          <div className="text-[11px] text-white/40">{item.description}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="px-3 py-2 border-t border-white/5 text-[10px] text-white/30">
+              Use ↑/↓ to select, Enter to fill, Esc to close
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

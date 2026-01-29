@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { 
   AIMode, 
   ClawBotMessage, 
@@ -16,6 +17,8 @@ interface TerminalStore {
   // Mode
   mode: AIMode;
   setMode: (mode: AIMode) => void;
+  geminiSessionId: string | null;
+  lastActiveAt: number | null;
   
   // ClawBot state
   clawbot: {
@@ -35,15 +38,21 @@ interface TerminalStore {
     messages: Array<{ role: 'user' | 'assistant'; content: string }>;
     isProcessing: boolean;
   };
+  setGeminiMessages: (messages: Array<{ role: 'user' | 'assistant'; content: string }>) => void;
+  setClawBotSession: (session: ClawBotSession | null) => void;
   
   // Gemini actions
   sendToGemini: (message: string) => Promise<void>;
   clearGeminiHistory: () => void;
 }
 
-export const useTerminalStore = create<TerminalStore>((set, get) => ({
+export const useTerminalStore = create<TerminalStore>()(
+  persist(
+    (set, get) => ({
   // Initial mode
   mode: 'gemini',
+  geminiSessionId: null,
+  lastActiveAt: null,
   
   // ClawBot initial state
   clawbot: {
@@ -61,13 +70,29 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
     messages: [],
     isProcessing: false
   },
+
+  setGeminiMessages: (messages) => set((state) => ({
+    gemini: {
+      ...state.gemini,
+      messages,
+    },
+    lastActiveAt: Date.now(),
+  })),
+
+  setClawBotSession: (session) => set((state) => ({
+    clawbot: {
+      ...state.clawbot,
+      session,
+    },
+    lastActiveAt: Date.now(),
+  })),
   
   /**
    * Set AI mode (Gemini or ClawBot)
    */
   setMode: (mode: AIMode) => {
     console.log(`[Terminal] Switching mode to: ${mode}`);
-    set({ mode });
+    set({ mode, lastActiveAt: Date.now() });
     
     // Auto-connect to ClawBot when switching to that mode
     if (mode === 'clawbot' && !get().clawbot.status.connected) {
@@ -105,7 +130,8 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
               messages: [...state.clawbot.session.messages, message],
               isProcessing: false
             }
-          }
+          },
+          lastActiveAt: Date.now()
         };
       });
     });
@@ -138,24 +164,28 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
     // Connect
     try {
       await client.connect();
-      
-      // Create new session
+
+      const existingSession = get().clawbot.session;
+
+      // Create or resume session
       set({
         clawbot: {
           client,
           session: {
-            id: crypto.randomUUID(),
+            id: existingSession?.id ?? crypto.randomUUID(),
             mode: 'clawbot',
-            messages: [],
+            messages: existingSession?.messages ?? [],
             isConnected: true,
-            isProcessing: false
+            isProcessing: false,
+            error: undefined
           },
           status: {
             connected: true,
             reconnecting: false,
             reconnectAttempts: 0
           }
-        }
+        },
+        lastActiveAt: Date.now()
       });
       
       console.log('[Terminal] ClawBot connected successfully');
@@ -175,18 +205,23 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
       console.log('[Terminal] Disconnecting ClawBot...');
       client.disconnect();
     }
-    
-    set({
+
+    set((state) => ({
       clawbot: {
         client: null,
-        session: null,
+        session: state.clawbot.session ? {
+          ...state.clawbot.session,
+          isConnected: false,
+          isProcessing: false
+        } : null,
         status: {
           connected: false,
           reconnecting: false,
           reconnectAttempts: 0
         }
-      }
-    });
+      },
+      lastActiveAt: Date.now()
+    }));
   },
   
   /**
@@ -220,7 +255,8 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
           isProcessing: true,
           error: undefined
         } : null
-      }
+      },
+      lastActiveAt: Date.now()
     }));
     
     // Send to ClawBot
@@ -236,7 +272,8 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
             error: error instanceof Error ? error.message : String(error),
             isProcessing: false
           } : null
-        }
+        },
+        lastActiveAt: Date.now()
       }));
     }
   },
@@ -253,7 +290,8 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
           messages: [],
           error: undefined
         } : null
-      }
+      },
+      lastActiveAt: Date.now()
     }));
   },
   
@@ -270,7 +308,9 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
           { role: 'user', content: message }
         ],
         isProcessing: true
-      }
+      },
+      geminiSessionId: state.geminiSessionId ?? crypto.randomUUID(),
+      lastActiveAt: Date.now()
     }));
     
     try {
@@ -298,7 +338,8 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
             { role: 'assistant', content: data.response }
           ],
           isProcessing: false
-        }
+        },
+        lastActiveAt: Date.now()
       }));
     } catch (error) {
       console.error('[Terminal] Gemini error:', error);
@@ -306,7 +347,8 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
         gemini: {
           ...state.gemini,
           isProcessing: false
-        }
+        },
+        lastActiveAt: Date.now()
       }));
       throw error;
     }
@@ -320,7 +362,29 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
       gemini: {
         messages: [],
         isProcessing: false
-      }
+      },
+      geminiSessionId: crypto.randomUUID(),
+      lastActiveAt: Date.now()
     });
   }
-}));
+    }),
+    {
+      name: 'apex-terminal-history',
+      version: 1,
+      partialize: (state) => ({
+        mode: state.mode,
+        gemini: state.gemini,
+        geminiSessionId: state.geminiSessionId,
+        lastActiveAt: state.lastActiveAt,
+        clawbot: {
+          session: state.clawbot.session,
+          status: {
+            connected: false,
+            reconnecting: false,
+            reconnectAttempts: 0
+          }
+        }
+      })
+    }
+  )
+);

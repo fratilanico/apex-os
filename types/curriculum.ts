@@ -34,6 +34,17 @@ export interface Section {
   content: string;               // Markdown content (placeholder for now)
   tools: string[];               // Tool IDs referenced in this section
   duration?: string;             // '15 min read', optional
+  blocks?: ContentBlock[];        // Structured content blocks (notebook style)
+}
+
+export type ContentBlockType = 'markdown' | 'code' | 'callout' | 'checklist' | 'list';
+
+export interface ContentBlock {
+  id: string;
+  type: ContentBlockType;
+  content: string;
+  language?: string;
+  title?: string;
 }
 
 export interface Module {

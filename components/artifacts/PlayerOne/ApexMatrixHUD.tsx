@@ -11,7 +11,7 @@ import ReactFlow, {
   useEdgesState,
 } from 'reactflow';
 import { motion } from 'framer-motion';
-import { Zap, Sparkles, Brain, Activity, Database, Link as LinkIcon, Youtube, Github } from 'lucide-react';
+import { Zap, Sparkles, Brain, Activity, Database, Link as LinkIcon, Youtube, Github, Workflow, Terminal, Cpu } from 'lucide-react';
 import { useMatrixStore } from '@/stores/useMatrixStore';
 import { useKnowledgeStore } from '@/stores/useKnowledgeStore';
 import 'reactflow/dist/style.css';
@@ -25,23 +25,68 @@ const SOURCE_ICONS: Record<string, any> = {
   default: Database
 };
 
+const ICON_NAME_MAP: Record<string, any> = {
+  Brain,
+  Workflow,
+  Terminal,
+  Cpu,
+  Zap,
+  Sparkles,
+  Activity,
+  Database,
+  LinkIcon,
+  Youtube,
+  Github,
+};
+
+const TYPE_ICON_MAP: Record<string, any> = {
+  COGNITIVE_BASE: Brain,
+  AGENT_LOGIC: Workflow,
+  CLI_INTERFACE: Terminal,
+  LOW_LEVEL_ENGINE: Cpu,
+  VALIDATION: Zap,
+  BRANCH: Sparkles,
+  FORK: Sparkles,
+  KNOWLEDGE_CELL: Database,
+};
+
+const resolveIcon = (icon: unknown, type?: string) => {
+  if (typeof icon === 'function') {
+    return icon;
+  }
+
+  if (typeof icon === 'string' && ICON_NAME_MAP[icon]) {
+    return ICON_NAME_MAP[icon];
+  }
+
+  if (typeof icon === 'object' && icon && 'default' in icon && typeof (icon as { default?: unknown }).default === 'function') {
+    return (icon as { default: any }).default;
+  }
+
+  return TYPE_ICON_MAP[type ?? ''] ?? Brain;
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // APEX MATRIX HUD v1.1.0 — The Neural Nebula Interface
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // --- CUSTOM OASIS NODE ---
 const OasisNode = ({ data, selected }: NodeProps) => {
-  const Icon = data.icon || Brain;
+  const Icon = resolveIcon(data.icon, data.type);
   const isKnowledge = data.type === 'KNOWLEDGE_CELL';
   
   return (
-    <div className="relative group">
+    <motion.div
+      className="relative group"
+      whileHover={{ scale: 1.03 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+    >
       {/* Neural Glow Effect */}
-      <div className={`
-        absolute -inset-4 bg-gradient-to-tr rounded-full blur-2xl opacity-0 transition-opacity duration-500 
-        ${isKnowledge ? 'from-cyan-500/20 via-blue-500/20 to-indigo-500/20' : 'from-indigo-500/20 via-purple-500/20 to-cyan-500/20'}
-        ${selected ? 'opacity-100' : 'group-hover:opacity-50'}
-      `} />
+        <div className={`
+          absolute -inset-4 bg-gradient-to-tr rounded-full blur-2xl opacity-0 transition-opacity duration-500 
+          ${isKnowledge ? 'from-cyan-500/20 via-blue-500/20 to-indigo-500/20' : 'from-indigo-500/20 via-purple-500/20 to-cyan-500/20'}
+          ${selected ? 'opacity-100' : 'group-hover:opacity-60'}
+        `} />
       
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
@@ -52,7 +97,7 @@ const OasisNode = ({ data, selected }: NodeProps) => {
             ? `shadow-[0_0_30px_rgba(34,211,238,0.2)] ${isKnowledge ? 'border-cyan-500 bg-cyan-500/5' : 'border-[#D946EF] bg-[#D946EF]/5'}` 
             : 'border-white/10 bg-zinc-900/80 group-hover:border-white/20'}
           ${data.status === 'completed' ? 'border-emerald-500/40 bg-emerald-500/5' : ''}
-          ${data.status === 'locked' ? 'opacity-40 grayscale grayscale-opacity-100' : ''}
+          ${data.status === 'locked' ? 'opacity-60' : ''}
         `}
       >
         {/* Singularity Pulse Indicator */}
@@ -74,6 +119,7 @@ const OasisNode = ({ data, selected }: NodeProps) => {
             w-10 h-10 rounded-xl flex items-center justify-center transition-colors
             ${selected ? (isKnowledge ? 'bg-cyan-500/20 text-cyan-400' : 'bg-[#D946EF]/20 text-[#D946EF]') : 'bg-white/5 text-white/40'}
             ${data.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' : ''}
+            ${data.status === 'locked' ? 'group-hover:bg-purple-500/10 group-hover:text-purple-300' : ''}
           `}>
             <Icon size={20} />
           </div>
@@ -120,7 +166,7 @@ const OasisNode = ({ data, selected }: NodeProps) => {
           />
         )}
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -137,11 +183,10 @@ export const ApexMatrixHUD: React.FC = () => {
 
   // --- Dynamic Graph Construction ---
   React.useEffect(() => {
-    if (!sources) return;
-
     // 1. Construct Knowledge Nodes
-    const knowledgeNodes = (sources || []).map((source, index) => {
-      const angle = (index / (sources.length || 1)) * Math.PI * 2;
+    const kSources = sources || [];
+    const knowledgeNodes = kSources.map((source, index) => {
+      const angle = (index / (kSources.length || 1)) * Math.PI * 2;
       const radius = 400;
       return {
         id: `source-${source.id}`,
@@ -163,7 +208,7 @@ export const ApexMatrixHUD: React.FC = () => {
     });
 
     // 2. Construct Knowledge Edges (Connect to Sovereign_Core)
-    const knowledgeEdges = sources.map(source => ({
+    const knowledgeEdges = kSources.map(source => ({
       id: `edge-source-${source.id}`,
       source: '0', // Sovereign_Core ID
       target: `source-${source.id}`,
@@ -172,7 +217,8 @@ export const ApexMatrixHUD: React.FC = () => {
     }));
 
     // 3. Construct Search Result Edges (Highlight Neural Link)
-    const searchEdges = searchResults.map((result, i) => ({
+    const sResults = searchResults || [];
+    const searchEdges = sResults.map((result, i) => ({
       id: `search-link-${i}`,
       source: `source-${result.source_id}`,
       target: activeNodeId || '0',
@@ -181,8 +227,8 @@ export const ApexMatrixHUD: React.FC = () => {
       style: { stroke: '#22D3EE', strokeWidth: 2, filter: 'drop-shadow(0 0 8px rgba(34, 211, 238, 0.8))' }
     }));
 
-    setNodes([...storeNodes, ...knowledgeNodes]);
-    setEdges([...storeEdges, ...knowledgeEdges, ...searchEdges]);
+    setNodes([...(storeNodes || []), ...knowledgeNodes]);
+    setEdges([...(storeEdges || []), ...knowledgeEdges, ...searchEdges]);
   }, [storeNodes, storeEdges, sources, searchResults, activeNodeId, setNodes, setEdges]);
 
   return (

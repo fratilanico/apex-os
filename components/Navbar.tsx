@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
@@ -10,6 +10,24 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      return undefined;
+    }
+
+    const { style } = document.body;
+    const previousOverflow = style.overflow;
+    const previousTouchAction = style.touchAction;
+
+    style.overflow = 'hidden';
+    style.touchAction = 'none';
+
+    return () => {
+      style.overflow = previousOverflow;
+      style.touchAction = previousTouchAction;
+    };
+  }, [mobileMenuOpen]);
   
   const navItems = [
     { name: 'Vibe', path: '/vibe' },
@@ -90,15 +108,16 @@ export const Navbar: React.FC<NavbarProps> = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-30 sm:hidden"
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="fixed inset-0 bg-black/80 z-30 sm:hidden"
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed top-24 left-4 right-4 z-40 sm:hidden bg-black/95 border border-white/10 rounded-2xl p-6 backdrop-blur-xl shadow-2xl"
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="fixed top-24 left-4 right-4 z-40 sm:hidden bg-black/95 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-2xl will-change-transform"
             >
               <div className="flex flex-col gap-2">
                 {navItems.map((item) => (

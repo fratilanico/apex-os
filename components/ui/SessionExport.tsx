@@ -52,7 +52,6 @@ export function SessionExport({ messages, projectName, activeFiles, onClose }: S
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('claude-code');
   const [isExporting, setIsExporting] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [exportedContent, setExportedContent] = useState<string | null>(null);
 
   const handleExport = async (format: ExportFormat, action: 'download' | 'copy') => {
     setIsExporting(true);
@@ -90,7 +89,6 @@ export function SessionExport({ messages, projectName, activeFiles, onClose }: S
         // Copy to clipboard
         await navigator.clipboard.writeText(data.content);
         setCopied(true);
-        setExportedContent(data.content);
         setTimeout(() => setCopied(false), 2000);
       }
     } catch (error) {
