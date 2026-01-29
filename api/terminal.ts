@@ -1,7 +1,33 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
-import { getFrontierConstraints } from '../lib/intelligence/constraints';
-import { callPerplexity } from './_lib/perplexity';
+import { createClient } from '@supabase/supabase-js';
+
+// Inline supabase for serverless
+const supabase = createClient(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_ANON_KEY || ''
+);
+
+async function getFrontierConstraints(): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from('frontier_intelligence')
+      .select('title, category, logic, is_active');
+    if (error || !data) return '';
+    const restricted = data.filter((item: any) => !item.is_active);
+    const active = data.filter((item: any) => item.is_active);
+    let block = '\n\n## FRONTIER_KNOWLEDGE_CONSTRAINTS\n';
+    if (restricted.length > 0) {
+      block += '\n[RESTRICTED]:\n';
+      restricted.forEach((item: any) => { block += `- ${item.title}\n`; });
+    }
+    if (active.length > 0) {
+      block += '\n[AUTHORIZED]:\n';
+      active.forEach((item: any) => { block += `- ${item.title}: ${item.logic}\n`; });
+    }
+    return block;
+  } catch { return ''; }
+}
 
 // Types
 interface ChatMessage {
@@ -50,8 +76,8 @@ PERSONALITY:
 - You're the architect's trusted companion on the Frontier`;
 
 // Model configuration - Gemini 3 Flash
-const PRIMARY_MODEL = 'gemini-3-flash-preview';
-const FALLBACK_MODEL = 'gemini-3-flash-preview';
+const PRIMARY_MODEL = 'gemini-2.0-flash';
+const FALLBACK_MODEL = 'gemini-2.0-flash';
 
 /**
  * Format chat history for Gemini API
@@ -130,22 +156,6 @@ export default async function handler(
   if (message.length === 0) {
     res.status(400).json({ error: 'Message cannot be empty' });
     return;
-  }
-
-  // --- RESEARCH MODE ---
-  if (body.mode === 'research') {
-    try {
-      const research = await callPerplexity(
-        "You are a Senior Academic Researcher. Provide deep technical, cited reports on developer topics. Use professional markdown formatting.",
-        message
-      );
-      res.status(200).json({ response: research, model: 'sonar-reasoning-pro' });
-      return;
-    } catch (err: any) {
-      console.error('Research Error:', err);
-      res.status(500).json({ error: `Research failed: ${err.message}` });
-      return;
-    }
   }
 
   if (message.length > 10000) {
