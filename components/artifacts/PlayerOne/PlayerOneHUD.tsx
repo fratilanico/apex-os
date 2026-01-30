@@ -362,8 +362,8 @@ export const PlayerOneHUD: React.FC = () => {
             </div>
 
             {/* ─── Body: Sidebar + Content ─── */}
-            <div 
-              className={`flex-1 flex ${isMaximized ? 'md:flex-row' : 'sm:flex-row'} flex-col overflow-hidden hud-scroll-container`}
+            <div
+              className={`flex-1 flex ${isMaximized ? 'md:flex-row' : 'sm:flex-row'} flex-col overflow-hidden min-h-0`}
             >
               {/* Left Sidebar (hidden on mobile) */}
               <div className={`hidden sm:flex ${isMaximized ? 'w-20 lg:w-24' : 'w-14'} bg-zinc-950 border-r border-white/5 flex-col items-center py-4 gap-5 p-1.5 flex-shrink-0`}>
@@ -403,7 +403,7 @@ export const PlayerOneHUD: React.FC = () => {
               </div>
 
               {/* Main Content */}
-              <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 flex flex-col overflow-hidden min-h-0">
                 {/* Apex OS Header — only shown when maximized */}
                 {isMaximized && (
                   <div className="px-6 py-4 border-b border-white/5 flex-shrink-0">
@@ -422,7 +422,11 @@ export const PlayerOneHUD: React.FC = () => {
                 )}
 
                 {/* Content with padding - scrollable */}
-                <div className="flex-1 flex flex-col overflow-y-auto hud-scroll-container p-3 sm:p-4 md:p-5">
+                <div
+                  className={`flex-1 flex flex-col p-3 sm:p-4 md:p-5 min-h-0 ${
+                    activeView === 'terminal' ? 'overflow-hidden' : 'overflow-y-auto hud-scroll-container'
+                  }`}
+                >
                   {/* Mobile Tab Bar — only on small screens */}
                   <div className="flex sm:hidden border-b border-white/5 mb-3 flex-shrink-0">
                     <button
