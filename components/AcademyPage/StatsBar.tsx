@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, FileText, Clock, Award, TrendingUp, Users } from 'lucide-react';
 
+type ColorKey = 'cyan' | 'violet' | 'emerald' | 'yellow' | 'blue' | 'rose';
+
 interface StatItem {
   icon: React.ElementType;
   value: number;
   suffix?: string;
   label: string;
-  color: string;
+  color: ColorKey;
   description: string;
 }
 
@@ -46,7 +48,14 @@ export const StatsBar: React.FC = () => {
     { icon: TrendingUp, value: 100, suffix: 'x', label: 'ROI', color: 'rose', description: '$200/mo vs $200K/year' },
   ];
 
-  const colorClasses = {
+  const colorClasses: Record<ColorKey, {
+    bg: string;
+    border: string;
+    text: string;
+    glow: string;
+    gradientFrom: string;
+    gradientTo: string;
+  }> = {
     cyan: { 
       bg: 'bg-cyan-500/10', 
       border: 'border-cyan-500/20', 
@@ -106,7 +115,7 @@ export const StatsBar: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
-            const colors = colorClasses[stat.color as keyof typeof colorClasses];
+            const colors = colorClasses[stat.color];
             const animatedValue = useAnimatedCounter(stat.value, 2000, idx * 100);
             
             return (

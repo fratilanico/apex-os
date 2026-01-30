@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { TerminalWindow, TerminalLine, TerminalPrompt } from '../../ui/Terminal';
 import { useTerminal } from '../../../hooks/useTerminal';
+import { useNavigate } from 'react-router-dom';
 
 export const TerminalContact: React.FC = () => {
   const { lines, isTyping, processSequence, addLine } = useTerminal();
   const [step, setStep] = useState<'boot' | 'identity' | 'vision' | 'mission' | 'success'>('boot');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const bootSequence = [
@@ -20,6 +22,17 @@ export const TerminalContact: React.FC = () => {
   }, []); // Only once on mount
 
   const handleCommand = async (cmd: string) => {
+    const lowered = cmd.trim().toLowerCase();
+    if (lowered === 'showmethemoney') {
+      addLine({ text: cmd, type: 'input', showPrompt: true } as any);
+      await processSequence([
+        { text: '💰 ACCESSING FINANCIAL VAULT...', type: 'system', delay: 200 },
+        { text: '✓ CLEARANCE_GRANTED', type: 'success', delay: 300 },
+        { text: 'Redirecting to Business Plan...', type: 'output', delay: 300 },
+      ] as any);
+      setTimeout(() => navigate('/showmethemoney'), 800);
+      return;
+    }
     addLine({ text: cmd, type: 'input', showPrompt: true } as any);
 
     if (step === 'identity') {

@@ -133,6 +133,7 @@ const HIDDEN_COMMANDS: Record<string, () => string[]> = {
   ],
   clear: () => ['__CLEAR__'], // Special marker handled in handleChatSubmit
   admin: () => ['__ADMIN__'], // Special marker for admin navigation
+  showmethemoney: () => ['__SHOWMETHEMONEY__'],
 };
 
 // Konami code sequence
@@ -498,6 +499,12 @@ export const TerminalContactV2: React.FC = () => {
             setOutput(prev => [...prev, `> ${cmd}`, '', '🔒 SECURITY PROTOCOL INITIATED...', '✓ IDENTITY_VERIFIED', 'Redirecting to Admin Console...']);
             setInputValue('');
             setTimeout(() => navigate('/admin'), 1500);
+            return;
+        }
+        if (commandOutput[0] === '__SHOWMETHEMONEY__') {
+            setOutput(prev => [...prev, `> ${cmd}`, '', '💰 ACCESSING FINANCIAL VAULT...', '✓ CLEARANCE_GRANTED', 'Redirecting to Business Plan...']);
+            setInputValue('');
+            setTimeout(() => navigate('/showmethemoney'), 1500);
             return;
         }
         setOutput(prev => [...prev, `> ${cmd}`, ...commandOutput]);

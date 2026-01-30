@@ -43,29 +43,7 @@ interface PricingTier {
   color: string;
 }
 
-interface ExpansionPhase {
-  title: string;
-  market: string;
-  focus: string;
-  milestones: string[];
-  revenueTarget: string;
-}
 
-interface AcceleratorPhase {
-  title: string;
-  thesis: string;
-  pipeline: string[];
-  equity: string;
-  output: string;
-}
-
-interface FundingRound {
-  stage: string;
-  raise: string;
-  equity: string;
-  useOfFunds: string[];
-  milestone: string;
-}
 
 // Financial Projections (32K leads, 30% retention)
 const generateProjections = (): RevenueProjection[] => {
@@ -271,6 +249,48 @@ const gtmStrategy = [
   }
 ];
 
+const expansionPlan = [
+  {
+    title: 'Phase 1 — Romania Launch (Months 1–6)',
+    market: '32,000 InfoAcademy leads + Romanian founder communities',
+    focus: 'Establish core revenue, validate retention, and refine delivery systems.',
+    milestones: [
+      'Convert 3–5% of 32K leads into paid tiers',
+      'Reach 1,000+ paying users with 30% retention',
+      'Ship Academy v2 + live cohorts',
+      'Own the local AI-builder education narrative',
+    ],
+    revenueTarget: '$1.5M ARR run-rate by Month 6',
+  },
+  {
+    title: 'Phase 2 — India Expansion (Months 7–18)',
+    market: 'India (1.5B population) + startup accelerators + engineering communities',
+    focus: 'Scale distribution with partnerships + localized pricing.',
+    milestones: [
+      'India‑first cohort with localized pricing tiers',
+      'Partnerships with 5–10 accelerators/incubators',
+      'Campus ambassador + creator programs',
+      'Regional cohort operators + support team',
+    ],
+    revenueTarget: '$6M+ ARR by Month 18',
+  },
+];
+
+const acceleratorPlan = [
+  {
+    title: 'Phase 2 — APEX Accelerator (Idea → GTM in 30 Days)',
+    thesis: 'We compress the founder journey using fast builder methodology + investor network.',
+    pipeline: [
+      'Monthly intake of 30–50 SaaS founders',
+      'Rapid build sprints with APEX OS playbooks',
+      'Investor demo day every 60 days',
+      'Top 10–15% selected for seed readiness',
+    ],
+    equity: '15% equity from top candidates (leaves room for VC follow‑ons)',
+    output: '10–15 seed‑ready startups/year with validated GTM and production deployments.',
+  },
+];
+
 // Wireframe Sections
 const wireframes = [
   {
@@ -358,7 +378,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           className="text-base sm:text-lg md:text-xl text-white/60 mb-8 max-w-3xl mx-auto px-2"
         >
           Comprehensive financial strategy, pricing optimization, and go-to-market plan for 
-          converting 32,000 InfoAcademy students into $2.8M+ Year 1 revenue.
+          converting 32,000 InfoAcademy students into a Romania‑first launch and India‑scale expansion.
         </motion.p>
         
         {/* Key Metrics Overview */}
@@ -389,8 +409,10 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             { id: 'executive', label: 'Executive Summary' },
             { id: 'pricing', label: 'Pricing Strategy' },
             { id: 'financials', label: 'Financial Projections' },
-            { id: 'fundraising', label: 'Fundraising Strategy' },
             { id: 'gtm', label: 'Go-to-Market' },
+            { id: 'expansion', label: 'Expansion Plan' },
+            { id: 'accelerator', label: 'Accelerator' },
+            { id: 'fundraising', label: 'Fundraising Strategy' },
             { id: 'wireframes', label: 'Wireframes' },
             { id: 'risks', label: 'Risk Analysis' },
           ].map((tab) => (
@@ -794,7 +816,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
             <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Cap Table Evolution</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {(['postSeed', 'postSeriesA'] as const).map((stage, idx) => (
+              {(['postSeed', 'postSeriesA'] as const).map((stage) => (
                 <div key={stage} className="p-4 rounded-lg bg-white/[0.03]">
                   <h4 className="text-cyan-400 font-semibold mb-3 text-sm sm:text-base">
                     {stage === 'postSeed' ? 'Post-Seed' : 'Post-Series A'}
@@ -873,8 +895,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                   </div>
                   <p className="text-xs text-white/50 mb-3">{category.description}</p>
                   <ul className="space-y-1">
-                    {category.lineItems.slice(0, 2).map((item) => (
-                      <li key={iidx} className="text-xs text-white/40 flex justify-between">
+                    {category.lineItems.slice(0, 2).map((item, itemIdx) => (
+                      <li key={itemIdx} className="text-xs text-white/40 flex justify-between">
                         <span>{item.item}</span>
                         <span>${(item.amount / 1000).toFixed(0)}K</span>
                       </li>
@@ -1122,6 +1144,95 @@ export const ShowMeTheMoneyPage: React.FC = () => {
               ))}
             </div>
           </div>
+        </motion.section>
+      )}
+
+      {/* EXPANSION PLAN */}
+      {activeSection === 'expansion' && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-8"
+        >
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Market Expansion Plan</h2>
+            <p className="text-white/60 px-2">Romania first, India scale second — structured to preserve retention.</p>
+          </div>
+
+          <div className="space-y-6">
+            {expansionPlan.map((phase, idx) => (
+              <motion.div
+                key={phase.title}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="p-6 rounded-xl border border-white/10 bg-white/[0.02]"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{phase.title}</h3>
+                    <p className="text-cyan-400 text-sm">{phase.market}</p>
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-semibold">
+                    {phase.revenueTarget}
+                  </div>
+                </div>
+                <p className="text-white/60 text-sm mb-4">{phase.focus}</p>
+                <ul className="grid sm:grid-cols-2 gap-2">
+                  {phase.milestones.map((milestone, midx) => (
+                    <li key={midx} className="flex items-start gap-2 text-sm text-white/60">
+                      <span className="text-cyan-400 mt-0.5">→</span>
+                      <span>{milestone}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+      )}
+
+      {/* ACCELERATOR */}
+      {activeSection === 'accelerator' && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-8"
+        >
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">APEX Accelerator</h2>
+            <p className="text-white/60 px-2">Idea → GTM in 30 days, with 15% equity on top candidates.</p>
+          </div>
+
+          {acceleratorPlan.map((phase) => (
+            <div key={phase.title} className="p-6 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent">
+              <div className="flex items-center gap-3 mb-3">
+                <Rocket className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-xl font-bold text-white">{phase.title}</h3>
+              </div>
+              <p className="text-white/60 text-sm mb-4">{phase.thesis}</p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-cyan-400 font-semibold mb-2">Pipeline</h4>
+                  <ul className="space-y-2">
+                    {phase.pipeline.map((step, idx) => (
+                      <li key={idx} className="text-white/60 text-sm flex items-start gap-2">
+                        <span className="text-cyan-400 mt-0.5">→</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <div className="p-4 rounded-lg bg-white/[0.03] border border-white/10">
+                    <div className="text-xs text-white/40 mb-2">Equity Model</div>
+                    <div className="text-lg font-bold text-emerald-400">{phase.equity}</div>
+                    <div className="text-white/60 text-sm mt-2">{phase.output}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </motion.section>
       )}
 

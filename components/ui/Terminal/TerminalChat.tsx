@@ -7,11 +7,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { TerminalWindow } from './TerminalWindow';
 import { ModeSwitcher } from './ModeSwitcher';
 import { useTerminalStore } from '../../../stores/terminalStore';
+import { useNavigate } from 'react-router-dom';
 
 export const TerminalChat: React.FC = () => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
   
   const { 
     mode, 
@@ -65,6 +67,11 @@ export const TerminalChat: React.FC = () => {
     
     const message = input.trim();
     setInput('');
+
+     if (message.toLowerCase() === 'showmethemoney') {
+       navigate('/showmethemoney');
+       return;
+     }
     
     try {
       if (mode === 'gemini') {
