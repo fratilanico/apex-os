@@ -252,6 +252,11 @@
 - [ ] No console errors
 - [ ] Performance metrics within targets
 
+#### Local Patch (Pending Deploy)
+- Apex OS terminal scroll container hardened for mobile
+- Apex OS terminal session restore + auto-save on unmount
+- Auto-close HUD when navigating to `/showmethemoney`
+
 ### This Week
 1. Performance monitoring (Real User Monitoring)
 2. Analytics integration (track conversion)

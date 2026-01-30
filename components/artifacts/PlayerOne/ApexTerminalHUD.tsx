@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { useMatrixStore } from '@/stores/useMatrixStore';
 import { useGameEngine } from '@/stores/useGameEngine';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
+import { useSession, type SessionState } from '@/hooks/useSession';
 import { MAIN_QUESTS } from '@/data/questsData';
 import * as CLIFormatter from '@/lib/cliFormatter';
 
@@ -51,7 +52,7 @@ const TerminalCodeBlock = ({ children, language }: { children: string; language?
   </div>
 );
 
-interface TerminalLine {
+interface ApexTerminalLine {
   id: string;
   type: 'input' | 'output' | 'error' | 'system' | 'ai' | 'branding';
   content: string | React.ReactNode;
@@ -252,13 +253,14 @@ const NeuralPixelBranding = () => {
 };
 
 export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = '' }) => {
-  const [lines, setLines] = useState<TerminalLine[]>([]);
+  const [lines, setLines] = useState<ApexTerminalLine[]>([]);
   const [input, setInput] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
   const [terminalSize, setTerminalSize] = useState({ width: 0, height: 0 });
+  const [hasRestoredSession, setHasRestoredSession] = useState(false);
   
   const { syncTerminalContext, processDirectorResponse, nodes, edges } = useMatrixStore();
   const gameEngine = useGameEngine();
@@ -267,10 +269,76 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const latestSessionRef = useRef<Partial<SessionState<ApexTerminalLine>>>({});
+
+  const { loadState, saveState, clearSession, setupAutoSave } = useSession<ApexTerminalLine>({
+    terminalId: 'apex-os-terminal',
+    autoSaveInterval: 4000,
+  });
+
+  useEffect(() => {
+    const restored = loadState();
+    if (!restored) return;
+
+    const restoredLines = Array.isArray(restored.lines)
+      ? (restored.lines as ApexTerminalLine[])
+      : [];
+    const normalizedLines = restoredLines
+      .filter((line) => line && typeof line.content === 'string')
+      .map((line) => ({
+        ...line,
+        content: line.content as string,
+        timestamp: line.timestamp ? new Date(line.timestamp) : new Date(),
+      }));
+
+    setLines(normalizedLines);
+    setCommandHistory(restored.history ?? []);
+    setInput(restored.inputValue ?? '');
+    setHistoryIndex(-1);
+    setIsBooting(false);
+    setHasRestoredSession(true);
+
+    const scrollPosition = restored.scrollPosition;
+    setTimeout(() => {
+      if (outputRef.current) {
+        outputRef.current.scrollTop = scrollPosition ?? 0;
+      }
+    }, 50);
+  }, [loadState]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // RESIZE OBSERVER FOR RESPONSIVE TERMINAL
   // ═══════════════════════════════════════════════════════════════════════════
+  useEffect(() => {
+    const serializableLines = lines
+      .filter((line) => typeof line.content === 'string')
+      .map((line) => ({
+        ...line,
+        content: line.content as string,
+      }));
+
+    latestSessionRef.current = {
+      lines: serializableLines,
+      history: commandHistory,
+      inputValue: input,
+      scrollPosition: outputRef.current?.scrollTop ?? 0,
+    };
+  }, [lines, commandHistory, input]);
+
+  useEffect(() => {
+    return setupAutoSave(() => latestSessionRef.current);
+  }, [setupAutoSave]);
+
+  useEffect(() => {
+    return () => {
+      try {
+        saveState(latestSessionRef.current);
+      } catch (error) {
+        console.warn('Failed to persist terminal session on unmount:', error);
+      }
+    };
+  }, [saveState]);
+
   useEffect(() => {
     if (!terminalRef.current) return;
     
@@ -290,8 +358,8 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
     return () => resizeObserver.disconnect();
   }, []);
 
-  const addLine = useCallback((type: TerminalLine['type'], content: TerminalLine['content']) => {
-    const newLine: TerminalLine = {
+  const addLine = useCallback((type: ApexTerminalLine['type'], content: ApexTerminalLine['content']) => {
+    const newLine: ApexTerminalLine = {
       id: generateId(),
       type,
       content,
@@ -304,6 +372,8 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   // THE BOOT SEQUENCE
   // ═══════════════════════════════════════════════════════════════════════════
   useEffect(() => {
+    if (hasRestoredSession) return;
+
     const boot = async () => {
       setIsBooting(true);
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -311,7 +381,7 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
       setIsBooting(false);
     };
     boot();
-  }, [addLine]);
+  }, [addLine, hasRestoredSession]);
 
   // Auto-scroll
   useEffect(() => {
@@ -396,6 +466,10 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
 
       case 'clear':
         setLines([]);
+        setCommandHistory([]);
+        setHistoryIndex(-1);
+        setInput('');
+        clearSession();
         break;
 
       case 'vibe':
@@ -852,6 +926,7 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
 ║  Redirecting to Business Plan...                              ║
 ╚═══════════════════════════════════════════════════════════════╝`);
           setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('apexos:close'));
             // Navigate to showmethemoney page
             window.location.href = '/showmethemoney';
           }, 1500);
@@ -938,7 +1013,7 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
 
       <div 
         ref={outputRef}
-        className="flex-1 p-6 overflow-y-auto font-mono text-sm space-y-4 no-scrollbar pointer-events-auto"
+        className="flex-1 p-6 overflow-y-auto font-mono text-sm space-y-4 no-scrollbar terminal-scrollable custom-scrollbar pointer-events-auto"
         style={{
           touchAction: 'pan-y',
           overscrollBehavior: 'contain',

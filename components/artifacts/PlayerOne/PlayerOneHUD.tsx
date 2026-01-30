@@ -9,6 +9,13 @@ const scrollStyles = `
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
+
+  .terminal-scrollable {
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+  }
   
   .hud-scroll-container::-webkit-scrollbar {
     width: 6px;
@@ -32,6 +39,8 @@ const scrollStyles = `
     position: fixed;
     width: 100%;
     height: 100%;
+    touch-action: none;
+    -webkit-overflow-scrolling: auto;
   }
 `;
 import { motion, AnimatePresence } from 'framer-motion';
@@ -105,6 +114,12 @@ export const PlayerOneHUD: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
+
+  useEffect(() => {
+    const handleExternalClose = () => setIsOpen(false);
+    window.addEventListener('apexos:close', handleExternalClose);
+    return () => window.removeEventListener('apexos:close', handleExternalClose);
+  }, []);
 
   // On open: initialize centered position, lock body scroll
   useEffect(() => {
@@ -479,7 +494,7 @@ export const PlayerOneHUD: React.FC = () => {
 
                   {activeView === 'terminal' && (
                     <div 
-                      className="flex-1 flex flex-col overflow-y-auto hud-scroll-container"
+                      className="flex-1 flex flex-col overflow-hidden"
                     >
                       <ApexTerminalHUD />
                     </div>

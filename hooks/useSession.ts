@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { TerminalLine } from './useTerminal';
+import type { TerminalLine } from './useTerminal';
 
-export interface SessionState {
-  lines: TerminalLine[];
+export interface SessionState<LineType = TerminalLine> {
+  lines: LineType[];
   history: string[];
   currentDirectory?: string;
   timestamp: number;
@@ -24,7 +24,7 @@ const generateSessionId = (terminalId: string): string => {
 const getSessionKey = (terminalId: string): string => `terminal-session-${terminalId}`;
 const getStateKey = (sessionId: string): string => `terminal-state-${sessionId}`;
 
-export const useSession = (options: UseSessionOptions) => {
+export const useSession = <LineType,>(options: UseSessionOptions) => {
   const { terminalId, maxAge = 24 * 60 * 60 * 1000, autoSaveInterval = 5000 } = options;
 
   const sessionIdRef = useRef<string>('');
@@ -47,7 +47,7 @@ export const useSession = (options: UseSessionOptions) => {
     const saved = localStorage.getItem(getStateKey(sessionIdRef.current));
     if (saved) {
       try {
-        const state: SessionState = JSON.parse(saved);
+        const state: SessionState<LineType> = JSON.parse(saved);
         const age = Date.now() - state.timestamp;
         if (age < maxAge) {
           setHasSavedSession(true);
@@ -64,8 +64,8 @@ export const useSession = (options: UseSessionOptions) => {
   }, [maxAge, terminalId]);
 
   const saveState = useCallback(
-    (state: Partial<SessionState>) => {
-      const fullState: SessionState = {
+    (state: Partial<SessionState<LineType>>) => {
+      const fullState: SessionState<LineType> = {
         lines: state.lines ?? [],
         history: state.history ?? [],
         currentDirectory: state.currentDirectory,
@@ -86,11 +86,11 @@ export const useSession = (options: UseSessionOptions) => {
     []
   );
 
-  const loadState = useCallback((): SessionState | null => {
+  const loadState = useCallback((): SessionState<LineType> | null => {
     try {
       const saved = localStorage.getItem(getStateKey(sessionIdRef.current));
       if (saved) {
-        const state: SessionState = JSON.parse(saved);
+        const state: SessionState<LineType> = JSON.parse(saved);
         const age = Date.now() - state.timestamp;
         if (age < maxAge) {
           setIsRestored(true);
@@ -117,7 +117,7 @@ export const useSession = (options: UseSessionOptions) => {
   }, [terminalId]);
 
   const setupAutoSave = useCallback(
-    (getState: () => Partial<SessionState>) => {
+    (getState: () => Partial<SessionState<LineType>>) => {
       const interval = setInterval(() => {
         try {
           const state = getState();
@@ -138,7 +138,7 @@ export const useSession = (options: UseSessionOptions) => {
     try {
       const saved = localStorage.getItem(getStateKey(sessionIdRef.current));
       if (saved) {
-        const state: SessionState = JSON.parse(saved);
+        const state: SessionState<LineType> = JSON.parse(saved);
         return Date.now() - state.timestamp;
       }
     } catch {
@@ -151,7 +151,7 @@ export const useSession = (options: UseSessionOptions) => {
     try {
       const saved = localStorage.getItem(getStateKey(sessionIdRef.current));
       if (saved) {
-        const state: SessionState = JSON.parse(saved);
+        const state: SessionState<LineType> = JSON.parse(saved);
         return {
           lineCount: state.lines?.length ?? 0,
           historyCount: state.history?.length ?? 0,
