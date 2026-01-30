@@ -133,7 +133,6 @@ const HIDDEN_COMMANDS: Record<string, () => string[]> = {
   ],
   clear: () => ['__CLEAR__'], // Special marker handled in handleChatSubmit
   admin: () => ['__ADMIN__'], // Special marker for admin navigation
-  showmethemoney: () => ['__SHOWMETHEMONEY__'],
 };
 
 // Konami code sequence
@@ -477,8 +476,39 @@ export const TerminalContactV2: React.FC = () => {
     }
   };
 
+  // Check if command is showmethemoney (flexible matching)
+  const isShowMeTheMoneyCommand = (cmd: string): boolean => {
+    const normalized = cmd.toLowerCase().replace(/\s/g, '');
+    const lowerCmd = cmd.toLowerCase();
+    return (
+      normalized === 'showmethemoney' ||
+      normalized.includes('showmethemoney') ||
+      lowerCmd.includes('money') ||
+      lowerCmd.includes('financial') ||
+      lowerCmd.includes('business plan') ||
+      lowerCmd.includes('businessplan')
+    );
+  };
+
   // Refactored submission logic
   const processCommand = (cmd: string) => {
+    // Check for showmethemoney command FIRST (before other processing)
+    if (isShowMeTheMoneyCommand(cmd)) {
+      setOutput(prev => [
+        ...prev,
+        `> ${cmd}`,
+        '',
+        '💰 ACCESSING FINANCIAL VAULT...',
+        '📊 LOADING_BUSINESS_PLAN_V1.0...',
+        '💰 FINANCIAL_PROJECTIONS_DECRYPTED',
+        '✓ CLEARANCE_GRANTED',
+        'Redirecting to Business Plan...'
+      ]);
+      setInputValue('');
+      setTimeout(() => navigate('/showmethemoney'), 1200);
+      return;
+    }
+
     const question = cmd.toLowerCase();
     
     if (question === 'exit' || question === 'quit') {
@@ -499,12 +529,6 @@ export const TerminalContactV2: React.FC = () => {
             setOutput(prev => [...prev, `> ${cmd}`, '', '🔒 SECURITY PROTOCOL INITIATED...', '✓ IDENTITY_VERIFIED', 'Redirecting to Admin Console...']);
             setInputValue('');
             setTimeout(() => navigate('/admin'), 1500);
-            return;
-        }
-        if (commandOutput[0] === '__SHOWMETHEMONEY__') {
-            setOutput(prev => [...prev, `> ${cmd}`, '', '💰 ACCESSING FINANCIAL VAULT...', '✓ CLEARANCE_GRANTED', 'Redirecting to Business Plan...']);
-            setInputValue('');
-            setTimeout(() => navigate('/showmethemoney'), 1500);
             return;
         }
         setOutput(prev => [...prev, `> ${cmd}`, ...commandOutput]);

@@ -1,8 +1,10 @@
 /**
  * NLPCommandParser - Natural language query parser for CurriculumLog
- * Converts natural language queries into structured search results
+ * Enhanced with Fuse.js fuzzy matching for better command recognition
+ * Features: fuzzy matching, spell correction, synonyms, query history, confidence scoring
  */
 
+import Fuse, { type IFuseOptions } from 'fuse.js';
 import { modules, tools } from '../../../data/curriculumData';
 import type { Module, Section, Tool } from '../../../types/curriculum';
 
@@ -16,6 +18,11 @@ export interface NLPSearchResult {
   relatedSections?: Section[];
   suggestions: string[];
   confidence: number;
+  matchDetails?: {
+    matchedTerms: string[];
+    score: number;
+    fuzzyMatches: string[];
+  };
 }
 
 interface SearchIndexEntry {
@@ -27,15 +34,89 @@ interface SearchIndexEntry {
   content: string;
   keywords: string[];
   tools?: string[];
+  synonyms?: string[];
 }
+
+interface QueryHistoryEntry {
+  query: string;
+  timestamp: number;
+  resultType?: string;
+}
+
+interface SpellCorrection {
+  [key: string]: string;
+}
+
+// Spell correction dictionary
+const SPELL_CORRECTIONS: SpellCorrection = {
+  'modul': 'module',
+  'modle': 'module',
+  'secton': 'section',
+  'sectin': 'section',
+  'orchestrtion': 'orchestration',
+  'orchestraton': 'orchestration',
+  'cursr': 'cursor',
+  'curser': 'cursor',
+  'shft': 'shift',
+  'shif': 'shift',
+  'mindst': 'mindset',
+  'configration': 'configuration',
+  'configuraton': 'configuration',
+  'debuging': 'debugging',
+  'debuggin': 'debugging',
+  'envronment': 'environment',
+  'enviroment': 'environment',
+  'synhesis': 'synthesis',
+  'syntesis': 'synthesis',
+  'practicm': 'practicum',
+  'practicom': 'practicum',
+  'cloude': 'claude',
+  'claud': 'claude',
+  'gemni': 'gemini',
+  'gemin': 'gemini',
+  'notebok': 'notebook',
+  'notbook': 'notebook',
+  'orchestrtor': 'orchestrator',
+  'orchestrater': 'orchestrator',
+};
+
+// Command synonyms mapping
+const COMMAND_SYNONYMS: Record<string, string[]> = {
+  'show': ['display', 'view', 'see', 'open', 'load', 'get'],
+  'tell': ['explain', 'describe', 'what is', 'how does', 'info about'],
+  'find': ['search', 'look for', 'locate', 'where is'],
+  'help': ['assist', 'support', 'guide', 'how to', 'how do i'],
+  'use': ['utilize', 'work with', 'setup', 'configure'],
+  'setup': ['install', 'configure', 'prepare', 'initialize'],
+  'learn': ['study', 'understand', 'master', 'explore'],
+};
 
 export class NLPCommandParser {
   private searchIndex: SearchIndexEntry[] = [];
+  private fuseIndex: Fuse<SearchIndexEntry> | null = null;
   private commonPhrases: Map<string, string[]> = new Map();
+  private queryHistory: QueryHistoryEntry[] = [];
+  private confidenceThreshold: number = 0.4;
+  private maxHistorySize: number = 50;
 
   constructor() {
     this.buildSearchIndex();
+    this.buildFuseIndex();
     this.buildCommonPhrases();
+  }
+
+  /**
+   * Set confidence threshold for fuzzy matching (0-1, lower = more strict)
+   */
+  setConfidenceThreshold(threshold: number): void {
+    this.confidenceThreshold = Math.max(0, Math.min(1, threshold));
+  }
+
+  /**
+   * Get current confidence threshold
+   */
+  getConfidenceThreshold(): number {
+    return this.confidenceThreshold;
   }
 
   /**
@@ -44,29 +125,39 @@ export class NLPCommandParser {
   private buildSearchIndex(): void {
     // Index modules
     modules.forEach(module => {
+      const moduleKeywords = [
+        module.number,
+        module.title.toLowerCase(),
+        module.subtitle.toLowerCase(),
+        ...module.title.toLowerCase().split(' '),
+        ...module.subtitle.toLowerCase().split(' '),
+        'module',
+        'phase',
+      ];
+
       this.searchIndex.push({
         id: module.id,
         type: 'module',
         title: module.title,
         content: `${module.title} ${module.subtitle} ${module.objective}`,
-        keywords: [
-          module.number,
-          module.title.toLowerCase(),
-          module.subtitle.toLowerCase(),
-          ...module.title.toLowerCase().split(' '),
-          ...module.subtitle.toLowerCase().split(' '),
-          'module',
-          'phase',
-        ],
+        keywords: moduleKeywords,
+        synonyms: this.generateSynonyms(module.title),
       });
 
       // Index sections
       module.sections.forEach(section => {
-        // Extract key content snippets for better matching
         const contentPreview = section.content
           .replace(/[#*`]/g, '')
           .substring(0, 500)
           .toLowerCase();
+
+        const sectionKeywords = [
+          section.id,
+          section.title.toLowerCase(),
+          ...section.title.toLowerCase().split(' '),
+          ...this.extractKeyTerms(section.content),
+          'section',
+        ];
 
         this.searchIndex.push({
           id: section.id,
@@ -75,35 +166,86 @@ export class NLPCommandParser {
           sectionId: section.id,
           title: section.title,
           content: `${section.title} ${contentPreview}`,
-          keywords: [
-            section.id,
-            section.title.toLowerCase(),
-            ...section.title.toLowerCase().split(' '),
-            ...this.extractKeyTerms(section.content),
-            'section',
-          ],
+          keywords: sectionKeywords,
           tools: section.tools,
+          synonyms: this.generateSynonyms(section.title),
         });
       });
     });
 
     // Index tools
     tools.forEach(tool => {
+      const toolKeywords = [
+        tool.id,
+        tool.name.toLowerCase(),
+        ...tool.name.toLowerCase().split(' '),
+        tool.category.toLowerCase(),
+        tool.tier,
+        'tool',
+      ];
+
       this.searchIndex.push({
         id: tool.id,
         type: 'tool',
         title: tool.name,
         content: `${tool.name} ${tool.description} ${tool.category}`,
-        keywords: [
-          tool.id,
-          tool.name.toLowerCase(),
-          ...tool.name.toLowerCase().split(' '),
-          tool.category.toLowerCase(),
-          tool.tier,
-          'tool',
-        ],
+        keywords: toolKeywords,
+        synonyms: this.generateSynonyms(tool.name),
       });
     });
+  }
+
+  /**
+   * Build Fuse.js searchable index with fuzzy matching
+   */
+  private buildFuseIndex(): void {
+    const fuseOptions: IFuseOptions<SearchIndexEntry> = {
+      keys: [
+        { name: 'title', weight: 0.4 },
+        { name: 'keywords', weight: 0.35 },
+        { name: 'content', weight: 0.2 },
+        { name: 'synonyms', weight: 0.05 },
+      ],
+      threshold: this.confidenceThreshold,
+      includeScore: true,
+      includeMatches: true,
+      minMatchCharLength: 2,
+      ignoreLocation: true,
+      useExtendedSearch: true,
+      findAllMatches: true,
+    };
+
+    this.fuseIndex = new Fuse(this.searchIndex, fuseOptions);
+  }
+
+  /**
+   * Generate synonyms for better matching
+   */
+  private generateSynonyms(text: string): string[] {
+    const synonyms: string[] = [];
+    const lowerText = text.toLowerCase();
+
+    // Add common variations
+    if (lowerText.includes('cursor')) {
+      synonyms.push('editor', 'ide', 'code editor');
+    }
+    if (lowerText.includes('claude')) {
+      synonyms.push('anthropic', 'ai assistant', 'claude code');
+    }
+    if (lowerText.includes('gemini')) {
+      synonyms.push('google', 'google ai', 'bard');
+    }
+    if (lowerText.includes('gpt')) {
+      synonyms.push('openai', 'chatgpt', 'gpt-5');
+    }
+    if (lowerText.includes('debug')) {
+      synonyms.push('debugging', 'troubleshoot', 'fix');
+    }
+    if (lowerText.includes('config')) {
+      synonyms.push('configuration', 'setup', 'settings');
+    }
+
+    return synonyms;
   }
 
   /**
@@ -176,13 +318,190 @@ export class NLPCommandParser {
   }
 
   /**
+   * Apply spell correction to query
+   */
+  private correctSpelling(query: string): string {
+    const words = query.toLowerCase().split(/\s+/);
+    const correctedWords = words.map(word => {
+      // Check for exact match in corrections
+      if (SPELL_CORRECTIONS[word]) {
+        return SPELL_CORRECTIONS[word];
+      }
+
+      // Check for partial matches (e.g., "modul" in "modules")
+      for (const [misspelled, correct] of Object.entries(SPELL_CORRECTIONS)) {
+        if (word.includes(misspelled)) {
+          return word.replace(misspelled, correct);
+        }
+      }
+
+      return word;
+    });
+
+    return correctedWords.join(' ');
+  }
+
+  /**
+   * Expand query with synonyms
+   */
+  private expandWithSynonyms(query: string): string {
+    const words = query.toLowerCase().split(/\s+/);
+    const expandedWords = [...words];
+
+    words.forEach(word => {
+      for (const [baseWord, synonyms] of Object.entries(COMMAND_SYNONYMS)) {
+        if (word === baseWord || synonyms.includes(word)) {
+          expandedWords.push(baseWord);
+          expandedWords.push(...synonyms);
+        }
+      }
+    });
+
+    return [...new Set(expandedWords)].join(' ');
+  }
+
+  /**
+   * Add query to history
+   */
+  private addToHistory(query: string, resultType?: string): void {
+    this.queryHistory.unshift({
+      query,
+      timestamp: Date.now(),
+      resultType,
+    });
+
+    // Keep only recent queries
+    if (this.queryHistory.length > this.maxHistorySize) {
+      this.queryHistory = this.queryHistory.slice(0, this.maxHistorySize);
+    }
+  }
+
+  /**
+   * Get query history
+   */
+  getQueryHistory(): QueryHistoryEntry[] {
+    return [...this.queryHistory];
+  }
+
+  /**
+   * Clear query history
+   */
+  clearHistory(): void {
+    this.queryHistory = [];
+  }
+
+  /**
+   * Get context-aware suggestions based on history
+   */
+  getContextAwareSuggestions(currentQuery: string): string[] {
+    const normalizedQuery = currentQuery.toLowerCase().trim();
+    const suggestions: string[] = [];
+
+    // Check for similar previous queries
+    const similarQueries = this.queryHistory
+      .filter(h => {
+        const similarity = this.calculateSimilarity(normalizedQuery, h.query);
+        return similarity > 0.5 && similarity < 1;
+      })
+      .slice(0, 3);
+
+    similarQueries.forEach(h => {
+      suggestions.push(`Did you mean: "${h.query}"?`);
+    });
+
+    // Add suggestions based on query patterns
+    if (normalizedQuery.includes('module') || normalizedQuery.includes('phase')) {
+      suggestions.push('Try: "Show all modules"');
+      suggestions.push('Try: "What is module 1 about?"');
+    }
+
+    if (normalizedQuery.includes('tool') || normalizedQuery.includes('cursor') || normalizedQuery.includes('claude')) {
+      suggestions.push('Try: "List all tools"');
+      suggestions.push('Try: "How do I use Cursor?"');
+    }
+
+    return suggestions;
+  }
+
+  /**
+   * Calculate simple similarity between two strings
+   */
+  private calculateSimilarity(str1: string, str2: string): number {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+
+    if (longer.length === 0) return 1.0;
+
+    const distance = this.levenshteinDistance(longer, shorter);
+    return (longer.length - distance) / longer.length;
+  }
+
+  /**
+   * Calculate Levenshtein distance for fuzzy matching
+   */
+  private levenshteinDistance(str1: string, str2: string): number {
+    const m = str1.length;
+    const n = str2.length;
+
+    // Use two rows instead of full matrix for memory efficiency
+    let prevRow: number[] = new Array(m + 1).fill(0);
+    let currRow: number[] = new Array(m + 1).fill(0);
+
+    // Initialize first row
+    for (let j = 0; j <= m; j++) {
+      prevRow[j] = j;
+    }
+
+    // Fill the matrix row by row
+    for (let i = 1; i <= n; i++) {
+      currRow[0] = i;
+
+      for (let j = 1; j <= m; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          const prev = prevRow[j - 1];
+          if (prev !== undefined) {
+            currRow[j] = prev;
+          }
+        } else {
+          const replaceCost = prevRow[j - 1];
+          const insertCost = currRow[j - 1];
+          const deleteCost = prevRow[j];
+          if (replaceCost !== undefined && insertCost !== undefined && deleteCost !== undefined) {
+            currRow[j] = Math.min(
+              replaceCost + 1,  // Replace
+              insertCost + 1,   // Insert
+              deleteCost + 1    // Delete
+            );
+          }
+        }
+      }
+
+      // Swap rows
+      [prevRow, currRow] = [currRow, prevRow];
+    }
+
+    return prevRow[m] ?? 0;
+  }
+
+  /**
    * Parse a natural language query and return relevant results
    */
   parseQuery(query: string): NLPSearchResult | null {
-    const normalizedQuery = query.toLowerCase().trim();
-    
+    const originalQuery = query;
+    let normalizedQuery = query.toLowerCase().trim();
+
+    // Apply spell correction
+    const correctedQuery = this.correctSpelling(normalizedQuery);
+    if (correctedQuery !== normalizedQuery) {
+      normalizedQuery = correctedQuery;
+    }
+
+    // Expand with synonyms
+    normalizedQuery = this.expandWithSynonyms(normalizedQuery);
+
     // Check for help patterns
     if (this.isHelpQuery(normalizedQuery)) {
+      this.addToHistory(originalQuery, 'help');
       return this.createHelpResult();
     }
 
@@ -193,7 +512,8 @@ export class NLPCommandParser {
       const padded = moduleNum.padStart(2, '0');
       const module = modules.find(m => m.number === padded);
       if (module) {
-        return this.createModuleResult(module);
+        this.addToHistory(originalQuery, 'module');
+        return this.createModuleResult(module, 1.0);
       }
     }
 
@@ -203,29 +523,34 @@ export class NLPCommandParser {
     if (sectionId) {
       const section = this.findSectionById(sectionId);
       if (section) {
-        return this.createSectionResult(section.section, section.module);
+        this.addToHistory(originalQuery, 'section');
+        return this.createSectionResult(section.section, section.module, 1.0);
       }
     }
 
     // Check for tool queries
     const toolResult = this.findToolByQuery(normalizedQuery);
     if (toolResult) {
-      return this.createToolResult(toolResult);
+      this.addToHistory(originalQuery, 'tool');
+      return this.createToolResult(toolResult, 1.0);
     }
 
     // Check common phrases
     const phraseResult = this.searchByCommonPhrases(normalizedQuery);
     if (phraseResult) {
+      this.addToHistory(originalQuery, phraseResult.type);
       return phraseResult;
     }
 
-    // Fuzzy search through indexed content
-    const searchResult = this.fuzzySearch(normalizedQuery);
-    if (searchResult) {
-      return searchResult;
+    // Fuzzy search using Fuse.js
+    const fuzzyResult = this.performFuzzySearch(normalizedQuery);
+    if (fuzzyResult) {
+      this.addToHistory(originalQuery, fuzzyResult.type);
+      return fuzzyResult;
     }
 
-    // No results found
+    // No results found - add to history anyway
+    this.addToHistory(originalQuery);
     return null;
   }
 
@@ -278,6 +603,11 @@ export class NLPCommandParser {
 - "What is CLAUDE.md?"
 - "How do I configure Cursor?"
 - "Explain AGENTS.md"
+
+**Fuzzy Matching Features:**
+- Typo tolerance (e.g., "cursr" → "cursor")
+- Synonym support (e.g., "show", "display", "view")
+- Partial matching (e.g., "modul 1" → "module 1")
 
 Try asking naturally!`,
       suggestions: [
@@ -341,14 +671,14 @@ Try asking naturally!`,
         for (const id of ids) {
           const sectionMatch = this.findSectionById(id);
           if (sectionMatch) {
-            return this.createSectionResult(sectionMatch.section, sectionMatch.module);
+            return this.createSectionResult(sectionMatch.section, sectionMatch.module, 0.95);
           }
         }
 
         // Try to find a tool
         const tool = tools.find(t => ids.includes(t.id));
         if (tool) {
-          return this.createToolResult(tool);
+          return this.createToolResult(tool, 0.95);
         }
       }
     }
@@ -356,93 +686,84 @@ Try asking naturally!`,
   }
 
   /**
-   * Perform fuzzy search across indexed content
+   * Perform fuzzy search using Fuse.js
    */
-  private fuzzySearch(query: string): NLPSearchResult | null {
-    const queryWords = query.split(/\s+/).filter(w => w.length > 2);
-    if (queryWords.length === 0) return null;
+  private performFuzzySearch(query: string): NLPSearchResult | null {
+    if (!this.fuseIndex) {
+      this.buildFuseIndex();
+    }
 
-    let bestMatch: { entry: SearchIndexEntry; score: number } | null = null;
+    const results = this.fuseIndex!.search(query);
 
-    for (const entry of this.searchIndex) {
-      let score = 0;
+    if (results.length === 0) return null;
 
-      // Check title match
-      const titleWords = entry.title.toLowerCase().split(/\s+/);
-      queryWords.forEach(qw => {
-        if (titleWords.some(tw => tw.includes(qw) || qw.includes(tw))) {
-          score += 3;
-        }
-      });
+    const bestMatch = results[0];
+    if (!bestMatch) return null;
 
-      // Check keyword match
-      entry.keywords.forEach(kw => {
-        queryWords.forEach(qw => {
-          if (kw.includes(qw) || qw.includes(kw)) {
-            score += 2;
-          }
-        });
-      });
+    const score = bestMatch.score ?? 1;
+    const confidence = 1 - score;
 
-      // Check content match
-      queryWords.forEach(qw => {
-        if (entry.content.includes(qw)) {
-          score += 1;
-        }
-      });
+    // Check if confidence meets threshold
+    if (confidence < (1 - this.confidenceThreshold)) {
+      return null;
+    }
 
-      if (score > 0 && (!bestMatch || score > bestMatch.score)) {
-        bestMatch = { entry, score };
+    const entry = bestMatch.item;
+    const matchedTerms = bestMatch.matches?.map(m => m.value).filter((v): v is string => typeof v === 'string') ?? [];
+
+    let result: NLPSearchResult | null = null;
+
+    if (entry.type === 'section' && entry.sectionId) {
+      const sectionMatch = this.findSectionById(entry.sectionId);
+      if (sectionMatch) {
+        result = this.createSectionResult(sectionMatch.section, sectionMatch.module, confidence);
+      }
+    } else if (entry.type === 'module') {
+      const module = modules.find(m => m.id === entry.id);
+      if (module) {
+        result = this.createModuleResult(module, confidence);
+      }
+    } else if (entry.type === 'tool') {
+      const tool = tools.find(t => t.id === entry.id);
+      if (tool) {
+        result = this.createToolResult(tool, confidence);
       }
     }
 
-    if (bestMatch && bestMatch.score >= 2) {
-      const entry = bestMatch.entry;
-      
-      if (entry.type === 'section' && entry.sectionId) {
-        const sectionMatch = this.findSectionById(entry.sectionId);
-        if (sectionMatch) {
-          return this.createSectionResult(sectionMatch.section, sectionMatch.module);
-        }
-      } else if (entry.type === 'module') {
-        const module = modules.find(m => m.id === entry.id);
-        if (module) {
-          return this.createModuleResult(module);
-        }
-      } else if (entry.type === 'tool') {
-        const tool = tools.find(t => t.id === entry.id);
-        if (tool) {
-          return this.createToolResult(tool);
-        }
-      }
+    if (result) {
+      result.matchDetails = {
+        matchedTerms: [...new Set(matchedTerms)],
+        score,
+        fuzzyMatches: results.slice(0, 3).map(r => r.item.title),
+      };
     }
 
-    return null;
+    return result;
   }
 
   /**
    * Create result for a module
    */
-  private createModuleResult(module: Module): NLPSearchResult {
+  private createModuleResult(module: Module, confidence: number = 0.9): NLPSearchResult {
     const sectionList = module.sections.map(s => `  ${s.id}: ${s.title}`).join('\n');
-    
+
     return {
       type: 'module',
       title: `📚 ${module.title}`,
       content: `${module.subtitle}\n\n${module.objective}\n\n**Duration:** ${module.duration}\n**Sections:**\n${sectionList}`,
       module,
       suggestions: module.sections.slice(0, 3).map(s => `Tell me about ${s.title}`),
-      confidence: 0.9,
+      confidence,
     };
   }
 
   /**
    * Create result for a section
    */
-  private createSectionResult(section: Section, module: Module): NLPSearchResult {
+  private createSectionResult(section: Section, module: Module, confidence: number = 0.85): NLPSearchResult {
     // Extract a relevant snippet from content
     const contentSnippet = this.extractRelevantSnippet(section.content);
-    
+
     // Find related sections
     const currentIndex = module.sections.findIndex(s => s.id === section.id);
     const relatedSections = module.sections
@@ -463,14 +784,14 @@ Try asking naturally!`,
         ...(relatedSections[0] ? [`Tell me about ${relatedSections[0].title}`] : []),
         ...(nextSection ? [`Next: ${nextSection.title}`] : []),
       ],
-      confidence: 0.85,
+      confidence,
     };
   }
 
   /**
    * Create result for a tool
    */
-  private createToolResult(tool: Tool): NLPSearchResult {
+  private createToolResult(tool: Tool, confidence: number = 0.9): NLPSearchResult {
     // Find sections that mention this tool
     const relatedSections: Section[] = [];
     modules.forEach(module => {
@@ -488,7 +809,7 @@ Try asking naturally!`,
       tool,
       relatedSections: relatedSections.slice(0, 3),
       suggestions: relatedSections.slice(0, 2).map(s => `Learn about ${s.title}`),
-      confidence: 0.9,
+      confidence,
     };
   }
 
@@ -506,7 +827,7 @@ Try asking naturally!`,
 
     // Get first meaningful paragraph (not just headers)
     const paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 50);
-    
+
     const [firstParagraph] = paragraphs;
     if (firstParagraph) {
       return firstParagraph.substring(0, 400) + (firstParagraph.length > 400 ? '...' : '');
@@ -524,9 +845,24 @@ Try asking naturally!`,
 
     const suggestions: string[] = [];
 
+    // Use Fuse.js for fuzzy suggestion matching
+    if (this.fuseIndex) {
+      const results = this.fuseIndex.search(normalized, { limit: 5 });
+      results.forEach(result => {
+        const item = result.item;
+        if (item.type === 'module') {
+          suggestions.push(`Tell me about ${item.title}`);
+        } else if (item.type === 'section') {
+          suggestions.push(`Explain ${item.title}`);
+        } else if (item.type === 'tool') {
+          suggestions.push(`How do I use ${item.title}?`);
+        }
+      });
+    }
+
     // Module suggestions
     modules.forEach(module => {
-      if (module.title.toLowerCase().includes(normalized) || 
+      if (module.title.toLowerCase().includes(normalized) ||
           module.number.includes(normalized)) {
         suggestions.push(`Tell me about module ${module.number}`);
         suggestions.push(`What is ${module.title}?`);
@@ -558,6 +894,15 @@ Try asking naturally!`,
     });
 
     return [...new Set(suggestions)].slice(0, 5);
+  }
+
+  /**
+   * Rebuild the search index (useful when data changes)
+   */
+  rebuildIndex(): void {
+    this.searchIndex = [];
+    this.buildSearchIndex();
+    this.buildFuseIndex();
   }
 }
 

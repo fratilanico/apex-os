@@ -57,6 +57,20 @@ const formatNLPResult = (result: NLPSearchResult): string => {
   return formatted;
 };
 
+// Check if command is showmethemoney (flexible matching)
+const isShowMeTheMoneyCommand = (cmd: string): boolean => {
+  const normalized = cmd.toLowerCase().replace(/\s/g, '');
+  const lowerCmd = cmd.toLowerCase();
+  return (
+    normalized === 'showmethemoney' ||
+    normalized.includes('showmethemoney') ||
+    lowerCmd.includes('money') ||
+    lowerCmd.includes('financial') ||
+    lowerCmd.includes('business plan') ||
+    lowerCmd.includes('businessplan')
+  );
+};
+
 export const TerminalChat: React.FC = () => {
   const [input, setInput] = useState('');
   const [localMessages, setLocalMessages] = useState<NLPMessage[]>([]);
@@ -125,9 +139,20 @@ export const TerminalChat: React.FC = () => {
     const message = input.trim();
     setInput('');
 
-    // Handle special navigation command
-    if (message.toLowerCase() === 'showmethemoney') {
-      navigate('/showmethemoney');
+    // Check for showmethemoney command FIRST (before other processing)
+    if (isShowMeTheMoneyCommand(message)) {
+      // Add visual feedback message
+      const systemMessage: NLPMessage = {
+        id: `system-${Date.now()}`,
+        role: 'system',
+        content: '💰 ACCESSING FINANCIAL VAULT...\n📊 LOADING_BUSINESS_PLAN_V1.0...\n💰 FINANCIAL_PROJECTIONS_DECRYPTED\n✓ CLEARANCE_GRANTED\nRedirecting to Business Plan...',
+      };
+      setLocalMessages(prev => [...prev, {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: message,
+      }, systemMessage]);
+      setTimeout(() => navigate('/showmethemoney'), 1500);
       return;
     }
     

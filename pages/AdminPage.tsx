@@ -46,7 +46,7 @@ type TabId = 'overview' | 'curriculum' | 'components' | 'easter-eggs' | 'tech-st
 interface Tab {
   id: TabId;
   label: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const TABS: Tab[] = [
@@ -59,7 +59,7 @@ const TABS: Tab[] = [
   { id: 'actions', label: 'Quick Actions', icon: Zap },
 ];
 
-const ICON_MAP: Record<string, React.ElementType> = {
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   CreditCard,
   MessageSquare,
   GraduationCap,

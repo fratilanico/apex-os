@@ -21,16 +21,32 @@ export const TerminalContact: React.FC = () => {
     processSequence(bootSequence as any).then(() => setStep('identity'));
   }, []); // Only once on mount
 
+  // Check if command is showmethemoney (flexible matching)
+  const isShowMeTheMoneyCommand = (cmd: string): boolean => {
+    const normalized = cmd.toLowerCase().replace(/\s/g, '');
+    const lowerCmd = cmd.toLowerCase();
+    return (
+      normalized === 'showmethemoney' ||
+      normalized.includes('showmethemoney') ||
+      lowerCmd.includes('money') ||
+      lowerCmd.includes('financial') ||
+      lowerCmd.includes('business plan') ||
+      lowerCmd.includes('businessplan')
+    );
+  };
+
   const handleCommand = async (cmd: string) => {
-    const lowered = cmd.trim().toLowerCase();
-    if (lowered === 'showmethemoney') {
+    // Check for showmethemoney command FIRST (before other processing)
+    if (isShowMeTheMoneyCommand(cmd)) {
       addLine({ text: cmd, type: 'input', showPrompt: true } as any);
       await processSequence([
-        { text: '💰 ACCESSING FINANCIAL VAULT...', type: 'system', delay: 200 },
+        { text: '💰 ACCESSING FINANCIAL VAULT...', type: 'system', delay: 400 },
+        { text: '📊 LOADING_BUSINESS_PLAN_V1.0...', type: 'system', delay: 300 },
+        { text: '💰 FINANCIAL_PROJECTIONS_DECRYPTED', type: 'success', delay: 300 },
         { text: '✓ CLEARANCE_GRANTED', type: 'success', delay: 300 },
         { text: 'Redirecting to Business Plan...', type: 'output', delay: 300 },
       ] as any);
-      setTimeout(() => navigate('/showmethemoney'), 800);
+      setTimeout(() => navigate('/showmethemoney'), 1000);
       return;
     }
     addLine({ text: cmd, type: 'input', showPrompt: true } as any);
