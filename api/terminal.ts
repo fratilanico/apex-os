@@ -10,7 +10,6 @@ interface ChatMessage {
 interface RequestBody {
   message: string;
   history?: ChatMessage[];
-  tools?: any[];
 }
 
 // System prompt for APEX Terminal - elite coding assistant
@@ -48,8 +47,8 @@ PERSONALITY:
 - You're the architect's trusted companion on the Frontier`;
 
 // Model configuration - Gemini 3 Flash
-const PRIMARY_MODEL = 'gemini-3-flash-preview';
-const FALLBACK_MODEL = 'gemini-3-flash-preview';
+const PRIMARY_MODEL = 'gemini-3-flash';
+const FALLBACK_MODEL = 'gemini-3-flash';
 
 /**
  * Format chat history for Gemini API
@@ -68,12 +67,11 @@ async function callGemini(
   genAI: GoogleGenerativeAI,
   message: string,
   history: ChatMessage[],
-  modelName: string,
-  systemPrompt: string = TERMINAL_SYSTEM_PROMPT
+  modelName: string
 ): Promise<{ text: string; model: string }> {
   const model = genAI.getGenerativeModel({
     model: modelName,
-    systemInstruction: systemPrompt,
+    systemInstruction: TERMINAL_SYSTEM_PROMPT,
     generationConfig: {
       temperature: 0.3,
       topP: 0.85,
@@ -136,20 +134,10 @@ export default async function handler(
   }
 
   const history = Array.isArray(body.history) ? body.history : [];
-  const tools = Array.isArray(body.tools) ? body.tools : [];
   const genAI = new GoogleGenerativeAI(apiKey);
 
-  // Construct dynamic system prompt with tools
-  let systemPrompt = TERMINAL_SYSTEM_PROMPT;
-  if (tools.length > 0) {
-    systemPrompt += `\n\nAVAILABLE_TOOLS:\nYou have access to the following tools via MCP. To use them, output a JSON block with the format: {"tool_call": {"name": "tool_name", "args": { ... }}}\n`;
-    tools.forEach(tool => {
-      systemPrompt += `- ${tool.name}: ${tool.description} (Parameters: ${JSON.stringify(tool.parameters)})\n`;
-    });
-  }
-
   try {
-    const { text, model } = await callGemini(genAI, message, history, PRIMARY_MODEL, systemPrompt);
+    const { text, model } = await callGemini(genAI, message, history, PRIMARY_MODEL);
     res.status(200).json({ response: text, model });
     return;
     
@@ -164,7 +152,7 @@ export default async function handler(
 
     try {
       console.log(`Attempting fallback model: ${FALLBACK_MODEL}`);
-      const { text, model } = await callGemini(genAI, message, history, FALLBACK_MODEL, systemPrompt);
+      const { text, model } = await callGemini(genAI, message, history, FALLBACK_MODEL);
       res.status(200).json({ response: text, model });
       return;
       

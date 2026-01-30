@@ -2,7 +2,19 @@
  * CommandHandler - Routes CLI commands for CurriculumLog
  */
 
-export type CommandType = 'ls' | 'mount' | 'cat' | 'help' | 'clear' | 'time' | 'admin' | 'unknown';
+export type CommandType = 
+  | 'ls' 
+  | 'mount' 
+  | 'cat' 
+  | 'next' 
+  | 'prev' 
+  | 'complete' 
+  | 'progress' 
+  | 'help' 
+  | 'clear' 
+  | 'time' 
+  | 'admin' 
+  | 'unknown';
 
 export interface CommandResult {
   type: 'output' | 'error' | 'success' | 'system';
@@ -12,6 +24,7 @@ export interface CommandResult {
 
 export class CommandHandler {
   private mountedModule: string | null = null;
+  private currentSectionId: string | null = null;
 
   parseCommand(input: string): { type: CommandType; args: string[] } {
     const trimmed = input.trim().toLowerCase();
@@ -26,6 +39,16 @@ export class CommandHandler {
         return { type: 'mount', args };
       case 'cat':
         return { type: 'cat', args };
+      case 'next':
+        return { type: 'next', args };
+      case 'prev':
+      case 'previous':
+        return { type: 'prev', args };
+      case 'complete':
+      case 'done':
+        return { type: 'complete', args };
+      case 'progress':
+        return { type: 'progress', args };
       case 'time':
         return { type: 'time', args };
       case 'help':
@@ -47,13 +70,25 @@ export class CommandHandler {
     this.mountedModule = moduleId;
   }
 
+  getCurrentSection(): string | null {
+    return this.currentSectionId;
+  }
+
+  setCurrentSection(sectionId: string | null): void {
+    this.currentSectionId = sectionId;
+  }
+
   getHelpText(): string {
     return `AVAILABLE COMMANDS:
-  ls              List all curriculum modules
-  mount [id]      Expand module details (e.g., 'mount 01')
-  cat [section]   View section content (e.g., 'cat 01.2')
-  time            Calculate your personalized completion timeline
-  help            Show this help message
-  clear           Clear terminal history`;
+  ls                    List all curriculum modules
+  mount [id]            Expand module details (e.g., 'mount 01')
+  cat [section]         View section content (e.g., 'cat 01.2')
+  next                  Go to next section
+  prev                  Go to previous section
+  complete              Mark current section as completed
+  progress              Show overall curriculum progress
+  time                  Calculate personalized completion timeline
+  help                  Show this help message
+  clear                 Clear terminal history`;
   }
 }

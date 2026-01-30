@@ -200,7 +200,7 @@ export const AdminPage: React.FC = () => {
                   : 'text-white/60 hover:text-white hover:bg-white/5'
               }`}
             >
-              {React.createElement(tab.icon as any, { className: "w-4 h-4" })}
+              <tab.icon className="w-4 h-4" />
               <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
@@ -568,10 +568,7 @@ export const AdminPage: React.FC = () => {
                       >
                         <div className="flex items-center gap-3">
                           <div className="inline-flex w-10 h-10 rounded-lg bg-cyan-500/20 items-center justify-center flex-shrink-0">
-                            {React.createElement(IconComponent as any, {
-                              className: "w-5 h-5 text-cyan-400 flex-shrink-0",
-                              strokeWidth: 2
-                            })}
+                            <IconComponent className="w-5 h-5 text-cyan-400 flex-shrink-0" strokeWidth={2} />
                           </div>
                           <div>
                             <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors">
@@ -618,10 +615,7 @@ export const AdminPage: React.FC = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="inline-flex w-10 h-10 rounded-lg bg-emerald-500/20 items-center justify-center flex-shrink-0">
-                          {React.createElement(IconComponent as any, {
-                            className: "w-5 h-5 text-emerald-400 flex-shrink-0",
-                            strokeWidth: 2
-                          })}
+                          <IconComponent className="w-5 h-5 text-emerald-400 flex-shrink-0" strokeWidth={2} />
                         </div>
                         <div>
                           <h4 className="font-bold text-white group-hover:text-emerald-400 transition-colors">

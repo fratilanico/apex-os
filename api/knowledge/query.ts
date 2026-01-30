@@ -7,7 +7,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { embed } from '../../lib/knowledge/embedder';
+import { embed } from './_lib/embedder';
 
 interface QueryRequest {
   query: string;

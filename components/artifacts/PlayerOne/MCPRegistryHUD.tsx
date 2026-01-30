@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useMCPStore, type MCPServer } from '@/stores/useMCPStore';
-import { Shield, Box, Power, PowerOff, Zap, Database, Globe, Sparkles } from 'lucide-react';
+import { Shield, Box, Power, PowerOff, Zap, Database, Globe } from 'lucide-react';
 
 const ServerCard: React.FC<{ server: MCPServer }> = ({ server }) => {
   const { mountServer, unmountServer, isMounted } = useMCPStore();
@@ -14,13 +14,7 @@ const ServerCard: React.FC<{ server: MCPServer }> = ({ server }) => {
     else mountServer(server.id);
   };
 
-  const Icon = server.id === 'spanner-mcp' 
-    ? Database 
-    : server.id === 'browser-mcp' 
-      ? Globe 
-      : server.id === 'v0-mcp'
-        ? Sparkles
-        : Box;
+  const Icon = server.id === 'spanner-mcp' ? Database : server.id === 'browser-mcp' ? Globe : Box;
 
   return (
     <motion.div 

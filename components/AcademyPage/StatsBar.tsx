@@ -127,9 +127,7 @@ export const StatsBar: React.FC = () => {
                     whileHover={{ rotate: [0, -10, 10, -10, 0] }}
                     transition={{ duration: 0.5 }}
                   >
-                    {React.createElement(Icon as any, {
-                      className: `w-5 h-5 sm:w-6 sm:h-6 ${colors.text} transition-all duration-300`
-                    })}
+                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${colors.text} transition-all duration-300`} />
                   </motion.div>
                   
                   {/* Animated counter */}

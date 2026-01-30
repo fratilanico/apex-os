@@ -11,7 +11,6 @@ import type {
   ClawBotConnectionStatus
 } from '../types/clawbot';
 import { ClawBotClient } from '../lib/clawbot-client';
-import { useMCPStore } from './useMCPStore';
 
 interface TerminalStore {
   // Mode
@@ -226,12 +225,7 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
     
     // Send to ClawBot
     try {
-      const mountedTools = useMCPStore.getState().getMountedTools();
-      client.sendMessage(JSON.stringify({
-        type: 'message',
-        content: message,
-        tools: mountedTools
-      }));
+      client.sendMessage(message);
     } catch (error) {
       console.error('[Terminal] Failed to send message to ClawBot:', error);
       set((state) => ({
@@ -280,15 +274,13 @@ export const useTerminalStore = create<TerminalStore>((set, get) => ({
     }));
     
     try {
-      const mountedTools = useMCPStore.getState().getMountedTools();
       // Call your existing Gemini API endpoint
       const response = await fetch('/api/terminal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message,
-          history: get().gemini.messages,
-          tools: mountedTools
+          history: get().gemini.messages
         })
       });
       

@@ -7,6 +7,7 @@ import { CommandHandler } from './CommandHandler';
 import { ModuleExpanded } from './ModuleExpanded';
 import { ModulePreviewCard } from './ModulePreviewCard';
 import { TimeEstimator } from './TimeEstimator';
+import { useCurriculumStore } from '../../../stores';
 import { motion } from 'framer-motion';
 import type { Module } from '../../../types/curriculum';
 
@@ -174,6 +175,72 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
         setViewMode('list');
         break;
 
+      case 'next':
+        if (selectedModule && selectedSectionId) {
+          const currentIndex = selectedModule.sections.findIndex(s => s.id === selectedSectionId);
+          const nextSection = selectedModule.sections[currentIndex + 1];
+          if (nextSection) {
+            await processSequence([
+              { text: '> ADVANCING TO NEXT SECTION...', type: 'system', delay: 200 },
+            ] as any);
+            await handleSectionClick(nextSection.id);
+          } else {
+            await processSequence([
+              { text: '> Already at last section of this module', type: 'error', delay: 100 },
+            ] as any);
+          }
+        } else {
+          await processSequence([
+            { text: '> ERROR: No section currently active. Use "cat [section-id]" first.', type: 'error', delay: 100 },
+          ] as any);
+        }
+        break;
+
+      case 'prev':
+        if (selectedModule && selectedSectionId) {
+          const currentIndex = selectedModule.sections.findIndex(s => s.id === selectedSectionId);
+          const prevSection = selectedModule.sections[currentIndex - 1];
+          if (prevSection) {
+            await processSequence([
+              { text: '> RETURNING TO PREVIOUS SECTION...', type: 'system', delay: 200 },
+            ] as any);
+            await handleSectionClick(prevSection.id);
+          } else {
+            await processSequence([
+              { text: '> Already at first section of this module', type: 'error', delay: 100 },
+            ] as any);
+          }
+        } else {
+          await processSequence([
+            { text: '> ERROR: No section currently active. Use "cat [section-id]" first.', type: 'error', delay: 100 },
+          ] as any);
+        }
+        break;
+
+      case 'complete':
+        if (selectedSectionId) {
+          const { completeSection } = useCurriculumStore.getState();
+          completeSection(selectedSectionId);
+          await processSequence([
+            { text: `> MARKING SECTION ${selectedSectionId} AS COMPLETED...`, type: 'system', delay: 300 },
+            { text: '> ✓ PROGRESS SAVED!', type: 'success', delay: 200 },
+          ] as any);
+        } else {
+          await processSequence([
+            { text: '> ERROR: No section currently active. Use "cat [section-id]" first.', type: 'error', delay: 100 },
+          ] as any);
+        }
+        break;
+
+      case 'progress':
+        const { getOverallProgress } = useCurriculumStore.getState();
+        const progress = getOverallProgress();
+        await processSequence([
+          { text: `> OVERALL CURRICULUM PROGRESS: ${progress}%`, type: 'success', delay: 200 },
+          { text: `> ${progress >= 100 ? 'ALL MODULES COMPLETED! 🎉' : progress > 50 ? 'Halfway there! Keep going! 💪' : 'Just getting started! You got this! 🚀'}`, type: 'output', delay: 100 },
+        ] as any);
+        break;
+
       default:
         await processSequence([
           { text: `ERROR: Unknown command "${cmd}". Type "help" for available commands.`, type: 'error', delay: 100 },
@@ -281,7 +348,7 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
           </div>
         )}
 
-        {/* Section Content View */}
+        {/* Section Content View - FULL CONTENT */}
         {viewMode === 'section' && selectedSection && !isTyping && !awaitingInput && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -290,7 +357,7 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
           >
             <div className="border-l-2 border-emerald-500/40 pl-4">
               <div className="text-emerald-400 text-xs uppercase tracking-widest mb-1">
-                SECTION {selectedSection.id}
+                SECTION {selectedSection.id} / {selectedModule?.sections.length}
               </div>
               <div className="text-white font-bold text-lg">{selectedSection.title}</div>
               {selectedSection.duration && (
@@ -299,14 +366,44 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
             </div>
 
             <div className="bg-white/[0.02] border border-white/10 rounded p-4 mt-3">
-              <div className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap max-h-[400px] overflow-y-auto custom-scrollbar">
-                {selectedSection.content.split('\n').slice(0, 20).join('\n')}
-                {selectedSection.content.split('\n').length > 20 && (
-                  <div className="text-cyan-400 mt-4 text-xs">
-                    ... [Content truncated. Visit full curriculum for complete section] ...
-                  </div>
-                )}
+              <div className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap max-h-[500px] overflow-y-auto custom-scrollbar">
+                {selectedSection.content}
               </div>
+            </div>
+
+            {/* Section Navigation */}
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+              <button
+                onClick={() => {
+                  const currentIndex = selectedModule?.sections.findIndex(s => s.id === selectedSectionId) ?? 0;
+                  const prevSection = selectedModule?.sections[currentIndex - 1];
+                  if (prevSection) {
+                    handleSectionClick(prevSection.id);
+                  }
+                }}
+                disabled={(selectedModule?.sections.findIndex(s => s.id === selectedSectionId) ?? 0) === 0}
+                className="px-3 py-1.5 rounded bg-white/[0.05] border border-white/10 text-white/60 text-xs hover:bg-white/[0.1] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                ← Previous
+              </button>
+              
+              <span className="text-white/30 text-xs">
+                {(selectedModule?.sections.findIndex(s => s.id === selectedSectionId) ?? 0) + 1} / {selectedModule?.sections.length}
+              </span>
+              
+              <button
+                onClick={() => {
+                  const currentIndex = selectedModule?.sections.findIndex(s => s.id === selectedSectionId) ?? 0;
+                  const nextSection = selectedModule?.sections[currentIndex + 1];
+                  if (nextSection) {
+                    handleSectionClick(nextSection.id);
+                  }
+                }}
+                disabled={(selectedModule?.sections.findIndex(s => s.id === selectedSectionId) ?? 0) === (selectedModule?.sections.length ?? 1) - 1}
+                className="px-3 py-1.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs hover:bg-cyan-500/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                Next →
+              </button>
             </div>
 
             <div className="pt-4 border-t border-white/10">
