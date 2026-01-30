@@ -185,7 +185,7 @@ export const PricingPage: React.FC = () => {
           </div>
 
           {/* Toggle buttons */}
-          <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/10">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/10">
             <button
               onClick={() => setBilling('monthly')}
               className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold transition-all min-h-[44px] ${
@@ -249,7 +249,7 @@ export const PricingPage: React.FC = () => {
                     </span>
                   </div>
                   {/* Price container with fixed width and overflow handling */}
-                  <div className="flex items-baseline justify-center gap-1 min-h-[3rem] sm:min-h-[4rem]">
+                  <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 min-h-[3.5rem] sm:min-h-[4rem]">
                     <motion.span
                       key={price}
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -260,7 +260,9 @@ export const PricingPage: React.FC = () => {
                     >
                       {price}
                     </motion.span>
-                    <span className="text-white/60 whitespace-nowrap text-sm sm:text-base">{period}</span>
+                    <span className="w-full text-center text-white/60 text-sm sm:text-base sm:w-auto sm:text-left">
+                      {period}
+                    </span>
                   </div>
                   <div className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                     <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
@@ -270,7 +272,7 @@ export const PricingPage: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-baseline justify-center gap-1 min-h-[3rem] sm:min-h-[4rem]">
+                <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 min-h-[3.5rem] sm:min-h-[4rem]">
                   {/* Price container with fixed width and overflow handling */}
                   <motion.span
                     key={price}
@@ -282,7 +284,9 @@ export const PricingPage: React.FC = () => {
                   >
                     {price}
                   </motion.span>
-                  <span className="text-white/60 whitespace-nowrap text-sm sm:text-base">{period}</span>
+                  <span className="w-full text-center text-white/60 text-sm sm:text-base sm:w-auto sm:text-left">
+                    {period}
+                  </span>
                 </div>
               )}
             </div>
