@@ -13,7 +13,8 @@ export type CommandType =
   | 'help' 
   | 'clear' 
   | 'time' 
-  | 'admin' 
+  | 'admin'
+  | 'showmethemoney'
   | 'unknown';
 
 export interface CommandResult {
@@ -57,6 +58,8 @@ export class CommandHandler {
         return { type: 'clear', args };
       case 'admin':
         return { type: 'admin', args };
+      case 'showmethemoney':
+        return { type: 'showmethemoney', args };
       default:
         return { type: 'unknown', args };
     }
@@ -88,6 +91,8 @@ export class CommandHandler {
   complete              Mark current section as completed
   progress              Show overall curriculum progress
   time                  Calculate personalized completion timeline
+  admin                 Access admin dashboard
+  showmethemoney        🤫 View business plan & financials
   help                  Show this help message
   clear                 Clear terminal history`;
   }

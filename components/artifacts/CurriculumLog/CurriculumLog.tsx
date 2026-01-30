@@ -167,6 +167,16 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
         setTimeout(() => navigate('/admin'), 1000);
         return;
 
+      case 'showmethemoney':
+        await processSequence([
+          { text: '> 🔓 ACCESSING_CLASSIFIED_DOCUMENTS...', type: 'system', delay: 800 },
+          { text: '> 📊 LOADING_BUSINESS_PLAN_V1.0...', type: 'system', delay: 600 },
+          { text: '> 💰 FINANCIAL_PROJECTIONS_DECRYPTED', type: 'success', delay: 400 },
+          { text: '> REDIRECTING_TO_SECURE_VAULT...', type: 'system', delay: 600 },
+        ] as any);
+        setTimeout(() => navigate('/showmethemoney'), 1200);
+        return;
+
       case 'clear':
         clearTerminal();
         await processSequence([

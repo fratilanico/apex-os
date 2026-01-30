@@ -18,6 +18,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ defaul
 const PricingPage = lazy(() => import('./pages/PricingPage').then(m => ({ default: m.PricingPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const GamePage = lazy(() => import('./pages/GamePage').then(m => ({ default: m.GamePage })));
+const ShowMeTheMoneyPage = lazy(() => import('./pages/ShowMeTheMoneyPage').then(m => ({ default: m.ShowMeTheMoneyPage })));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -85,6 +86,11 @@ const App = (): React.ReactElement => {
               <Route path="/admin" element={
                 <ErrorBoundary fallback={<RouteErrorFallback error={new Error('Admin page error')} />}>
                   <AdminPage />
+                </ErrorBoundary>
+              } />
+              <Route path="/showmethemoney" element={
+                <ErrorBoundary fallback={<RouteErrorFallback error={new Error('Business plan page error')} />}>
+                  <ShowMeTheMoneyPage />
                 </ErrorBoundary>
               } />
             </Route>
