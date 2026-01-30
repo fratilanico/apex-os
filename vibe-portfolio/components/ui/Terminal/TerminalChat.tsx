@@ -1,17 +1,68 @@
 /**
  * TerminalChat Component
- * Main chat interface for both Gemini and ClawBot
+ * Main chat interface for both Gemini and ClawBot with NLP curriculum support
  */
 
 import React, { useState, useRef, useEffect } from 'react';
 import { TerminalWindow } from './TerminalWindow';
 import { ModeSwitcher } from './ModeSwitcher';
 import { useTerminalStore } from '../../../stores/terminalStore';
+import { useNavigate } from 'react-router-dom';
+import { nlpParser, type NLPSearchResult } from '../../artifacts/CurriculumLog/NLPCommandParser';
+
+interface NLPMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system' | 'nlp';
+  content: string;
+  metadata?: {
+    nlpResult?: NLPSearchResult;
+    model?: string;
+    toolsUsed?: string[];
+  };
+}
+
+// Format NLP result for terminal display
+const formatNLPResult = (result: NLPSearchResult): string => {
+  let formatted = '';
+  
+  if (result.type === 'help') {
+    formatted = `${result.title}\n\n${result.content}`;
+  } else if (result.type === 'module') {
+    formatted = `${result.title}\n\n${result.content}`;
+  } else if (result.type === 'section') {
+    formatted = `${result.title}\n\n${result.content}`;
+    if (result.relatedSections && result.relatedSections.length > 0) {
+      formatted += `\n\nRelated sections:\n`;
+      result.relatedSections.forEach(section => {
+        formatted += `  • ${section.title}\n`;
+      });
+    }
+  } else if (result.type === 'tool') {
+    formatted = `${result.title}\n\n${result.content}`;
+    if (result.relatedSections && result.relatedSections.length > 0) {
+      formatted += `\n\nLearn more in:\n`;
+      result.relatedSections.forEach(section => {
+        formatted += `  • ${section.title}\n`;
+      });
+    }
+  }
+  
+  if (result.suggestions && result.suggestions.length > 0) {
+    formatted += `\n\nTry asking:\n`;
+    result.suggestions.forEach(suggestion => {
+      formatted += `  • "${suggestion}"\n`;
+    });
+  }
+  
+  return formatted;
+};
 
 export const TerminalChat: React.FC = () => {
   const [input, setInput] = useState('');
+  const [localMessages, setLocalMessages] = useState<NLPMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
   
   const { 
     mode, 
@@ -23,20 +74,23 @@ export const TerminalChat: React.FC = () => {
     clearClawBotHistory
   } = useTerminalStore();
   
-  // Get messages based on current mode (normalized to ClawBotMessage format)
-  const messages: Array<{
-    id: string;
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-    metadata?: any;
-  }> = mode === 'gemini' 
+  // Get messages based on current mode and merge with local NLP messages
+  const storeMessages: NLPMessage[] = mode === 'gemini' 
     ? gemini.messages.map((msg, idx) => ({
         id: `gemini-${idx}`,
         role: msg.role,
         content: msg.content,
         metadata: undefined
       }))
-    : (clawbot.session?.messages || []).filter(m => m.role !== 'system');
+    : (clawbot.session?.messages || []).filter(m => m.role !== 'system').map((msg, idx) => ({
+        id: `clawbot-${idx}`,
+        role: msg.role,
+        content: msg.content,
+        metadata: undefined
+      }));
+  
+  // Combine store messages with local NLP messages
+  const messages = [...storeMessages, ...localMessages];
   
   const isProcessing = mode === 'gemini'
     ? gemini.isProcessing
@@ -59,13 +113,47 @@ export const TerminalChat: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
   
+  // Clear local messages when switching modes or clearing history
+  useEffect(() => {
+    setLocalMessages([]);
+  }, [mode]);
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
     
     const message = input.trim();
     setInput('');
+
+    // Handle special navigation command
+    if (message.toLowerCase() === 'showmethemoney') {
+      navigate('/showmethemoney');
+      return;
+    }
     
+    // Check if it's a natural language curriculum query
+    const nlpResult = nlpParser.parseQuery(message);
+    
+    if (nlpResult && nlpResult.confidence > 0.5) {
+      // It's a curriculum query - show NLP result directly without calling AI
+      const nlpMessage: NLPMessage = {
+        id: `nlp-${Date.now()}`,
+        role: 'user',
+        content: message,
+      };
+      
+      const nlpResponse: NLPMessage = {
+        id: `nlp-response-${Date.now()}`,
+        role: 'nlp',
+        content: formatNLPResult(nlpResult),
+        metadata: { nlpResult }
+      };
+      
+      setLocalMessages(prev => [...prev, nlpMessage, nlpResponse]);
+      return;
+    }
+    
+    // Not a curriculum query - proceed with normal AI processing
     try {
       if (mode === 'gemini') {
         await sendToGemini(message);
@@ -74,18 +162,29 @@ export const TerminalChat: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to send message:', error);
-      // Show error to user
       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
   
   const handleClear = () => {
     if (confirm('Clear chat history?')) {
+      setLocalMessages([]);
       if (mode === 'gemini') {
         clearGeminiHistory();
       } else {
         clearClawBotHistory();
       }
+    }
+  };
+  
+  // Get placeholder text with NLP hints
+  const getPlaceholderText = () => {
+    if (mode === 'gemini') {
+      return 'Ask about curriculum: "What is the shift mindset?" or "Tell me about module 2"...';
+    } else if (clawbot.status.connected) {
+      return 'Ask ClawBot to help you build or ask about curriculum...';
+    } else {
+      return 'Waiting for ClawBot connection...';
     }
   };
   
@@ -106,6 +205,9 @@ export const TerminalChat: React.FC = () => {
                   ? 'ClawBot is connected. Let\'s build something!'
                   : 'Connecting to ClawBot...'}
             </p>
+            <p className="font-mono text-xs text-white/30 mt-4">
+              Try: "What is the shift mindset?" or "Tell me about Cursor"
+            </p>
           </div>
         ) : (
           messages.map((msg, index) => (
@@ -118,13 +220,22 @@ export const TerminalChat: React.FC = () => {
                   max-w-[80%] rounded-lg px-4 py-2.5 font-mono text-sm
                   ${msg.role === 'user'
                     ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-500/30'
-                    : 'bg-purple-500/10 text-purple-100 border border-purple-500/20'
+                    : msg.role === 'nlp'
+                      ? 'bg-emerald-500/10 text-emerald-100 border border-emerald-500/20'
+                      : 'bg-purple-500/10 text-purple-100 border border-purple-500/20'
                   }
                 `}
               >
                 {/* Message Header */}
                 <div className="flex items-center gap-2 mb-1 text-xs opacity-70">
-                  <span>{msg.role === 'user' ? 'You' : (mode === 'gemini' ? 'Gemini' : 'ClawBot')}</span>
+                  <span>
+                    {msg.role === 'user' 
+                      ? 'You' 
+                      : msg.role === 'nlp'
+                        ? '📚 Curriculum'
+                        : (mode === 'gemini' ? 'Gemini' : 'ClawBot')
+                    }
+                  </span>
                   {msg.metadata?.model && (
                     <span className="text-white/40">• {msg.metadata.model}</span>
                   )}
@@ -172,13 +283,7 @@ export const TerminalChat: React.FC = () => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            mode === 'gemini' 
-              ? 'Ask Gemini anything...' 
-              : clawbot.status.connected
-                ? 'Ask ClawBot to help you build...'
-                : 'Waiting for ClawBot connection...'
-          }
+          placeholder={getPlaceholderText()}
           disabled={isProcessing || (mode === 'clawbot' && !clawbot.status.connected)}
           className="
             flex-1 px-4 py-2.5 bg-black/40 border border-white/20 rounded-lg

@@ -878,6 +878,19 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
       <div 
         ref={outputRef}
         className="flex-1 p-6 overflow-y-auto font-mono text-sm space-y-4 no-scrollbar"
+        style={{
+          touchAction: 'pan-y',
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch'
+        }}
+        onWheel={(e) => {
+          // Allow the terminal to handle its own scrolling
+          e.stopPropagation();
+        }}
+        onTouchMove={(e) => {
+          // Allow the terminal to handle its own touch scrolling
+          e.stopPropagation();
+        }}
       >
         {lines.map((line) => (
           <div key={line.id}>
