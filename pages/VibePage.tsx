@@ -88,9 +88,9 @@ export const VibePage: React.FC = () => {
   const deferredView = useDeferredValue(selectedView);
 
   return (
-    <main className="relative z-10 px-4 sm:px-6 max-w-5xl mx-auto pb-16 overflow-x-hidden">
+    <main className="relative z-10 px-3 sm:px-4 lg:px-6 max-w-5xl mx-auto pb-16 overflow-x-hidden">
       {/* Hero Section - Interactive Paradigm Shift */}
-      <section className="max-w-4xl mx-auto pt-4 pb-16 relative">
+      <section className="max-w-4xl mx-auto pt-2 sm:pt-4 pb-8 sm:pb-16 relative">
         {/* Animated Background Gradient */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <motion.div
@@ -107,16 +107,16 @@ export const VibePage: React.FC = () => {
           />
         </div>
 
-        <div className="space-y-3 md:space-y-4 text-center">
+        <div className="space-y-2 sm:space-y-3 md:space-y-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white/90 mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white/90 mb-1 sm:mb-2">
               From Prompting to
             </h1>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-violet-400 to-emerald-400 animate-gradient">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-violet-400 to-emerald-400 animate-gradient">
               Orchestrating
             </h1>
           </motion.div>
@@ -126,7 +126,7 @@ export const VibePage: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-base md:text-lg text-white/60 mt-8 max-w-2xl mx-auto text-center leading-relaxed"
+          className="text-sm sm:text-base md:text-lg text-white/60 mt-6 sm:mt-8 max-w-2xl mx-auto text-center leading-relaxed px-2 sm:px-0"
         >
           The shift from asking AI to do tasks to{' '}
           <span className="text-cyan-400 font-semibold">designing systems where agents collaborate</span>
@@ -141,10 +141,10 @@ export const VibePage: React.FC = () => {
           className="mt-12"
         >
           {/* Toggle Buttons */}
-          <div className="flex justify-center gap-2 mb-8">
+          <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 mb-6 sm:mb-8 px-4 sm:px-0">
             <button
               onClick={() => setSelectedView('before')}
-              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-300 ${
+              className={`px-4 sm:px-6 py-2.5 rounded-lg font-medium transition-all duration-300 min-h-[44px] ${
                 selectedView === 'before'
                   ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white border border-red-500/30 shadow-lg shadow-red-500/20'
                   : 'bg-white/5 text-white/40 border border-white/10 hover:border-white/20'
@@ -154,7 +154,7 @@ export const VibePage: React.FC = () => {
             </button>
             <button
               onClick={() => setSelectedView('after')}
-              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-300 ${
+              className={`px-4 sm:px-6 py-2.5 rounded-lg font-medium transition-all duration-300 min-h-[44px] ${
                 selectedView === 'after'
                   ? 'bg-gradient-to-r from-cyan-500/20 to-violet-500/20 text-white border border-cyan-500/30 shadow-lg shadow-cyan-500/20'
                   : 'bg-white/5 text-white/40 border border-white/10 hover:border-white/20'
@@ -165,7 +165,7 @@ export const VibePage: React.FC = () => {
           </div>
 
           {/* Comparison Cards */}
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto px-2 sm:px-0">
             {/* OLD WAY */}
             <motion.div
               initial={false}
@@ -177,44 +177,44 @@ export const VibePage: React.FC = () => {
               transition={{ duration: 0.4 }}
               className="relative"
             >
-              <div className="rounded-2xl p-6 md:p-8 border border-red-500/30 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent relative overflow-hidden group">
+              <div className="rounded-2xl p-4 sm:p-6 md:p-8 border border-red-500/30 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent relative overflow-hidden group">
                 {/* Glow effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 via-red-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
                 <div className="relative">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="inline-flex w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 items-center justify-center flex-shrink-0">
-                      <MessageSquare className="w-6 h-6 text-red-400 flex-shrink-0" strokeWidth={2} />
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4 sm:mb-6">
+                    <div className="inline-flex w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-500/20 border border-red-500/30 items-center justify-center flex-shrink-0">
+                      <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-red-400 flex-shrink-0" strokeWidth={2} />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white">Prompting AI</h3>
+                      <h3 className="text-lg sm:text-xl font-bold text-white">Prompting AI</h3>
                       <p className="text-xs text-red-400 font-mono">BOTTLENECK_MODE</p>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {OLD_WAY_ITEMS.map((item, idx) => (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="bg-black/20 rounded-lg p-4 border border-red-500/20"
+                        className="bg-black/20 rounded-lg p-3 sm:p-4 border border-red-500/20"
                       >
-                        <div className="flex items-start gap-3">
-                          <span className="text-2xl">{item.icon}</span>
-                          <div className="flex-1">
-                            <p className="text-white/80 font-medium text-sm">{item.text}</p>
-                            <p className="text-white/40 text-xs mt-1">{item.sub}</p>
+                        <div className="flex items-start gap-2 sm:gap-3">
+                          <span className="text-xl sm:text-2xl">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white/80 font-medium text-xs sm:text-sm">{item.text}</p>
+                            <p className="text-white/40 text-[10px] sm:text-xs mt-1">{item.sub}</p>
                           </div>
                         </div>
                       </motion.div>
                     ))}
                   </div>
 
-                  <div className="mt-6 pt-6 border-t border-red-500/20">
+                  <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-red-500/20">
                     <div className="text-center">
-                      <p className="text-red-400 font-bold text-lg">Result: Slow</p>
+                      <p className="text-red-400 font-bold text-base sm:text-lg">Result: Slow</p>
                       <p className="text-white/40 text-xs mt-1">Months to MVP</p>
                     </div>
                   </div>
@@ -233,7 +233,7 @@ export const VibePage: React.FC = () => {
               transition={{ duration: 0.4 }}
               className="relative"
             >
-              <div className="rounded-2xl p-6 md:p-8 border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-violet-500/5 to-emerald-500/5 relative overflow-hidden group">
+              <div className="rounded-2xl p-4 sm:p-6 md:p-8 border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-violet-500/5 to-emerald-500/5 relative overflow-hidden group">
                 {/* Hover Glow */}
                 <motion.div
                   animate={{
@@ -244,39 +244,39 @@ export const VibePage: React.FC = () => {
                 />
                 
                 <div className="relative">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="inline-flex w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 items-center justify-center flex-shrink-0">
-                      <Workflow className="w-6 h-6 text-cyan-400 flex-shrink-0" strokeWidth={2} />
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4 sm:mb-6">
+                    <div className="inline-flex w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 items-center justify-center flex-shrink-0">
+                      <Workflow className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 flex-shrink-0" strokeWidth={2} />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white">Orchestrating Agents</h3>
+                      <h3 className="text-lg sm:text-xl font-bold text-white">Orchestrating Agents</h3>
                       <p className="text-xs text-cyan-400 font-mono">SCALE_MODE</p>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {NEW_WAY_ITEMS.map((item, idx) => (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="bg-black/20 rounded-lg p-4 border border-cyan-500/20 hover:border-cyan-500/40 hover:bg-cyan-500/5 transition-all duration-300"
+                        className="bg-black/20 rounded-lg p-3 sm:p-4 border border-cyan-500/20 hover:border-cyan-500/40 hover:bg-cyan-500/5 transition-all duration-300"
                       >
-                        <div className="flex items-start gap-3">
-                          <span className="text-2xl">{item.icon}</span>
-                          <div className="flex-1">
-                            <p className="text-white/90 font-medium text-sm">{item.text}</p>
-                            <p className="text-cyan-400/60 text-xs mt-1">{item.sub}</p>
+                        <div className="flex items-start gap-2 sm:gap-3">
+                          <span className="text-xl sm:text-2xl">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white/90 font-medium text-xs sm:text-sm">{item.text}</p>
+                            <p className="text-cyan-400/60 text-[10px] sm:text-xs mt-1">{item.sub}</p>
                           </div>
                         </div>
                       </motion.div>
                     ))}
                   </div>
 
-                  <div className="mt-6 pt-6 border-t border-cyan-500/20">
+                  <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-cyan-500/20">
                     <div className="text-center">
-                      <p className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 font-bold text-lg">
+                      <p className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 font-bold text-base sm:text-lg">
                         Result: 10x Faster
                       </p>
                       <p className="text-white/60 text-xs mt-1">Weeks to MVP</p>
@@ -293,13 +293,13 @@ export const VibePage: React.FC = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="mt-16"
+          className="mt-8 sm:mt-16"
         >
-          <div className="text-center mb-8">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+          <div className="text-center mb-6 sm:mb-8 px-2 sm:px-0">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
               You Become the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400">Architect</span>
             </h3>
-            <p className="text-white/50 text-sm">3 agents working in parallel = 10x faster execution</p>
+            <p className="text-white/50 text-xs sm:text-sm">3 agents working in parallel = 10x faster execution</p>
           </div>
 
           {/* Premium Agent Cards with Terminal Aesthetic */}
@@ -383,7 +383,7 @@ export const VibePage: React.FC = () => {
               />
             </svg>
 
-            <div className="grid md:grid-cols-3 gap-4 relative z-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 relative z-10 px-2 sm:px-0">
               {/* Frontend Agent */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -647,27 +647,27 @@ export const VibePage: React.FC = () => {
               </motion.div>
             </div>
 
-            {/* Social Proof Banner */}
+              {/* Social Proof Banner */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.4, duration: 0.6 }}
-              className="mt-6 rounded-xl border border-white/10 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-emerald-500/5 backdrop-blur-sm p-4"
+              className="mt-4 sm:mt-6 rounded-xl border border-white/10 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-emerald-500/5 backdrop-blur-sm p-3 sm:p-4"
             >
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-                <div className="flex items-center gap-3">
-                  <div className="inline-flex w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400/20 to-violet-500/20 border border-white/10 items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-5 h-5 text-white/80 flex-shrink-0" strokeWidth={2} />
+              <div className="flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 text-center md:text-left">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="inline-flex w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-cyan-400/20 to-violet-500/20 border border-white/10 items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white/80 flex-shrink-0" strokeWidth={2} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-xs sm:text-sm font-semibold text-white">
                       Total time: <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">53 seconds</span>
                     </p>
-                    <p className="text-[10px] text-white/40 font-mono">What used to take 3 engineers 2 weeks</p>
+                    <p className="text-[9px] sm:text-[10px] text-white/40 font-mono">What used to take 3 engineers 2 weeks</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 sm:gap-6 text-xs flex-wrap justify-center">
+                <div className="flex items-center gap-3 sm:gap-6 text-xs flex-wrap justify-center">
                   <div className="text-center">
                     <p className="text-white/40">Cost</p>
                     <p className="font-mono text-cyan-400">$2.40</p>
@@ -691,27 +691,27 @@ export const VibePage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.6 }}
-            className="text-center text-white/60 text-sm mt-8 max-w-2xl mx-auto"
+            className="text-center text-white/60 text-xs sm:text-sm mt-6 sm:mt-8 max-w-2xl mx-auto px-2 sm:px-0"
           >
             Stop being a prompt engineer. Start being a <span className="text-cyan-400 font-semibold">systems architect</span>.
             <br />
-            <span className="text-white/40 text-xs">Design once. Deploy instantly. Scale infinitely.</span>
+            <span className="text-white/40 text-[10px] sm:text-xs">Design once. Deploy instantly. Scale infinitely.</span>
           </motion.p>
         </motion.div>
       </section>
 
       {/* The Three Mindsets */}
       <section className="pb-10">
-        <div className="text-center max-w-2xl mx-auto mb-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+        <div className="text-center max-w-2xl mx-auto mb-6 px-2 sm:px-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
             The Evolution
           </h2>
-          <p className="text-sm text-white/50">
+          <p className="text-xs sm:text-sm text-white/50">
             From typing faster to building faster. From prompting to orchestrating.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-2 sm:px-0">
           {MINDSETS.map((mindset) => (
             <MindsetCard key={mindset.number} {...mindset} />
           ))}
@@ -719,37 +719,37 @@ export const VibePage: React.FC = () => {
       </section>
 
       {/* The Technical Co-Founder Tax */}
-      <section className="pb-10">
+      <section className="pb-10 px-2 sm:px-0">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6 text-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6 text-center">
             The Technical Co-Founder Tax
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {/* Traditional Route */}
-            <div className="rounded-xl p-4 sm:p-6 border border-red-500/20 bg-red-500/5">
-              <div className="text-red-400 font-mono text-xs uppercase mb-4 flex items-center gap-2">
+            <div className="rounded-xl p-3 sm:p-4 md:p-6 border border-red-500/20 bg-red-500/5">
+              <div className="text-red-400 font-mono text-xs uppercase mb-3 sm:mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-red-400" />
                 Traditional Route
               </div>
-              <div className="space-y-3 text-sm text-white/60">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+              <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-white/60">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/60 whitespace-normal">Find technical co-founder:</span>
                   <span className="text-white/80 font-medium whitespace-nowrap">3-6 months</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/60 whitespace-normal">Equity given:</span>
                   <span className="text-white/80 font-medium whitespace-nowrap">20-30%</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/60 whitespace-normal">Annual salary (if paying):</span>
                   <span className="text-white/80 font-medium whitespace-nowrap">$150K-200K</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/60 whitespace-normal">Time to MVP:</span>
                   <span className="text-white/80 font-medium whitespace-nowrap">3-6 months</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/60 whitespace-normal">Risk they quit:</span>
                   <span className="text-red-400 font-medium whitespace-nowrap">High</span>
                 </div>
@@ -757,29 +757,29 @@ export const VibePage: React.FC = () => {
             </div>
 
             {/* Vibe Route */}
-            <div className="rounded-xl p-4 sm:p-6 border border-cyan-500/20 bg-cyan-500/5">
-              <div className="text-cyan-400 font-mono text-xs uppercase mb-4 flex items-center gap-2">
+            <div className="rounded-xl p-3 sm:p-4 md:p-6 border border-cyan-500/20 bg-cyan-500/5">
+              <div className="text-cyan-400 font-mono text-xs uppercase mb-3 sm:mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-cyan-400" />
                 Vibe Route
               </div>
-              <div className="space-y-3 text-sm text-white/70">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+              <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-white/70">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/70 whitespace-normal">Learn orchestration:</span>
                   <span className="text-white/90 font-medium whitespace-nowrap">2-3 weeks</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/70 whitespace-normal">Equity given:</span>
                   <span className="text-white/90 font-medium whitespace-nowrap">0%</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/70 whitespace-normal">Monthly cost:</span>
                   <span className="text-white/90 font-medium whitespace-nowrap">$200-500</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/70 whitespace-normal">Time to MVP:</span>
                   <span className="text-white/90 font-medium whitespace-nowrap">2-4 weeks</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
                   <span className="text-white/70 whitespace-normal">Risk AI quits:</span>
                   <span className="text-cyan-400 font-medium whitespace-nowrap">Zero</span>
                 </div>
@@ -787,7 +787,7 @@ export const VibePage: React.FC = () => {
             </div>
           </div>
 
-          <p className="text-center text-white/50 text-sm px-2">
+          <p className="text-center text-white/50 text-xs sm:text-sm px-2">
             Most founders burn equity or cash before they validate product-market fit.
             <span className="text-cyan-400"> The Vibe approach lets you ship first, raise later.</span>
           </p>
@@ -795,40 +795,40 @@ export const VibePage: React.FC = () => {
       </section>
 
       {/* The Shift - Redesigned */}
-      <section className="pb-10">
-        <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold text-white mb-1">The Shift</h3>
-          <p className="text-sm text-white/50">What changes when you move from chatbot to orchestrator</p>
+      <section className="pb-10 px-2 sm:px-0">
+        <div className="text-center mb-4 sm:mb-6">
+          <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">The Shift</h3>
+          <p className="text-xs sm:text-sm text-white/50">What changes when you move from chatbot to orchestrator</p>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto">
           {/* Before */}
-          <div className="rounded-xl p-5 border border-red-500/20 bg-red-500/5">
-            <div className="text-red-400 font-mono text-xs uppercase mb-4 flex items-center gap-2">
+          <div className="rounded-xl p-4 sm:p-5 border border-red-500/20 bg-red-500/5">
+            <div className="text-red-400 font-mono text-xs uppercase mb-3 sm:mb-4 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-400" />
               Before
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                {BEFORE_ITEMS.map((item, idx) => (
-                 <div key={idx} className="flex items-start gap-2 text-sm text-white/60">
+                 <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-white/60">
                    <span className="text-red-400 mt-0.5">×</span>
-                   <span>{item}</span>
+                   <span className="break-words">{item}</span>
                  </div>
                ))}
             </div>
           </div>
 
           {/* After */}
-          <div className="rounded-xl p-5 border border-cyan-500/20 bg-cyan-500/5">
-            <div className="text-cyan-400 font-mono text-xs uppercase mb-4 flex items-center gap-2">
+          <div className="rounded-xl p-4 sm:p-5 border border-cyan-500/20 bg-cyan-500/5">
+            <div className="text-cyan-400 font-mono text-xs uppercase mb-3 sm:mb-4 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-cyan-400" />
               After
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                {AFTER_ITEMS.map((item, idx) => (
-                 <div key={idx} className="flex items-start gap-2 text-sm text-white/70">
+                 <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-white/70">
                    <span className="text-cyan-400 mt-0.5">✓</span>
-                   <span>{item}</span>
+                   <span className="break-words">{item}</span>
                  </div>
                ))}
             </div>
@@ -837,24 +837,24 @@ export const VibePage: React.FC = () => {
       </section>
 
       {/* CTA Section - Elegant cyan links */}
-      <section className="text-center py-10 border-t border-white/5 px-4">
-        <h2 className="text-xl font-bold text-white mb-2">
+      <section className="text-center py-8 sm:py-10 border-t border-white/5 px-3 sm:px-4">
+        <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
           Learn the Framework
         </h2>
-        <p className="text-sm text-white/50 mb-6">
+        <p className="text-xs sm:text-sm text-white/50 mb-4 sm:mb-6">
           The mindset is just the beginning. Master the methodology and tools.
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
           <Link
             to="/approach"
-            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors whitespace-nowrap min-h-[44px]"
           >
             <span>See the Approach</span>
             <ArrowRight className="w-4 h-4 flex-shrink-0" />
           </Link>
           <Link
             to="/academy"
-            className="text-sm text-white/40 hover:text-white/60 transition-colors whitespace-nowrap"
+            className="text-xs sm:text-sm text-white/40 hover:text-white/60 transition-colors whitespace-nowrap min-h-[44px]"
           >
             Explore the Academy
           </Link>

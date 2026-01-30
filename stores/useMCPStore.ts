@@ -79,6 +79,18 @@ export const useMCPStore = create<MCPState>()(
             { name: 'screenshot', description: 'Capture UI state for multimodal analysis', parameters: { url: 'string' } },
             { name: 'click_element', description: 'Simulate user interaction', parameters: { selector: 'string' } },
           ]
+        },
+        {
+          id: 'v0-mcp',
+          name: 'Vercel v0 Generator',
+          version: '1.0.0',
+          status: 'DISCONNECTED',
+          transport: 'sse',
+          capabilities: { resources: false, prompts: false, tools: true },
+          tools: [
+            { name: 'generate_component', description: 'Generate React components using v0.dev', parameters: { prompt: 'string' } },
+            { name: 'refactor_ui', description: 'Refactor UI code with v0 context', parameters: { code: 'string', prompt: 'string' } },
+          ]
         }
       ],
       mountedServers: ['filesystem-mcp'],

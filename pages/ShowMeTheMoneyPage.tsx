@@ -43,8 +43,6 @@ interface PricingTier {
   color: string;
 }
 
-
-
 // Financial Projections (32K leads, 30% retention)
 const generateProjections = (): RevenueProjection[] => {
   const projections: RevenueProjection[] = [];
@@ -406,26 +404,27 @@ export const ShowMeTheMoneyPage: React.FC = () => {
       <section className="mb-12">
         <div className="flex flex-wrap justify-center gap-2">
           {[
-            { id: 'executive', label: 'Executive Summary' },
-            { id: 'pricing', label: 'Pricing Strategy' },
-            { id: 'financials', label: 'Financial Projections' },
-            { id: 'gtm', label: 'Go-to-Market' },
-            { id: 'expansion', label: 'Expansion Plan' },
-            { id: 'accelerator', label: 'Accelerator' },
-            { id: 'fundraising', label: 'Fundraising Strategy' },
-            { id: 'wireframes', label: 'Wireframes' },
-            { id: 'risks', label: 'Risk Analysis' },
+            { id: 'executive', label: 'Executive', mobileLabel: 'Exec' },
+            { id: 'pricing', label: 'Pricing', mobileLabel: 'Price' },
+            { id: 'financials', label: 'Financials', mobileLabel: 'Finance' },
+            { id: 'gtm', label: 'GTM', mobileLabel: 'GTM' },
+            { id: 'expansion', label: 'Expansion', mobileLabel: 'Expand' },
+            { id: 'accelerator', label: 'Accelerator', mobileLabel: 'Accel' },
+            { id: 'fundraising', label: 'Fundraising', mobileLabel: 'Fund' },
+            { id: 'wireframes', label: 'Wireframes', mobileLabel: 'Wire' },
+            { id: 'risks', label: 'Risks', mobileLabel: 'Risk' },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveSection(tab.id)}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+              className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                 activeSection === tab.id
                   ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white'
                   : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
               }`}
             >
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.mobileLabel}</span>
             </button>
           ))}
         </div>
@@ -687,9 +686,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 <tr className="border-b border-white/10">
                   <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-sm">Period</th>
                   <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">Leads</th>
-                  <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">Conversion</th>
+                  <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">Conv.</th>
                   <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">MRR</th>
-                  <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">Cumulative</th>
+                  <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">Total</th>
                 </tr>
               </thead>
               <tbody>

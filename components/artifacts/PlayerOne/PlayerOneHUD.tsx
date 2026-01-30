@@ -441,7 +441,7 @@ export const PlayerOneHUD: React.FC = () => {
                         <SkillTreeHUD />
 
                         {/* Bottom Shelf: MCP Registry & WASM Forge */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[300px] md:h-[400px]">
                           <MCPRegistryHUD />
                           <WASMForgeHUD />
                         </div>

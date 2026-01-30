@@ -98,9 +98,9 @@ export const PricingPage: React.FC = () => {
   const period = billing === 'monthly' ? '/month' : ' one-time';
 
   return (
-    <main className="relative z-10 px-4 sm:px-6 max-w-6xl mx-auto pb-16">
+    <main className="relative z-10 px-3 sm:px-4 lg:px-6 max-w-6xl mx-auto pb-16 overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative text-center max-w-4xl mx-auto pt-8 pb-12">
+      <section className="relative text-center max-w-4xl mx-auto pt-6 sm:pt-8 pb-8 sm:pb-12">
         {/* Animated gradient background */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-64 h-64 bg-cyan-500/20 rounded-full blur-[100px] animate-pulse" />
@@ -111,10 +111,10 @@ export const PricingPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 mb-6"
+          className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 mb-4 sm:mb-6"
         >
-          <Timer className="w-4 h-4 text-amber-400 animate-pulse" />
-          <span className="text-sm font-semibold text-amber-400">
+          <Timer className="w-4 h-4 text-amber-400 animate-pulse flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-semibold text-amber-400">
             Next cohort starts Feb 1 - Only 8 spots left
           </span>
         </motion.div>
@@ -123,7 +123,7 @@ export const PricingPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6"
         >
           <span className="text-white">Invest in </span>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-violet-400 to-emerald-400">
@@ -135,7 +135,7 @@ export const PricingPage: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-lg sm:text-xl text-white/60 mb-8 max-w-2xl mx-auto leading-relaxed"
+          className="text-base sm:text-lg md:text-xl text-white/60 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0"
         >
           Stop paying $200K/year for a tech co-founder or giving away equity.
           <br />
@@ -149,21 +149,21 @@ export const PricingPage: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="flex flex-wrap justify-center gap-6 mb-10"
+          className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-8 sm:mb-10 px-2 sm:px-0"
         >
           <div className="flex items-center gap-2 text-white/60">
-            <Shield className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm font-medium">30-day money-back guarantee</span>
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-medium">30-day money-back guarantee</span>
           </div>
           <div className="flex items-center gap-2 text-white/60">
-            <Users className="w-5 h-5 text-cyan-400" />
-            <span className="text-sm font-medium">500+ founders enrolled</span>
+            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-medium">500+ founders enrolled</span>
           </div>
         </motion.div>
       </section>
 
       {/* Billing Toggle */}
-      <section className="max-w-md mx-auto mb-12">
+      <section className="max-w-md mx-auto mb-8 sm:mb-12 px-2 sm:px-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -177,18 +177,18 @@ export const PricingPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/20 to-emerald-500/10 border border-emerald-500/30"
             >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-xs font-bold text-emerald-400">
-                LIFETIME ACCESS: SAVE 58% ($1,403)
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+              <span className="text-[10px] font-bold text-emerald-400">
+                SAVE 58% ($1,403)
               </span>
             </motion.div>
           </div>
 
           {/* Toggle buttons */}
-          <div className="flex items-center justify-center gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/10">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/10">
             <button
               onClick={() => setBilling('monthly')}
-              className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all ${
+              className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold transition-all min-h-[44px] ${
                 billing === 'monthly'
                   ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg'
                   : 'text-white/60 hover:text-white/80'
@@ -198,7 +198,7 @@ export const PricingPage: React.FC = () => {
             </button>
             <button
               onClick={() => setBilling('lifetime')}
-              className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all relative ${
+              className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold transition-all relative min-h-[44px] ${
                 billing === 'lifetime'
                   ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg'
                   : 'text-white/60 hover:text-white/80'
@@ -215,12 +215,12 @@ export const PricingPage: React.FC = () => {
       </section>
 
       {/* Pricing Card */}
-      <section className="max-w-lg mx-auto mb-16">
+      <section className="max-w-lg mx-auto mb-12 sm:mb-16 px-2 sm:px-0">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="relative rounded-2xl border border-cyan-500/30 bg-gradient-to-b from-cyan-500/10 to-violet-500/10 p-6 sm:p-8 overflow-hidden"
+          className="relative rounded-2xl border border-cyan-500/30 bg-gradient-to-b from-cyan-500/10 to-violet-500/10 p-4 sm:p-6 md:p-8 overflow-hidden"
         >
           {/* Glow effect */}
           <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-[60px]" />
@@ -228,20 +228,20 @@ export const PricingPage: React.FC = () => {
 
           <div className="relative">
             {/* Plan Header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 mb-4">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm font-semibold text-cyan-400">
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 mb-3 sm:mb-4">
+                <Sparkles className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-semibold text-cyan-400">
                   {billing === 'lifetime' ? 'LIFETIME ACCESS' : 'FULL ACCESS'}
                 </span>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Vibe Coder Academy</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Vibe Coder Academy</h2>
               
               {/* Price display with strikethrough for lifetime */}
               {billing === 'lifetime' ? (
                 <div className="space-y-2">
                   <div className="flex items-center justify-center gap-2">
-                    <span className="text-2xl font-semibold text-white/40 line-through">
+                    <span className="text-xl sm:text-2xl font-semibold text-white/40 line-through">
                       $2,400
                     </span>
                     <span className="px-2 py-0.5 text-xs font-bold bg-emerald-500 text-white rounded-full">
@@ -249,61 +249,61 @@ export const PricingPage: React.FC = () => {
                     </span>
                   </div>
                   {/* Price container with fixed width and overflow handling */}
-                  <div className="flex items-baseline justify-center gap-1 min-h-[4rem]">
+                  <div className="flex items-baseline justify-center gap-1 min-h-[3rem] sm:min-h-[4rem]">
                     <motion.span
                       key={price}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="inline-block max-w-[200px] overflow-hidden text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-400"
+                      className="inline-block max-w-[200px] overflow-hidden text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-400"
                       style={{ fontVariantNumeric: 'tabular-nums' }}
                     >
                       {price}
                     </motion.span>
-                    <span className="text-white/60 whitespace-nowrap">{period}</span>
+                    <span className="text-white/60 whitespace-nowrap text-sm sm:text-base">{period}</span>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                    <Sparkles className="w-4 h-4 text-emerald-400" />
-                    <p className="text-sm text-emerald-400 font-bold">
+                  <div className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <p className="text-xs sm:text-sm text-emerald-400 font-bold">
                       You save $1,403 vs. monthly
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-baseline justify-center gap-1 min-h-[4rem]">
+                <div className="flex items-baseline justify-center gap-1 min-h-[3rem] sm:min-h-[4rem]">
                   {/* Price container with fixed width and overflow handling */}
                   <motion.span
                     key={price}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="inline-block max-w-[200px] overflow-hidden text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400"
+                    className="inline-block max-w-[200px] overflow-hidden text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400"
                     style={{ fontVariantNumeric: 'tabular-nums' }}
                   >
                     {price}
                   </motion.span>
-                  <span className="text-white/60 whitespace-nowrap">{period}</span>
+                  <span className="text-white/60 whitespace-nowrap text-sm sm:text-base">{period}</span>
                 </div>
               )}
             </div>
 
             {/* Features List */}
-            <div className="space-y-3 mb-8">
+            <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
               {planFeatures.map((feature, idx) => (
                 <motion.div
                   key={feature.text}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.6 + idx * 0.05 }}
-                  className="flex items-start gap-3"
+                  className="flex items-start gap-2 sm:gap-3"
                 >
                   {feature.included ? (
-                    <Check className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                   ) : (
-                    <X className="w-5 h-5 text-red-400/50 flex-shrink-0 mt-0.5" />
+                    <X className="w-4 h-4 sm:w-5 sm:h-5 text-red-400/50 flex-shrink-0 mt-0.5" />
                   )}
                   <span
-                    className={`text-sm ${
+                    className={`text-xs sm:text-sm ${
                       feature.included ? 'text-white/80' : 'text-white/40 line-through'
                     }`}
                   >
@@ -321,11 +321,11 @@ export const PricingPage: React.FC = () => {
             >
               <Link
                 to="/contact"
-                className="block w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-bold text-center text-lg hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
+                className="block w-full py-3 sm:py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-bold text-center text-base sm:text-lg hover:shadow-lg hover:shadow-cyan-500/25 transition-all min-h-[48px] flex items-center justify-center"
               >
                 Start Learning Today
               </Link>
-              <p className="text-center text-xs text-white/40 mt-3">
+              <p className="text-center text-[10px] sm:text-xs text-white/40 mt-3">
                 Secure checkout. Cancel anytime for monthly plans.
               </p>
             </motion.div>
@@ -334,17 +334,17 @@ export const PricingPage: React.FC = () => {
       </section>
 
       {/* Comparison Table */}
-      <section className="mb-16">
+      <section className="mb-12 sm:mb-16 px-2 sm:px-0">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
-          className="text-center mb-8"
+          className="text-center mb-6 sm:mb-8"
         >
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
             Compare Your Options
           </h2>
-          <p className="text-white/60">
+          <p className="text-white/60 text-sm sm:text-base">
             See how Vibe Academy stacks up against traditional paths
           </p>
         </motion.div>
@@ -353,26 +353,26 @@ export const PricingPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="overflow-x-auto"
+          className="overflow-x-auto -mx-2 sm:-mx-0"
         >
           <table className="w-full min-w-[600px] border-collapse">
             <thead>
               <tr>
-                <th className="text-left p-4 text-white/60 font-medium text-sm border-b border-white/10">
+                <th className="text-left p-3 sm:p-4 text-white/60 font-medium text-xs sm:text-sm border-b border-white/10">
                   Feature
                 </th>
-                <th className="p-4 text-sm border-b border-white/10">
+                <th className="p-3 sm:p-4 text-xs sm:text-sm border-b border-white/10">
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400 font-bold">
                       Vibe Academy
                     </span>
-                    <span className="text-emerald-400 text-xs">Recommended</span>
+                    <span className="text-emerald-400 text-[10px] sm:text-xs">Recommended</span>
                   </div>
                 </th>
-                <th className="p-4 text-white/60 font-medium text-sm border-b border-white/10">
+                <th className="p-3 sm:p-4 text-white/60 font-medium text-xs sm:text-sm border-b border-white/10">
                   Tech Co-Founder
                 </th>
-                <th className="p-4 text-white/60 font-medium text-sm border-b border-white/10">
+                <th className="p-3 sm:p-4 text-white/60 font-medium text-xs sm:text-sm border-b border-white/10">
                   Dev Agency
                 </th>
               </tr>
@@ -386,16 +386,16 @@ export const PricingPage: React.FC = () => {
                   transition={{ delay: 0.9 + idx * 0.05 }}
                   className="border-b border-white/5 hover:bg-white/[0.02] transition-colors"
                 >
-                  <td className="p-4 text-white/80 text-sm font-medium">{row.feature}</td>
-                  <td className="p-4 text-center">
-                    <span className="text-sm font-semibold text-cyan-400">
+                  <td className="p-3 sm:p-4 text-white/80 text-xs sm:text-sm font-medium">{row.feature}</td>
+                  <td className="p-3 sm:p-4 text-center">
+                    <span className="text-xs sm:text-sm font-semibold text-cyan-400">
                       {row.vibeAcademy}
                     </span>
                   </td>
-                  <td className="p-4 text-center text-white/50 text-sm">
+                  <td className="p-3 sm:p-4 text-center text-white/50 text-xs sm:text-sm">
                     {row.techCofounder}
                   </td>
-                  <td className="p-4 text-center text-white/50 text-sm">{row.devAgency}</td>
+                  <td className="p-3 sm:p-4 text-center text-white/50 text-xs sm:text-sm">{row.devAgency}</td>
                 </motion.tr>
               ))}
             </tbody>
@@ -404,12 +404,12 @@ export const PricingPage: React.FC = () => {
       </section>
 
       {/* Trust & Guarantee Section */}
-      <section className="mb-16">
+      <section className="mb-12 sm:mb-16 px-2 sm:px-0">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
-          className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto"
         >
           {[
             {
@@ -436,52 +436,52 @@ export const PricingPage: React.FC = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1 + idx * 0.1 }}
-              className="p-6 rounded-xl border border-white/10 bg-white/[0.02] text-center"
+              className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02] text-center"
             >
               <div
-                className={`w-12 h-12 rounded-xl bg-${item.color}-500/10 border border-${item.color}-500/20 flex items-center justify-center mx-auto mb-4`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-${item.color}-500/10 border border-${item.color}-500/20 flex items-center justify-center mx-auto mb-3 sm:mb-4`}
               >
-                <item.icon className={`w-6 h-6 text-${item.color}-400`} />
+                <item.icon className={`w-5 h-5 sm:w-6 sm:h-6 text-${item.color}-400`} />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-              <p className="text-sm text-white/60">{item.desc}</p>
+              <h3 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">{item.title}</h3>
+              <p className="text-xs sm:text-sm text-white/60">{item.desc}</p>
             </motion.div>
           ))}
         </motion.div>
       </section>
 
       {/* Final CTA */}
-      <section className="text-center py-12 border-t border-white/5">
+      <section className="text-center py-8 sm:py-12 border-t border-white/5 px-2 sm:px-0">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}
         >
           {/* Urgency reminder */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 mb-6">
-            <Timer className="w-4 h-4 text-amber-400" />
-            <span className="text-sm font-semibold text-amber-400">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 mb-4 sm:mb-6">
+            <Timer className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-semibold text-amber-400">
               Only 8 spots remaining for the February cohort
             </span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
             Ready to Build Without a Tech Co-Founder?
           </h2>
-          <p className="text-white/60 mb-8 max-w-xl mx-auto">
+          <p className="text-white/60 mb-6 sm:mb-8 max-w-xl mx-auto text-sm sm:text-base px-2 sm:px-0">
             Join 500+ founders who are shipping production features faster than 10-person dev
             teams. Your AI engineering team is waiting.
           </p>
 
           <Link
             to="/contact"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/25 transition-all text-lg"
+            className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/25 transition-all text-base sm:text-lg min-h-[48px]"
           >
             <span>Claim Your Spot Now</span>
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
           </Link>
 
-          <p className="mt-4 text-sm text-white/40">
+          <p className="mt-4 text-xs sm:text-sm text-white/40">
             30-day money-back guarantee. No risk to try.
           </p>
         </motion.div>

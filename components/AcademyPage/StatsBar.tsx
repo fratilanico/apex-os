@@ -104,8 +104,8 @@ export const StatsBar: React.FC = () => {
       {/* Animated gradient background */}
       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-emerald-500/5 rounded-2xl blur-xl" />
       
-      <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-sm p-6 sm:p-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+      <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-sm p-4 sm:p-6 lg:p-8">
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
             const colors = colorClasses[stat.color];
@@ -125,25 +125,25 @@ export const StatsBar: React.FC = () => {
                 <div className="relative">
                   {/* Icon container with enhanced effects */}
                   <motion.div 
-                    className={`inline-flex w-12 h-12 sm:w-14 sm:h-14 rounded-xl items-center justify-center ${colors.bg} ${colors.border} border mb-3 transition-all duration-300 group-hover:scale-110 group-hover:border-opacity-50`}
+                    className={`inline-flex w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl items-center justify-center ${colors.bg} ${colors.border} border mb-2 sm:mb-3 transition-all duration-300 group-hover:scale-110 group-hover:border-opacity-50`}
                     whileHover={{ rotate: [0, -10, 10, -10, 0] }}
                     transition={{ duration: 0.5 }}
                   >
-                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${colors.text} transition-all duration-300`} />
+                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${colors.text} transition-all duration-300`} />
                   </motion.div>
                   
                   {/* Animated counter */}
-                  <div className={`text-2xl sm:text-3xl font-bold ${colors.text} mb-1 tabular-nums`}>
+                  <div className={`text-xl sm:text-2xl lg:text-3xl font-bold ${colors.text} mb-0.5 sm:mb-1 tabular-nums`}>
                     {animatedValue}{stat.suffix || ''}
                   </div>
                   
                   {/* Label */}
-                  <div className="text-xs sm:text-sm text-white/60 font-medium mb-1">
+                  <div className="text-[10px] sm:text-xs lg:text-sm text-white/60 font-medium mb-0.5 sm:mb-1">
                     {stat.label}
                   </div>
                   
-                  {/* Description - visible on hover */}
-                  <div className="text-[10px] text-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 h-0 group-hover:h-auto overflow-hidden">
+                  {/* Description - visible on hover, hidden on mobile */}
+                  <div className="hidden sm:block text-[10px] text-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 h-0 group-hover:h-auto overflow-hidden">
                     {stat.description}
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export const StatsBar: React.FC = () => {
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="h-[2px] w-full bg-gradient-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0 mt-6 rounded-full"
+          className="h-[2px] w-full bg-gradient-to-r from-cyan-500/0 via-cyan-500/50 to-cyan-500/0 mt-4 sm:mt-6 rounded-full"
         />
       </div>
     </div>

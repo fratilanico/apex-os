@@ -44,13 +44,19 @@ const useMobileDetection = () => {
     setIsClient(true);
     const checkMobile = () => {
       const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const isSmallScreen = window.innerWidth < 768;
-      setIsMobile(isTouchDevice || isSmallScreen);
+      const isSmallScreen = window.innerWidth < 1024;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(isTouchDevice || isSmallScreen || isMobileUA);
     };
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
   }, []);
 
   return { isMobile, isClient };
@@ -129,8 +135,25 @@ const MobileFallback: React.FC<{
   }>;
   lastTransmission: string;
   traceLevel: number;
-}> = ({ nodes, lastTransmission, traceLevel }) => {
+  onNodeClick?: (id: string) => void;
+}> = ({ nodes, lastTransmission, traceLevel, onNodeClick }) => {
   const [activeTab, setActiveTab] = useState<'nodes' | 'transmission'>('nodes');
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  // Use isVisible to prevent hydration mismatch and show loading state
+  if (!isVisible) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-zinc-950">
+        <div className="animate-pulse text-cyan-400 text-xs font-mono uppercase tracking-widest">
+          Initializing_Mobile_View...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col bg-zinc-950">
@@ -188,7 +211,10 @@ const MobileFallback: React.FC<{
               </div>
               <MobileNodeList 
                 nodes={nodes} 
-                onNodeClick={(id) => console.log('Node clicked:', id)} 
+                onNodeClick={(id) => {
+                  console.log('Node clicked:', id);
+                  onNodeClick?.(id);
+                }} 
               />
             </motion.div>
           ) : (
@@ -280,7 +306,7 @@ const ReactFlowWrapper = React.lazy(() =>
 
 export const ApexMatrixHUD: React.FC = () => {
   const { isMobile, isClient } = useMobileDetection();
-  const { nodes: storeNodes, edges: storeEdges, lastTransmission, traceLevel } = useMatrixStore();
+  const { nodes: storeNodes, edges: storeEdges, lastTransmission, traceLevel, setActiveNode } = useMatrixStore();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
@@ -305,6 +331,10 @@ export const ApexMatrixHUD: React.FC = () => {
         nodes={storeNodes}
         lastTransmission={lastTransmission ?? 'Awaiting transmission...'}
         traceLevel={traceLevel}
+        onNodeClick={(id) => {
+          setActiveNode(id);
+          console.log('[ApexMatrixHUD] Mobile node selected:', id);
+        }}
       />
     );
   }
@@ -358,6 +388,10 @@ export const ApexMatrixHUD: React.FC = () => {
             nodes={storeNodes}
             edges={storeEdges}
             onError={() => setHasError(true)}
+            onNodeClick={(id) => {
+              setActiveNode(id);
+              console.log('[ApexMatrixHUD] Desktop node selected:', id);
+            }}
           />
         </Suspense>
 

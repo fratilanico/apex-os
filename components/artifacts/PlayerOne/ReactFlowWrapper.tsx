@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
@@ -114,11 +114,19 @@ interface ReactFlowWrapperProps {
   nodes: Node[];
   edges: Edge[];
   onError?: () => void;
+  onNodeClick?: (id: string) => void;
 }
 
-const ReactFlowWrapper: React.FC<ReactFlowWrapperProps> = ({ nodes: initialNodes, edges: initialEdges, onError }) => {
+const ReactFlowWrapper: React.FC<ReactFlowWrapperProps> = ({ nodes: initialNodes, edges: initialEdges, onError, onNodeClick }) => {
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    // Detect touch device for gesture handling
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    setIsTouchDevice(isTouch);
+  }, []);
 
   const handleInit = useCallback(() => {
     try {
@@ -130,8 +138,25 @@ const ReactFlowWrapper: React.FC<ReactFlowWrapperProps> = ({ nodes: initialNodes
     }
   }, [onError]);
 
+  const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    console.log('[ApexMatrixHUD] Node clicked:', node.id);
+    onNodeClick?.(node.id);
+  }, [onNodeClick]);
+
+  // Use isTouchDevice for conditional touch behavior
+  const handleTouchStart = useCallback((event: React.TouchEvent) => {
+    // Prevent default touch behavior for better gesture handling
+    if (isTouchDevice) {
+      // Allow pinch-zoom but prevent page scroll
+      if (event.touches.length === 1) {
+        // Single touch - might be pan or node selection
+        console.log('[ApexMatrixHUD] Touch detected on graph');
+      }
+    }
+  }, [isTouchDevice]);
+
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full" onTouchStart={handleTouchStart}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -139,6 +164,7 @@ const ReactFlowWrapper: React.FC<ReactFlowWrapperProps> = ({ nodes: initialNodes
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onInit={handleInit}
+        onNodeClick={handleNodeClick}
         fitView
         className="z-10"
         minZoom={0.2}
@@ -148,6 +174,14 @@ const ReactFlowWrapper: React.FC<ReactFlowWrapperProps> = ({ nodes: initialNodes
           animated: true,
           style: { stroke: '#22D3EE', strokeWidth: 2 }
         }}
+        // Enable touch gestures
+        panOnScroll={true}
+        panOnDrag={true}
+        selectionOnDrag={false}
+        zoomOnPinch={true}
+        zoomOnDoubleClick={true}
+        zoomOnScroll={true}
+        preventScrolling={isTouchDevice}
       >
         <Background 
           color="#ffffff" 
