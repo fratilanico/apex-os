@@ -68,7 +68,26 @@ export const PlayerOneHUD: React.FC = () => {
     if (isOpen) {
       addDMLog(`Apex OS Access Protocol Initiated. Welcome back, Player One.`);
       addDMLog(`Current Objective: ${narrativeContext}`);
+      
+      // Lock body scroll - prevent background scrolling
+      const originalOverflow = document.body.style.overflow;
+      const originalTouchAction = document.body.style.touchAction;
+      const originalPosition = document.body.style.position;
+      const originalWidth = document.body.style.width;
+      const originalHeight = document.body.style.height;
+      const originalTop = document.body.style.top;
+      const scrollY = window.scrollY;
+      
       document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      document.body.style.top = `-${scrollY}px`;
+      
+      // Store scroll position for restoration
+      document.body.dataset.scrollY = String(scrollY);
+      
       // Center window on desktop
       if (typeof window !== 'undefined' && !isMobile) {
         const w = Math.min(900, window.innerWidth * 0.78);
@@ -79,12 +98,24 @@ export const PlayerOneHUD: React.FC = () => {
         });
       }
       setIsMaximized(false);
-    } else {
-      document.body.style.overflow = 'unset';
+      
+      // Cleanup function
+      return () => {
+        const savedScrollY = parseInt(document.body.dataset.scrollY || '0');
+        document.body.style.overflow = originalOverflow;
+        document.body.style.touchAction = originalTouchAction;
+        document.body.style.position = originalPosition;
+        document.body.style.width = originalWidth;
+        document.body.style.height = originalHeight;
+        document.body.style.top = originalTop;
+        document.body.removeAttribute('data-scroll-y');
+        
+        // Restore scroll position
+        if (savedScrollY) {
+          window.scrollTo(0, savedScrollY);
+        }
+      };
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [isOpen, addDMLog, narrativeContext, isMobile]);
 
   // --- Drag handlers ---
@@ -197,8 +228,12 @@ export const PlayerOneHUD: React.FC = () => {
             ].join(' ')}
             style={{
               ...getWindowStyle(),
-              transition: isDragging ? 'none' : 'top 0.3s ease-out, left 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out, right 0.3s ease-out, bottom 0.3s ease-out'
+              transition: isDragging ? 'none' : 'top 0.3s ease-out, left 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out, right 0.3s ease-out, bottom 0.3s ease-out',
+              touchAction: 'none', // Prevent touch scrolling on the container
+              overscrollBehavior: 'contain' // Prevent scroll chaining
             }}
+            onWheel={(e) => e.stopPropagation()} // Capture wheel events
+            onTouchMove={(e) => e.stopPropagation()} // Capture touch events
           >
             {/* ─── Title Bar / Drag Handle ─── */}
             <div
@@ -235,7 +270,10 @@ export const PlayerOneHUD: React.FC = () => {
             </div>
 
             {/* ─── Body: Sidebar + Content ─── */}
-            <div className={`flex-1 flex overflow-hidden ${isMaximized ? 'md:flex-row' : 'sm:flex-row'} flex-col`}>
+            <div 
+              className={`flex-1 flex overflow-hidden ${isMaximized ? 'md:flex-row' : 'sm:flex-row'} flex-col`}
+              style={{ touchAction: 'pan-y' }}
+            >
               {/* Left Sidebar (hidden on mobile) */}
               <div className={`hidden sm:flex ${isMaximized ? 'w-20 lg:w-24' : 'w-14'} bg-zinc-950 border-r border-white/5 flex-col items-center py-4 gap-5 p-1.5 flex-shrink-0`}>
                 <div className="flex flex-col items-center gap-1">
@@ -358,7 +396,13 @@ export const PlayerOneHUD: React.FC = () => {
                   )}
 
                   {activeView === 'terminal' && (
-                    <div className="flex-1 flex flex-col overflow-hidden">
+                    <div 
+                      className="flex-1 flex flex-col overflow-hidden"
+                      style={{ 
+                        touchAction: 'pan-y',
+                        overscrollBehavior: 'contain'
+                      }}
+                    >
                       <ApexTerminalHUD />
                     </div>
                   )}

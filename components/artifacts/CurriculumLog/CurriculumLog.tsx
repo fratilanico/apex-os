@@ -10,8 +10,9 @@ import { TimeEstimator } from './TimeEstimator';
 import { useCurriculumStore } from '../../../stores';
 import { motion } from 'framer-motion';
 import type { Module } from '../../../types/curriculum';
+import type { NLPSearchResult } from './NLPCommandParser';
 
-type ViewMode = 'list' | 'module' | 'section' | 'time';
+type ViewMode = 'list' | 'module' | 'section' | 'time' | 'nlp';
 
 interface CurriculumLogProps {
   className?: string;
@@ -25,6 +26,11 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [commandHandler] = useState(() => new CommandHandler());
   const [awaitingInput, setAwaitingInput] = useState(false);
+  
+  // NLP state
+  const [nlpResult, setNlpResult] = useState<NLPSearchResult | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   
   // Hover preview state
   const [hoveredModule, setHoveredModule] = useState<Module | null>(null);
@@ -55,8 +61,9 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
     // Small delay to let the DOM settle after auth terminal closes
     const bootDelay = setTimeout(() => {
       const bootSequence = [
-        { text: '> VIBE_CURRICULUM_BROWSER v2.1.0', type: 'system', delay: 300 },
+        { text: '> VIBE_CURRICULUM_BROWSER v3.0.0', type: 'system', delay: 300 },
         { text: '> LOADING MODULE_INDEX...', type: 'system', delay: 200 },
+        { text: '> INITIALIZING NLP_ENGINE...', type: 'system', delay: 200 },
         { text: '> READY.', type: 'success', delay: 400 },
         { text: '', type: 'output', delay: 200 },
         { text: '> ls', type: 'input', delay: 600 },
@@ -251,6 +258,20 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
         ] as any);
         break;
 
+      case 'nlp':
+        await processSequence([
+          { text: '> PROCESSING NATURAL LANGUAGE QUERY...', type: 'system', delay: 300 },
+        ] as any);
+        const { result, formatted } = commandHandler.processNLPQuery(cmd);
+        if (result) {
+          setNlpResult(result);
+          setViewMode('nlp');
+        }
+        await processSequence([
+          { text: formatted, type: 'output', delay: 100 },
+        ] as any);
+        break;
+
       default:
         await processSequence([
           { text: `ERROR: Unknown command "${cmd}". Type "help" for available commands.`, type: 'error', delay: 100 },
@@ -331,11 +352,16 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
             ))}
             
             <div className="pt-4 border-t border-white/10 mt-6">
-              <div className="text-white/30 text-xs">
+              <div className="text-white/30 text-xs mb-2">
                 💡 <span className="text-white/50">Click a phase or type commands: </span>
-                <code className="text-cyan-400">time</code> (plan journey), 
-                <code className="text-cyan-400 ml-1">mount [id]</code>, 
+                <code className="text-cyan-400">time</code> (plan journey),
+                <code className="text-cyan-400 ml-1">mount [id]</code>,
                 <code className="text-cyan-400 ml-1">help</code>
+              </div>
+              <div className="text-violet-400/60 text-xs">
+                🤖 <span className="text-violet-300/70">Or ask naturally: </span>
+                <span className="italic">"What is the shift mindset?"</span>,
+                <span className="italic ml-1">"How do I use Cursor?"</span>
               </div>
             </div>
           </motion.div>
@@ -445,28 +471,132 @@ export const CurriculumLog = React.memo<CurriculumLogProps>(function CurriculumL
           </div>
         )}
 
+        {/* NLP Results View */}
+        {viewMode === 'nlp' && nlpResult && !isTyping && !awaitingInput && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4 space-y-3"
+          >
+            <div className="border-l-2 border-violet-500/40 pl-4">
+              <div className="text-violet-400 text-xs uppercase tracking-widest mb-1">
+                🤖 AI RESPONSE
+              </div>
+              <div className="text-white font-bold text-lg">{nlpResult.title}</div>
+            </div>
+
+            <div className="bg-white/[0.02] border border-white/10 rounded p-4 mt-3">
+              <div className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap max-h-[500px] overflow-y-auto custom-scrollbar">
+                {nlpResult.content}
+              </div>
+            </div>
+
+            {/* Related Content */}
+            {nlpResult.relatedSections && nlpResult.relatedSections.length > 0 && (
+              <div className="bg-white/[0.02] border border-white/10 rounded p-3">
+                <div className="text-cyan-400 text-xs font-bold mb-2">RELATED SECTIONS:</div>
+                <div className="space-y-1.5">
+                  {nlpResult.relatedSections.map((section) => (
+                    <button
+                      key={section.id}
+                      onClick={() => handleSectionClick(section.id)}
+                      className="w-full text-left px-2 py-1.5 rounded bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-cyan-500/30 transition-all text-xs text-white/70 hover:text-cyan-400"
+                    >
+                      {section.id}: {section.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Suggestions */}
+            {nlpResult.suggestions && nlpResult.suggestions.length > 0 && (
+              <div className="bg-violet-500/5 border border-violet-500/20 rounded p-3">
+                <div className="text-violet-400 text-xs font-bold mb-2">TRY ASKING:</div>
+                <div className="space-y-1">
+                  {nlpResult.suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleCommand(suggestion)}
+                      className="w-full text-left px-2 py-1 rounded hover:bg-violet-500/10 transition-colors text-xs text-white/60 hover:text-violet-300"
+                    >
+                      → {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-white/10">
+              <div className="text-white/30 text-xs">
+                💡 <span className="text-white/50">Type: </span>
+                <code className="text-cyan-400">ls</code> (module list), 
+                <code className="text-cyan-400 ml-1">help</code> (commands), 
+                <code className="text-cyan-400 ml-1">clear</code> (reset)
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Command Input (always available when not typing) */}
         {!isTyping && !awaitingInput && (
-          <div className="mt-6 pt-4 border-t border-white/10">
+          <div className="mt-6 pt-4 border-t border-white/10 relative">
             <form onSubmit={(e) => {
               e.preventDefault();
               const input = e.currentTarget.querySelector('input') as HTMLInputElement;
               if (input.value.trim()) {
                 handleCommand(input.value.trim());
                 input.value = '';
+                setShowSuggestions(false);
               }
             }}>
               <div className="flex items-center gap-2">
                 <span className="text-cyan-500 shrink-0">❯</span>
                 <input
                   type="text"
-                  placeholder="Type command (or click items above)..."
+                  placeholder="Type command or ask naturally: 'What is X?'..."
                   className="flex-1 bg-transparent border-none outline-none text-cyan-400 placeholder:text-white/20 font-mono text-base md:text-sm"
                   autoComplete="off"
                   spellCheck={false}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.length >= 2) {
+                      const newSuggestions = commandHandler.getNLPSuggestions(value);
+                      setSuggestions(newSuggestions);
+                      setShowSuggestions(newSuggestions.length > 0);
+                    } else {
+                      setShowSuggestions(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setShowSuggestions(false);
+                    }
+                  }}
                 />
               </div>
             </form>
+            
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute left-6 right-0 bottom-full mb-1 bg-black/90 border border-cyan-500/30 rounded-md overflow-hidden shadow-lg shadow-cyan-500/10 z-50">
+                <div className="px-3 py-1.5 text-xs text-cyan-400/60 border-b border-white/5">
+                  Try asking naturally:
+                </div>
+                {suggestions.map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      handleCommand(suggestion);
+                      setShowSuggestions(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs text-white/70 hover:bg-cyan-500/10 hover:text-cyan-400 transition-colors border-b border-white/5 last:border-0"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

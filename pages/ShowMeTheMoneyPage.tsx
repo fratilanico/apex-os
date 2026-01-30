@@ -9,15 +9,21 @@ import {
   BarChart3, 
   Rocket,
   Shield,
-  Clock,
   Award,
-  ArrowRight,
-  ChevronDown,
-  ChevronUp,
   Lightbulb,
-  AlertTriangle
+  AlertTriangle,
+  Building2,
+  Landmark
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { 
+  fundingRounds, 
+  capTable, 
+  useOfFunds, 
+  fundingMilestones,
+  exitStrategy,
+  valuationRationale
+} from '@/data/fundraisingStrategy';
 
 // Financial Projection Types
 interface RevenueProjection {
@@ -35,6 +41,30 @@ interface PricingTier {
   features: string[];
   target: string;
   color: string;
+}
+
+interface ExpansionPhase {
+  title: string;
+  market: string;
+  focus: string;
+  milestones: string[];
+  revenueTarget: string;
+}
+
+interface AcceleratorPhase {
+  title: string;
+  thesis: string;
+  pipeline: string[];
+  equity: string;
+  output: string;
+}
+
+interface FundingRound {
+  stage: string;
+  raise: string;
+  equity: string;
+  useOfFunds: string[];
+  milestone: string;
 }
 
 // Financial Projections (32K leads, 30% retention)
@@ -179,7 +209,7 @@ const valueProps = [
     icon: Target,
     title: 'The Problem',
     description: 'Everyone wants to be a builder but doesn\'t know where to start or how to thread the needle. Expensive dev teams ($200K+/year) and CTOs are barriers to entry.',
-    color: 'red'
+    color: 'rose'
   },
   {
     icon: Zap,
@@ -260,6 +290,8 @@ const wireframes = [
   }
 ];
 
+
+
 // Risk Analysis
 const risks = [
   {
@@ -292,11 +324,12 @@ export const ShowMeTheMoneyPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('executive');
   const projections = generateProjections();
   
-  const totalYear1Revenue = projections[projections.length - 1].cumulative;
-  const avgMrr = projections.reduce((acc, p) => acc + p.mrr, 0) / projections.length;
+  const totalYear1Revenue = projections[projections.length - 1]?.cumulative ?? 0;
+  const month12Mrr = projections[11]?.mrr ?? 0;
+  
   
   return (
-    <main className="relative z-10 px-4 sm:px-6 max-w-7xl mx-auto pb-16">
+    <main className="relative z-10 px-4 sm:px-6 max-w-7xl mx-auto pb-16 overflow-x-hidden">
       {/* Secret Header */}
       <section className="relative text-center max-w-4xl mx-auto pt-8 pb-12">
         <motion.div
@@ -311,7 +344,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
         >
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-400">
             SHOW ME THE MONEY
@@ -322,7 +355,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-lg sm:text-xl text-white/60 mb-8 max-w-3xl mx-auto"
+          className="text-base sm:text-lg md:text-xl text-white/60 mb-8 max-w-3xl mx-auto px-2"
         >
           Comprehensive financial strategy, pricing optimization, and go-to-market plan for 
           converting 32,000 InfoAcademy students into $2.8M+ Year 1 revenue.
@@ -333,16 +366,16 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
+          className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto"
         >
           {[
             { label: 'Year 1 Revenue', value: `$${(totalYear1Revenue / 1000000).toFixed(1)}M`, color: 'emerald' },
             { label: 'Target Customers', value: '7,000+', color: 'cyan' },
-            { label: 'Avg MRR (Mo 12)', value: `$${(projections[11].mrr / 1000).toFixed(0)}K`, color: 'violet' },
+            { label: 'Avg MRR (Mo 12)', value: `$${(month12Mrr / 1000).toFixed(0)}K`, color: 'violet' },
             { label: 'Conversion Rate', value: '22%', color: 'amber' },
           ].map((metric, idx) => (
-            <div key={idx} className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
-              <div className={`text-2xl font-bold text-${metric.color}-400`}>{metric.value}</div>
+            <div key={idx} className="p-3 sm:p-4 rounded-xl border border-white/10 bg-white/[0.02]">
+              <div className={`text-xl sm:text-2xl font-bold text-${metric.color}-400`}>{metric.value}</div>
               <div className="text-xs text-white/50 mt-1">{metric.label}</div>
             </div>
           ))}
@@ -356,6 +389,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             { id: 'executive', label: 'Executive Summary' },
             { id: 'pricing', label: 'Pricing Strategy' },
             { id: 'financials', label: 'Financial Projections' },
+            { id: 'fundraising', label: 'Fundraising Strategy' },
             { id: 'gtm', label: 'Go-to-Market' },
             { id: 'wireframes', label: 'Wireframes' },
             { id: 'risks', label: 'Risk Analysis' },
@@ -363,7 +397,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveSection(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                 activeSection === tab.id
                   ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white'
                   : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
@@ -383,41 +417,41 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           className="space-y-8"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Executive Summary</h2>
-            <p className="text-white/60">The opportunity, solution, and path to $2.8M ARR</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Executive Summary</h2>
+            <p className="text-white/60 px-2">The opportunity, solution, and path to $2.8M ARR</p>
           </div>
 
           {/* Value Proposition Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {valueProps.map((prop, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-6 rounded-xl border border-white/10 bg-white/[0.02] hover:border-cyan-500/30 transition-all"
+                className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02] hover:border-cyan-500/30 transition-all"
               >
-                <div className={`inline-flex w-12 h-12 rounded-xl bg-${prop.color}-500/20 border border-${prop.color}-500/30 items-center justify-center mb-4`}>
-                  <prop.icon className={`w-6 h-6 text-${prop.color}-400`} />
+                <div className={`inline-flex w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-${prop.color}-500/20 border border-${prop.color}-500/30 items-center justify-center mb-4`}>
+                  <prop.icon className={`w-5 h-5 sm:w-6 sm:h-6 text-${prop.color}-400`} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">{prop.title}</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{prop.title}</h3>
                 <p className="text-white/60 text-sm leading-relaxed">{prop.description}</p>
               </motion.div>
             ))}
           </div>
 
           {/* Current vs Improved Pricing */}
-          <div className="p-6 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-transparent">
-            <div className="flex items-start gap-4">
-              <div className="inline-flex w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 items-center justify-center shrink-0">
-                <Lightbulb className="w-6 h-6 text-amber-400" />
+          <div className="p-4 sm:p-6 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-transparent">
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="inline-flex w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 items-center justify-center shrink-0">
+                <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">Pricing Strategy Improvement</h3>
-                <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Pricing Strategy Improvement</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                   <div>
-                    <h4 className="text-red-400 font-semibold mb-2">❌ Current Strategy</h4>
-                    <ul className="text-white/60 text-sm space-y-1">
+                    <h4 className="text-red-400 font-semibold mb-2 text-sm sm:text-base">❌ Current Strategy</h4>
+                    <ul className="text-white/60 text-xs sm:text-sm space-y-1">
                       <li>• Only 2 tiers: $200/mo or $997 lifetime</li>
                       <li>• No free tier to capture 32K leads</li>
                       <li>• No middle ground for commitment-phobes</li>
@@ -426,8 +460,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="text-emerald-400 font-semibold mb-2">✅ Improved Strategy</h4>
-                    <ul className="text-white/60 text-sm space-y-1">
+                    <h4 className="text-emerald-400 font-semibold mb-2 text-sm sm:text-base">✅ Improved Strategy</h4>
+                    <ul className="text-white/60 text-xs sm:text-sm space-y-1">
                       <li>• 5-tier system from free to enterprise</li>
                       <li>• Free Module 00 captures all 32K leads</li>
                       <li>• $49 Builder tier lowers barrier to entry</li>
@@ -441,9 +475,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Key Assumptions */}
-          <div className="p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-xl font-bold text-white mb-4">Key Business Assumptions</h3>
-            <div className="grid md:grid-cols-3 gap-4">
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Key Business Assumptions</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {[
                 { label: 'Total Addressable Market', value: '32,000 InfoAcademy students', icon: Users },
                 { label: 'Target Conversion Rate', value: '22% by Month 12', icon: Target },
@@ -453,9 +487,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { label: 'LTV (Lifetime Value)', value: '$1,800 (12-month avg)', icon: Award },
               ].map((assumption, idx) => (
                 <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
-                  <assumption.icon className="w-5 h-5 text-cyan-400" />
-                  <div>
-                    <div className="text-white font-semibold text-sm">{assumption.value}</div>
+                  <assumption.icon className="w-5 h-5 text-cyan-400 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-white font-semibold text-sm truncate">{assumption.value}</div>
                     <div className="text-white/40 text-xs">{assumption.label}</div>
                   </div>
                 </div>
@@ -473,19 +507,19 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           className="space-y-8"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Pricing Strategy</h2>
-            <p className="text-white/60">5-tier system designed to maximize conversion and LTV</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Pricing Strategy</h2>
+            <p className="text-white/60 px-2">5-tier system designed to maximize conversion and LTV</p>
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {pricingTiers.map((tier, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className={`p-6 rounded-xl border border-white/10 bg-white/[0.02] hover:border-cyan-500/30 transition-all ${
+                className={`p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02] hover:border-cyan-500/30 transition-all ${
                   tier.name === 'Professional' ? 'ring-2 ring-violet-500/50' : ''
                 }`}
               >
@@ -494,9 +528,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 </div>
                 
                 <div className="mb-4">
-                  <div className="text-3xl font-bold text-white">
+                  <div className="text-2xl sm:text-3xl font-bold text-white">
                     {tier.monthly === 0 ? 'FREE' : `$${tier.monthly}`}
-                    <span className="text-lg text-white/50">{tier.monthly > 0 ? '/mo' : ''}</span>
+                    <span className="text-base sm:text-lg text-white/50">{tier.monthly > 0 ? '/mo' : ''}</span>
                   </div>
                   {tier.lifetime > 0 && (
                     <div className="text-sm text-emerald-400 mt-1">
@@ -510,8 +544,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 <ul className="space-y-2 mb-6">
                   {tier.features.map((feature, fidx) => (
                     <li key={fidx} className="flex items-start gap-2 text-sm text-white/70">
-                      <span className="text-emerald-400 mt-0.5">✓</span>
-                      <span>{feature}</span>
+                      <span className="text-emerald-400 mt-0.5 shrink-0">✓</span>
+                      <span className="break-words">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -526,32 +560,32 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Pricing Psychology */}
-          <div className="p-6 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-transparent">
-            <h3 className="text-xl font-bold text-white mb-4">Pricing Psychology Insights</h3>
-            <div className="grid md:grid-cols-2 gap-6">
+          <div className="p-4 sm:p-6 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-transparent">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Pricing Psychology Insights</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <h4 className="text-cyan-400 font-semibold mb-2">🎣 The Freemium Hook</h4>
+                <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">🎣 The Freemium Hook</h4>
                 <p className="text-white/60 text-sm">
                   Module 00 (The Shift) is free for all 32K leads. This builds trust and demonstrates value 
                   before asking for payment. Conversion rate from free to paid: 15-20% expected.
                 </p>
               </div>
               <div>
-                <h4 className="text-cyan-400 font-semibold mb-2">🪜 The Upgrade Ladder</h4>
+                <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">🪜 The Upgrade Ladder</h4>
                 <p className="text-white/60 text-sm">
                   Builder ($49) → Professional ($149) is a 3x jump, but justified by 2x more modules and 
                   community access. Payment plans ($149 x 6 months) reduce friction.
                 </p>
               </div>
               <div>
-                <h4 className="text-cyan-400 font-semibold mb-2">💎 The Decoy Effect</h4>
+                <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">💎 The Decoy Effect</h4>
                 <p className="text-white/60 text-sm">
                   Accelerator ($299) makes Professional ($149) look like a bargain while capturing 
                   high-value customers who need 1-on-1 support. Expected split: 70% Pro, 20% Accelerator.
                 </p>
               </div>
               <div>
-                <h4 className="text-cyan-400 font-semibold mb-2">🏢 B2B Revenue Unlock</h4>
+                <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">🏢 B2B Revenue Unlock</h4>
                 <p className="text-white/60 text-sm">
                   Team tier ($497) targets agencies and startups. 5 seats = $99/seat. White-label option 
                   justifies premium. Expected: 10% of revenue from teams by Month 12.
@@ -561,8 +595,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Revenue Mix Projection */}
-          <div className="p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-xl font-bold text-white mb-4">Projected Revenue Mix (Month 12)</h3>
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Projected Revenue Mix (Month 12)</h3>
             <div className="space-y-4">
               {[
                 { tier: 'Explorer (Free)', customers: '25,600 (80%)', revenue: '$0', percent: 0 },
@@ -572,9 +606,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { tier: 'Team ($497/mo)', customers: '320 (1%)', revenue: '$159K/mo', percent: 15 },
                 { tier: 'Enterprise (Custom)', customers: '20 (0.06%)', revenue: '$200K/mo', percent: 12 },
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <div className="w-32 text-sm text-white/60">{item.tier}</div>
-                  <div className="flex-1">
+                <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="w-full sm:w-32 text-sm text-white/60 shrink-0">{item.tier}</div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm text-white">{item.customers}</span>
                       <span className="text-sm text-emerald-400">{item.revenue}</span>
@@ -601,22 +635,22 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           className="space-y-8"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Financial Projections</h2>
-            <p className="text-white/60">12-month forecast based on 32K leads and 30% retention</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Financial Projections</h2>
+            <p className="text-white/60 px-2">12-month forecast based on 32K leads and 30% retention</p>
           </div>
 
           {/* Revenue Chart */}
-          <div className="p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-xl font-bold text-white mb-6">Monthly Recurring Revenue (MRR)</h3>
-            <div className="h-64 flex items-end gap-2">
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-6">Monthly Recurring Revenue (MRR)</h3>
+            <div className="h-48 sm:h-64 flex items-end gap-1 sm:gap-2">
               {projections.map((p, idx) => (
-                <div key={idx} className="flex-1 flex flex-col items-center">
-                  <div className="text-xs text-white/40 mb-2">${(p.mrr / 1000).toFixed(0)}K</div>
+                <div key={idx} className="flex-1 flex flex-col items-center min-w-0">
+                  <div className="text-xs text-white/40 mb-2 hidden sm:block">${(p.mrr / 1000).toFixed(0)}K</div>
                   <motion.div
                     initial={{ height: 0 }}
                     animate={{ height: `${(p.mrr / 1100000) * 100}%` }}
                     transition={{ delay: idx * 0.05 }}
-                    className="w-full bg-gradient-to-t from-cyan-500 to-violet-500 rounded-t"
+                    className="w-full bg-gradient-to-t from-cyan-500 to-violet-500 rounded-t min-h-[4px]"
                   />
                   <div className="text-xs text-white/40 mt-2">{p.month.replace('Month ', 'M')}</div>
                 </div>
@@ -625,25 +659,25 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Detailed Projections Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="text-left py-3 px-4 text-white/60 text-sm">Period</th>
-                  <th className="text-right py-3 px-4 text-white/60 text-sm">Leads</th>
-                  <th className="text-right py-3 px-4 text-white/60 text-sm">Conversion</th>
-                  <th className="text-right py-3 px-4 text-white/60 text-sm">MRR</th>
-                  <th className="text-right py-3 px-4 text-white/60 text-sm">Cumulative</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-sm">Period</th>
+                  <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">Leads</th>
+                  <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">Conversion</th>
+                  <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">MRR</th>
+                  <th className="text-right py-3 px-2 sm:px-4 text-white/60 text-sm">Cumulative</th>
                 </tr>
               </thead>
               <tbody>
                 {projections.map((p, idx) => (
                   <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.02]">
-                    <td className="py-3 px-4 text-white font-medium">{p.month}</td>
-                    <td className="py-3 px-4 text-right text-white/60">{p.leads.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right text-cyan-400">{p.conversion}%</td>
-                    <td className="py-3 px-4 text-right text-emerald-400">${p.mrr.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right text-white/60">${p.cumulative.toLocaleString()}</td>
+                    <td className="py-3 px-2 sm:px-4 text-white font-medium text-sm">{p.month}</td>
+                    <td className="py-3 px-2 sm:px-4 text-right text-white/60 text-sm">{p.leads.toLocaleString()}</td>
+                    <td className="py-3 px-2 sm:px-4 text-right text-cyan-400 text-sm">{p.conversion}%</td>
+                    <td className="py-3 px-2 sm:px-4 text-right text-emerald-400 text-sm">${p.mrr.toLocaleString()}</td>
+                    <td className="py-3 px-2 sm:px-4 text-right text-white/60 text-sm">${p.cumulative.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -651,44 +685,338 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Financial Summary */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="p-4 sm:p-6 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent">
               <div className="text-emerald-400 text-sm mb-1">Year 1 Revenue</div>
-              <div className="text-3xl font-bold text-white">${(totalYear1Revenue / 1000000).toFixed(2)}M</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white">${(totalYear1Revenue / 1000000).toFixed(2)}M</div>
               <div className="text-white/40 text-sm mt-2">Based on 32K leads, 22% conversion</div>
             </div>
-            <div className="p-6 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-transparent">
+            <div className="p-4 sm:p-6 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-transparent">
               <div className="text-cyan-400 text-sm mb-1">Month 12 MRR</div>
-              <div className="text-3xl font-bold text-white">${(projections[11].mrr / 1000).toFixed(0)}K</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white">${(month12Mrr / 1000).toFixed(0)}K</div>
               <div className="text-white/40 text-sm mt-2">Sustainable recurring revenue</div>
             </div>
-            <div className="p-6 rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-transparent">
+            <div className="p-4 sm:p-6 rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-transparent">
               <div className="text-violet-400 text-sm mb-1">Avg Customer LTV</div>
-              <div className="text-3xl font-bold text-white">$1,800</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white">$1,800</div>
               <div className="text-white/40 text-sm mt-2">12-month average retention</div>
             </div>
           </div>
 
           {/* Unit Economics */}
-          <div className="p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-xl font-bold text-white mb-4">Unit Economics (Month 12)</h3>
-            <div className="grid md:grid-cols-4 gap-6">
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Unit Economics (Month 12)</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
               <div>
-                <div className="text-2xl font-bold text-white">$50</div>
+                <div className="text-xl sm:text-2xl font-bold text-white">$50</div>
                 <div className="text-white/40 text-sm">Customer Acquisition Cost (CAC)</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-white">$1,800</div>
+                <div className="text-xl sm:text-2xl font-bold text-white">$1,800</div>
                 <div className="text-white/40 text-sm">Lifetime Value (LTV)</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-emerald-400">36:1</div>
+                <div className="text-xl sm:text-2xl font-bold text-emerald-400">36:1</div>
                 <div className="text-white/40 text-sm">LTV:CAC Ratio</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-cyan-400">85%</div>
+                <div className="text-xl sm:text-2xl font-bold text-cyan-400">85%</div>
                 <div className="text-white/40 text-sm">Gross Margin</div>
               </div>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* FUNDRAISING STRATEGY */}
+      {activeSection === 'fundraising' && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-8"
+        >
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Fundraising & Equity Strategy</h2>
+            <p className="text-white/60 px-2">$1.2M Seed Round at $6.8M pre-money valuation</p>
+          </div>
+
+          {/* Funding Rounds Overview */}
+          <div className="p-4 sm:p-6 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Funding Roadmap</h3>
+            <div className="space-y-4">
+              {fundingRounds.map((round, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className={`p-4 rounded-lg border ${round.status === 'active' ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-white/10 bg-white/[0.03]'}`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full shrink-0 ${
+                        round.status === 'completed' ? 'bg-emerald-400' :
+                        round.status === 'active' ? 'bg-amber-400 animate-pulse' :
+                        'bg-white/30'
+                      }`} />
+                      <h4 className="text-white font-bold text-sm sm:text-base">{round.stage}</h4>
+                      <span className={`px-2 py-0.5 rounded text-xs shrink-0 ${
+                        round.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                        round.status === 'active' ? 'bg-amber-500/20 text-amber-400' :
+                        'bg-white/10 text-white/50'
+                      }`}>
+                        {round.status === 'completed' ? 'Completed' : round.status === 'active' ? 'Active' : 'Planned'}
+                      </span>
+                    </div>
+                    <div className="text-emerald-400 font-bold text-sm sm:text-base">${(round.amount / 1000000).toFixed(1)}M</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 text-sm">
+                    <div>
+                      <div className="text-white/40 text-xs">Equity</div>
+                      <div className="text-white text-sm">{round.equityPercent}%</div>
+                    </div>
+                    <div>
+                      <div className="text-white/40 text-xs">Pre-Money</div>
+                      <div className="text-white text-sm">${(round.preMoneyValuation / 1000000).toFixed(1)}M</div>
+                    </div>
+                    <div>
+                      <div className="text-white/40 text-xs">Post-Money</div>
+                      <div className="text-white text-sm">${(round.postMoneyValuation / 1000000).toFixed(1)}M</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-white/50">{round.timing}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Cap Table Visualization */}
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Cap Table Evolution</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {(['postSeed', 'postSeriesA'] as const).map((stage, idx) => (
+                <div key={stage} className="p-4 rounded-lg bg-white/[0.03]">
+                  <h4 className="text-cyan-400 font-semibold mb-3 text-sm sm:text-base">
+                    {stage === 'postSeed' ? 'Post-Seed' : 'Post-Series A'}
+                  </h4>
+                  <div className="space-y-2">
+                    {capTable[stage].filter(s => !s.name.includes('Option')).map((shareholder, sidx) => (
+                      <div key={sidx} className="flex items-center justify-between text-sm">
+                        <span className="text-white/70">{shareholder.name}</span>
+                        <span className="text-white font-semibold">{shareholder.equityPercent}%</span>
+                      </div>
+                    ))}
+                    <div className="pt-2 border-t border-white/10">
+                      {capTable[stage].filter(s => s.name.includes('Option')).map((esop, eidx) => (
+                        <div key={eidx} className="flex items-center justify-between text-sm">
+                          <span className="text-white/50">{esop.name}</span>
+                          <span className="text-white/70">{esop.equityPercent}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="p-4 rounded-lg bg-gradient-to-br from-violet-500/10 to-transparent border border-violet-500/30">
+                <h4 className="text-violet-400 font-semibold mb-3 text-sm sm:text-base">Founder Control</h4>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-white/70">Post-Seed</span>
+                      <span className="text-emerald-400 font-bold">72.25%</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: '72.25%' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-white/70">Post-Series A</span>
+                      <span className="text-emerald-400 font-bold">59.26%</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: '59.26%' }} />
+                    </div>
+                  </div>
+                  <p className="text-xs text-white/50 mt-2">
+                    Founders maintain majority control through Series A, ensuring strategic direction remains aligned with vision.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Use of Funds */}
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Seed Round Use of Funds ($1.2M)</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {useOfFunds.seedRound.map((category, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="p-4 rounded-lg bg-white/[0.03]"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-white font-semibold text-sm sm:text-base">{category.category}</h4>
+                    <span className="text-emerald-400 font-bold text-sm sm:text-base">{category.percentage}%</span>
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-3">
+                    <div 
+                      className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-full"
+                      style={{ width: `${category.percentage}%` }}
+                    />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-white mb-2">
+                    ${(category.amount / 1000).toFixed(0)}K
+                  </div>
+                  <p className="text-xs text-white/50 mb-3">{category.description}</p>
+                  <ul className="space-y-1">
+                    {category.lineItems.slice(0, 2).map((item) => (
+                      <li key={iidx} className="text-xs text-white/40 flex justify-between">
+                        <span>{item.item}</span>
+                        <span>${(item.amount / 1000).toFixed(0)}K</span>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Valuation Rationale */}
+          <div className="p-4 sm:p-6 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-transparent">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Valuation Rationale</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div>
+                <h4 className="text-cyan-400 font-semibold mb-3 text-sm sm:text-base">Key Metrics Justifying $6.8M Pre-Money</h4>
+                <div className="space-y-3">
+                  {valuationRationale.currentMetrics.slice(0, 4).map((metric, idx) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03]">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-white font-medium text-sm">{metric.metric}</div>
+                        <div className="text-emerald-400 text-sm">{metric.value}</div>
+                        <div className="text-white/40 text-xs">{metric.impact}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="text-cyan-400 font-semibold mb-3 text-sm sm:text-base">Comparable Valuations</h4>
+                <div className="space-y-2">
+                  {valuationRationale.comparables.slice(0, 4).map((comp, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03]">
+                      <div className="min-w-0">
+                        <div className="text-white text-sm font-medium">{comp.company}</div>
+                        <div className="text-white/40 text-xs">{comp.relevance}</div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-emerald-400 text-sm font-bold">{comp.valuation}</div>
+                        <div className="text-white/40 text-xs">{comp.multiple}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Exit Strategy */}
+          <div className="p-4 sm:p-6 rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-transparent">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Exit Strategy</h3>
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 className="w-5 h-5 text-violet-400" />
+                <span className="text-white font-semibold text-sm sm:text-base">Primary Path: Strategic Acquisition</span>
+              </div>
+              <p className="text-white/60 text-sm">Most likely exit via acquisition by EdTech giant or cloud/AI platform</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {exitStrategy.scenarios.slice(0, 2).map((scenario, idx) => (
+                <div key={idx} className="p-4 rounded-lg bg-white/[0.03]">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-white font-medium text-sm">{scenario.type}</h4>
+                    <span className={`px-2 py-0.5 rounded text-xs ${
+                      scenario.probability === 'High' ? 'bg-emerald-500/20 text-emerald-400' :
+                      scenario.probability === 'Medium' ? 'bg-amber-500/20 text-amber-400' :
+                      'bg-white/10 text-white/50'
+                    }`}>
+                      {scenario.probability} Probability
+                    </span>
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-emerald-400 mb-2">
+                    ${(scenario.valuationRange.min / 1000000).toFixed(0)}M - ${(scenario.valuationRange.max / 1000000).toFixed(0)}M
+                  </div>
+                  <p className="text-white/50 text-xs mb-3">{scenario.rationale}</p>
+                  <div className="space-y-1">
+                    {scenario.potentialAcquirers.slice(0, 3).map((acquirer, aidx) => (
+                      <div key={aidx} className="flex items-center justify-between text-xs">
+                        <span className="text-white/70">{acquirer.name}</span>
+                        <span className="text-white/40">${(acquirer.estimatedOffer / 1000000).toFixed(0)}M</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 p-4 rounded-lg bg-white/[0.03]">
+              <div className="flex items-center gap-2 mb-2">
+                <Landmark className="w-5 h-5 text-amber-400" />
+                <span className="text-white font-semibold text-sm sm:text-base">IPO Timeline: 2029-2031</span>
+              </div>
+              <p className="text-white/60 text-sm mb-2">Target: $750M+ valuation at IPO</p>
+              <div className="flex flex-wrap gap-2">
+                {exitStrategy.ipoReadiness.requirements.slice(0, 4).map((req, idx) => (
+                  <span key={idx} className="px-2 py-1 rounded bg-white/5 text-white/50 text-xs">
+                    {req}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Funding Milestones */}
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Funding Milestones & Triggers</h3>
+            <div className="space-y-4">
+              {fundingMilestones.slice(0, 3).map((milestone, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="p-4 rounded-lg border border-white/10 bg-white/[0.03]"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold text-sm sm:text-base">{milestone.round}</h4>
+                        <p className="text-white/50 text-xs sm:text-sm">{milestone.timeline}</p>
+                      </div>
+                    </div>
+                    <div className="text-emerald-400 font-bold text-base sm:text-lg">
+                      ${(milestone.amount / 1000000).toFixed(1)}M
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                    {milestone.milestones.slice(0, 3).map((m, midx) => (
+                      <div key={midx} className="p-2 rounded bg-white/[0.05]">
+                        <div className="text-white/40 text-xs">{m.metric}</div>
+                        <div className="text-emerald-400 font-semibold text-sm">{m.target}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-white/50">
+                    <span className="text-cyan-400">Next Round Trigger:</span> {milestone.nextRoundTrigger}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </motion.section>
@@ -702,8 +1030,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           className="space-y-8"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Go-to-Market Strategy</h2>
-            <p className="text-white/60">3-phase launch plan to convert 32K leads into paying customers</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Go-to-Market Strategy</h2>
+            <p className="text-white/60 px-2">3-phase launch plan to convert 32K leads into paying customers</p>
           </div>
 
           {/* GTM Phases */}
@@ -714,22 +1042,22 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-6 rounded-xl border border-white/10 bg-white/[0.02]"
+                className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
                   <div>
-                    <h3 className="text-xl font-bold text-white">{phase.phase}</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-white">{phase.phase}</h3>
                     <p className="text-cyan-400 text-sm">{phase.focus}</p>
                   </div>
-                  <div className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                    <span className="text-emerald-400 text-sm font-semibold">{phase.target}</span>
+                  <div className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 shrink-0">
+                    <span className="text-emerald-400 text-xs sm:text-sm font-semibold">{phase.target}</span>
                   </div>
                 </div>
-                <ul className="grid md:grid-cols-2 gap-2">
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {phase.tactics.map((tactic, tidx) => (
                     <li key={tidx} className="flex items-start gap-2 text-sm text-white/60">
-                      <span className="text-cyan-400 mt-0.5">→</span>
-                      <span>{tactic}</span>
+                      <span className="text-cyan-400 mt-0.5 shrink-0">→</span>
+                      <span className="break-words">{tactic}</span>
                     </li>
                   ))}
                 </ul>
@@ -738,11 +1066,11 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Channel Strategy */}
-          <div className="p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-xl font-bold text-white mb-4">Channel Distribution Strategy</h3>
-            <div className="grid md:grid-cols-3 gap-6">
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Channel Distribution Strategy</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               <div>
-                <h4 className="text-cyan-400 font-semibold mb-2">📧 Owned (60% of leads)</h4>
+                <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">📧 Owned (60% of leads)</h4>
                 <ul className="text-white/60 text-sm space-y-1">
                   <li>• Email to 32K InfoAcademy list</li>
                   <li>• Retargeting ads (website visitors)</li>
@@ -751,7 +1079,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="text-violet-400 font-semibold mb-2">🤝 Partners (25% of leads)</h4>
+                <h4 className="text-violet-400 font-semibold mb-2 text-sm sm:text-base">🤝 Partners (25% of leads)</h4>
                 <ul className="text-white/60 text-sm space-y-1">
                   <li>• Affiliate program (30% commission)</li>
                   <li>• Influencer partnerships</li>
@@ -760,7 +1088,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="text-emerald-400 font-semibold mb-2">🌱 Organic (15% of leads)</h4>
+                <h4 className="text-emerald-400 font-semibold mb-2 text-sm sm:text-base">🌱 Organic (15% of leads)</h4>
                 <ul className="text-white/60 text-sm space-y-1">
                   <li>• YouTube tutorials (2x/week)</li>
                   <li>• Twitter/X thread content</li>
@@ -772,8 +1100,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Launch Timeline */}
-          <div className="p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-xl font-bold text-white mb-4">Launch Timeline (First 90 Days)</h3>
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Launch Timeline (First 90 Days)</h3>
             <div className="space-y-4">
               {[
                 { week: 'Week 1', action: 'Soft launch to 1,000 beta testers from email list', metric: 'Goal: 50 paying customers' },
@@ -784,9 +1112,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { week: 'Week 8', action: 'First case study: Student success story', metric: 'Goal: Social proof content' },
                 { week: 'Week 12', action: 'End early bird pricing + referral program launch', metric: 'Goal: 1,000 paying customers' },
               ].map((item, idx) => (
-                <div key={idx} className="flex items-start gap-4 p-3 rounded-lg bg-white/[0.03]">
-                  <div className="w-20 text-cyan-400 font-semibold text-sm">{item.week}</div>
-                  <div className="flex-1">
+                <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 p-3 rounded-lg bg-white/[0.03]">
+                  <div className="w-16 sm:w-20 text-cyan-400 font-semibold text-sm shrink-0">{item.week}</div>
+                  <div className="flex-1 min-w-0">
                     <div className="text-white text-sm">{item.action}</div>
                     <div className="text-white/40 text-xs mt-1">{item.metric}</div>
                   </div>
@@ -805,8 +1133,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           className="space-y-8"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Conversion Wireframes</h2>
-            <p className="text-white/60">UX patterns designed to maximize conversion at each tier</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Conversion Wireframes</h2>
+            <p className="text-white/60 px-2">UX patterns designed to maximize conversion at each tier</p>
           </div>
 
           {/* Wireframe Cards */}
@@ -817,15 +1145,15 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-6 rounded-xl border border-white/10 bg-white/[0.02]"
+                className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]"
               >
-                <h3 className="text-xl font-bold text-white mb-2">{wf.title}</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{wf.title}</h3>
                 <p className="text-white/60 text-sm mb-4">{wf.description}</p>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   {wf.elements.map((element, eidx) => (
                     <div key={eidx} className="flex items-start gap-2 p-3 rounded-lg bg-white/[0.03]">
-                      <span className="text-cyan-400 mt-0.5">◆</span>
-                      <span className="text-white/70 text-sm">{element}</span>
+                      <span className="text-cyan-400 mt-0.5 shrink-0">◆</span>
+                      <span className="text-white/70 text-sm break-words">{element}</span>
                     </div>
                   ))}
                 </div>
@@ -834,8 +1162,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Conversion Funnel */}
-          <div className="p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-xl font-bold text-white mb-4">Conversion Funnel Optimization</h3>
+          <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Conversion Funnel Optimization</h3>
             <div className="space-y-4">
               {[
                 { stage: '32K InfoAcademy Leads', conversion: '100%', action: 'Email with free Module 00' },
@@ -845,9 +1173,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { stage: 'Accelerator Upsell', conversion: '15% (144)', action: 'Pay $299 for coaching' },
                 { stage: 'Team Expansion', conversion: '5% (7)', action: 'Pay $497 for team seats' },
               ].map((stage, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <div className="w-40 text-sm text-white/60">{stage.stage}</div>
-                  <div className="flex-1">
+                <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="w-full sm:w-40 text-sm text-white/60 shrink-0">{stage.stage}</div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm text-white font-semibold">{stage.conversion}</span>
                       <span className="text-xs text-cyan-400">{stage.action}</span>
@@ -874,8 +1202,8 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           className="space-y-8"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Risk Analysis</h2>
-            <p className="text-white/60">Identified risks and mitigation strategies</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Risk Analysis</h2>
+            <p className="text-white/60 px-2">Identified risks and mitigation strategies</p>
           </div>
 
           {/* Risk Matrix */}
@@ -886,14 +1214,14 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-6 rounded-xl border border-white/10 bg-white/[0.02]"
+                className="p-4 sm:p-6 rounded-xl border border-white/10 bg-white/[0.02]"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <AlertTriangle className="w-5 h-5 text-amber-400" />
-                    <h3 className="text-lg font-bold text-white">{risk.risk}</h3>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-2">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                    <h3 className="text-base sm:text-lg font-bold text-white">{risk.risk}</h3>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0">
                     <span className={`px-2 py-1 rounded text-xs ${
                       risk.probability === 'High' ? 'bg-red-500/20 text-red-400' :
                       risk.probability === 'Medium' ? 'bg-amber-500/20 text-amber-400' :
@@ -919,9 +1247,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </div>
 
           {/* Success Metrics */}
-          <div className="p-6 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent">
-            <h3 className="text-xl font-bold text-white mb-4">Success Metrics (KPIs)</h3>
-            <div className="grid md:grid-cols-3 gap-6">
+          <div className="p-4 sm:p-6 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Success Metrics (KPIs)</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {[
                 { metric: 'Conversion Rate', target: '22% by Month 12', current: '2% (Month 1)', status: 'on-track' },
                 { metric: 'Churn Rate', target: '< 5% monthly', current: '8% (Month 1)', status: 'needs-attention' },
@@ -930,9 +1258,9 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { metric: 'Support Response', target: '< 4 hours', current: '6 hours', status: 'needs-attention' },
                 { metric: 'MRR Growth', target: '> 15% MoM', current: '45% (Month 2)', status: 'exceeding' },
               ].map((kpi, idx) => (
-                <div key={idx} className="p-4 rounded-lg bg-white/[0.03]">
+                <div key={idx} className="p-3 sm:p-4 rounded-lg bg-white/[0.03]">
                   <div className="text-white font-semibold text-sm">{kpi.metric}</div>
-                  <div className="text-emerald-400 text-lg font-bold">{kpi.target}</div>
+                  <div className="text-emerald-400 text-base sm:text-lg font-bold">{kpi.target}</div>
                   <div className="text-white/40 text-xs mt-1">Current: {kpi.current}</div>
                 </div>
               ))}
@@ -943,22 +1271,22 @@ export const ShowMeTheMoneyPage: React.FC = () => {
 
       {/* Footer CTA */}
       <section className="text-center py-12 border-t border-white/10 mt-12">
-        <h2 className="text-2xl font-bold text-white mb-4">Ready to Execute?</h2>
-        <p className="text-white/60 mb-6 max-w-2xl mx-auto">
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">Ready to Execute?</h2>
+        <p className="text-white/60 mb-6 max-w-2xl mx-auto px-2 text-sm sm:text-base">
           This business plan represents a $2.8M opportunity. The infrastructure is built, 
           the curriculum is ready, and 32,000 leads are waiting. Time to ship.
         </p>
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">
           <Link
             to="/academy"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/20 transition-all"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/20 transition-all"
           >
             <Rocket className="w-5 h-5" />
             Launch Academy
           </Link>
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition-all"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition-all"
           >
             <BarChart3 className="w-5 h-5" />
             Print Plan
