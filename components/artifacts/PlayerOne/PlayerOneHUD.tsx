@@ -253,18 +253,47 @@ export const PlayerOneHUD: React.FC = () => {
     if (isMaximized) {
       return { top: 0, left: 0, right: 0, bottom: 0 };
     }
+    
+    // If user has moved the window (position is not 0,0), respect that
+    // Otherwise, center it initially
+    const isInitialPosition = position.x === 0 && position.y === 0;
+
     if (isMobile) {
-      // Square on mobile — size is the min of 92vw and 85vh
+      // Mobile: Square sizing
+      const mobileSize = 'min(92vw, 85vh)';
+      
+      if (isInitialPosition) {
+        return {
+          width: mobileSize,
+          height: mobileSize,
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)' // Only use transform for initial centering
+        };
+      }
+      
       return {
-        width: 'min(92vw, 85vh)',
-        height: 'min(92vw, 85vh)',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)'
+        width: mobileSize,
+        height: mobileSize,
+        left: position.x,
+        top: position.y
       };
     }
-    // Desktop windowed
+
+    // Desktop
     if (typeof window === 'undefined') return {};
+    
+    if (isInitialPosition) {
+       const w = Math.min(900, window.innerWidth * 0.78);
+       const h = Math.min(700, window.innerHeight * 0.78);
+       return {
+         left: (window.innerWidth - w) / 2,
+         top: (window.innerHeight - h) / 2,
+         width: w,
+         height: h
+       };
+    }
+
     return {
       left: position.x,
       top: position.y,

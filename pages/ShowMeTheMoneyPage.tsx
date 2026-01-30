@@ -43,50 +43,84 @@ interface PricingTier {
   color: string;
 }
 
-// Financial Projections (32K leads, 30% retention)
+// Financial Projections (Blended ARPU for Emerging Markets)
 const generateProjections = (): RevenueProjection[] => {
   const projections: RevenueProjection[] = [];
   let cumulativeRevenue = 0;
 
-  // Phase 1: Launch (Months 1-3)
+  // Market Mix Assumptions
+  const tier1Ratio = 0.20; // 20% US/EU/UK (High Purchasing Power)
+  const tier2Ratio = 0.80; // 80% RO/IN/LATAM (Emerging Markets)
+  
+  const tier1ARPU = 149; // $149/mo
+  const tier2ARPU = 39;  // $39/mo (PPP Adjusted) - "Shadow Brand" Pricing
+  
+  const blendedARPU = Math.round((tier1ARPU * tier1Ratio) + (tier2ARPU * tier2Ratio)); // ~$61 blended
+
+  // Phase 1: Launch (Months 1-3) - Validation
   for (let i = 1; i <= 3; i++) {
     const leads = 32000;
-    const conversion = i === 1 ? 0.02 : i === 2 ? 0.05 : 0.08; // 2%, 5%, 8%
-    const mrr = Math.round(leads * conversion * 149); // Avg $149/month
-    cumulativeRevenue += mrr * i;
+    const conversion = i === 1 ? 0.015 : i === 2 ? 0.03 : 0.05; // Conservative start
+    
+    // Revenue from Course Sales (Blended)
+    const courseMRR = Math.round(leads * conversion * blendedARPU);
+    
+    // Revenue from Accelerator (High Ticket - Starts Mo 3)
+    const acceleratorRevenue = i >= 3 ? 5 * 2500 : 0; // 5 founders @ $2.5k setup (Phase 2 Beta)
+    
+    const totalMRR = courseMRR + acceleratorRevenue;
+    cumulativeRevenue += totalMRR;
+    
     projections.push({
       month: `Month ${i}`,
       leads,
       conversion: Math.round(conversion * 100),
-      mrr,
+      mrr: totalMRR,
       cumulative: cumulativeRevenue
     });
   }
 
-  // Phase 2: Growth (Months 4-6)
+  // Phase 2: Growth (Months 4-6) - Expansion
   for (let i = 4; i <= 6; i++) {
-    const conversion = 0.12 + (i - 4) * 0.02; // 12%, 14%, 16%
-    const mrr = Math.round(32000 * conversion * 149);
-    cumulativeRevenue += mrr;
+    const conversion = 0.07 + (i - 4) * 0.015; // Growing trust
+    const leads = 32000 + ((i - 3) * 2000); // Organic growth
+    
+    const courseMRR = Math.round(leads * conversion * blendedARPU);
+    
+    // Accelerator Ramping Up (Equity Value Not Included in MRR, only fees)
+    const acceleratorRevenue = 10 * 2500; // 10 founders/mo
+    
+    const totalMRR = courseMRR + acceleratorRevenue;
+    cumulativeRevenue += totalMRR;
+    
     projections.push({
       month: `Month ${i}`,
-      leads: 32000,
+      leads,
       conversion: Math.round(conversion * 100),
-      mrr,
+      mrr: totalMRR,
       cumulative: cumulativeRevenue
     });
   }
 
-  // Phase 3: Scale (Months 7-12)
+  // Phase 3: Scale (Months 7-12) - Hockey Stick
   for (let i = 7; i <= 12; i++) {
-    const conversion = 0.18 + (i - 7) * 0.01; // 18% to 23%
-    const mrr = Math.round(32000 * conversion * 149);
-    cumulativeRevenue += mrr;
+    const conversion = 0.12 + (i - 7) * 0.01; 
+    const leads = 38000 + ((i - 6) * 5000); // Viral loop kicks in
+    
+    // ARPU increases as we upsell Tier 2 users to Tier 1 features
+    const optimizingARPU = blendedARPU + ((i-6) * 5); 
+    
+    const courseMRR = Math.round(leads * conversion * optimizingARPU);
+    const acceleratorRevenue = 20 * 2500; // 20 founders/mo
+    
+    const totalMRR = courseMRR + acceleratorRevenue;
+    cumulativeRevenue += totalMRR;
+    
     projections.push({
       month: `Month ${i}`,
-      leads: 32000,
+      leads,
       conversion: Math.round(conversion * 100),
-      mrr,
+      mrr: totalMRR,
       cumulative: cumulativeRevenue
     });
   }
@@ -94,88 +128,55 @@ const generateProjections = (): RevenueProjection[] => {
   return projections;
 };
 
-// NEW PRICING STRATEGY (Improved)
+// SHADOW BRANDING STRATEGY (Regional Tiers)
 const pricingTiers: PricingTier[] = [
   {
-    name: 'Explorer',
+    name: 'Explorer (Global)',
     monthly: 0,
     lifetime: 0,
     features: [
       'Module 00: The Shift (FREE)',
-      'Access to Vibe Community Discord',
-      'Weekly newsletter with AI tips',
-      'Basic tool tutorials',
-      'Community support'
+      'Community Access',
+      'Basic Tools'
     ],
-    target: 'Lead capture & nurturing (32K InfoAcademy students)',
+    target: 'Lead Magnet (Global)',
     color: 'from-gray-500 to-gray-600'
   },
   {
-    name: 'Builder',
-    monthly: 49,
-    lifetime: 297,
+    name: 'Builder (Emerging)',
+    monthly: 39,
+    lifetime: 199,
     features: [
-      'Modules 00-02 (The Shift, Environment, Specifying)',
-      'Access to 6 core AI tools training',
-      'Self-paced learning',
-      'Community forum access',
-      'Monthly group Q&A',
-      'Email support'
+      'Full Curriculum (Shadow Brand)',
+      'Regional Discord Channel',
+      'Peer-to-Peer Support'
     ],
-    target: 'Solo founders testing the waters',
-    color: 'from-cyan-500 to-cyan-600'
+    target: 'RO/IN/LATAM Volume Play',
+    color: 'from-orange-500 to-orange-600'
   },
   {
-    name: 'Professional',
+    name: 'Professional (Global)',
     monthly: 149,
     lifetime: 797,
     features: [
-      'ALL 6 Modules (Complete Curriculum)',
-      'ALL 12 AI Tools Training',
-      'Hands-on projects with real codebases',
-      'Multi-agent orchestration mastery',
-      'Private Discord community',
-      'Weekly live Q&A sessions',
-      'Certificate of completion',
-      'Lifetime curriculum updates',
-      'Priority email support'
+      'APEX OS Brand Certification',
+      'Direct Instructor Access',
+      'Global Job Board'
     ],
-    target: 'Serious founders ready to ship (CURRENT MAIN OFFER)',
+    target: 'US/EU Premium Positioning',
+    color: 'from-cyan-500 to-cyan-600'
+  },
+  {
+    name: 'Accelerator (Equity)',
+    monthly: 0,
+    lifetime: 0,
+    features: [
+      '30-Day GTM Sprint',
+      'Investor Network Access',
+      '15% Equity Exchange'
+    ],
+    target: 'Top 1% Founders (The Profit Engine)',
     color: 'from-violet-500 to-violet-600'
-  },
-  {
-    name: 'Accelerator',
-    monthly: 299,
-    lifetime: 1497,
-    features: [
-      'Everything in Professional',
-      '2x 1-on-1 coaching calls/month',
-      'Code review on your projects (4x/month)',
-      'Direct Slack access to instructors',
-      'Private accountability group',
-      'Job board access',
-      'Investor intros (graduates only)',
-      'MVP review & feedback'
-    ],
-    target: 'Founders who need extra support & accountability',
-    color: 'from-emerald-500 to-emerald-600'
-  },
-  {
-    name: 'Agency/Team',
-    monthly: 497,
-    lifetime: 2497,
-    features: [
-      '5 team member seats included',
-      'Team progress dashboard',
-      'White-label curriculum option',
-      'Custom onboarding for teams',
-      'Monthly team strategy calls',
-      'Agency toolkit & templates',
-      'Reseller rights',
-      'Dedicated account manager'
-    ],
-    target: 'Agencies & startups with teams',
-    color: 'from-amber-500 to-amber-600'
   }
 ];
 
@@ -456,6 +457,61 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 <p className="text-white/60 text-sm leading-relaxed">{prop.description}</p>
               </motion.div>
             ))}
+          </div>
+
+          {/* APEX ACCELERATOR (The Profit Engine) */}
+          <div className="p-4 sm:p-6 rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-transparent relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-3 opacity-20">
+              <Rocket className="w-24 h-24 text-violet-500" />
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="inline-flex w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-violet-500/20 border border-violet-500/30 items-center justify-center shrink-0">
+                  <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white">APEX Accelerator (Phase 2)</h3>
+                  <p className="text-violet-400 text-xs sm:text-sm font-mono">HIGH_TICKET_BACKEND</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-white/80 text-sm mb-4 leading-relaxed">
+                    While the academy captures volume at low ARPU, the <strong>APEX Accelerator</strong> monetizes the top 1% of founders. We select the best builders from the academy and put them through a 30-day GTM sprint.
+                  </p>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2 text-sm text-white/70">
+                      <span className="text-violet-400">⚡</span> 30-Day Idea-to-Revenue Sprint
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-white/70">
+                      <span className="text-violet-400">🤝</span> Direct Investor Intros (Seed Ready)
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-white/70">
+                      <span className="text-violet-400">💎</span> 15% Equity Exchange Model
+                    </li>
+                  </ul>
+                </div>
+                <div className="bg-black/20 rounded-lg p-4 border border-violet-500/20">
+                  <h4 className="text-white font-semibold text-sm mb-3">Unit Economics</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/60 text-xs">Setup Fee</span>
+                      <span className="text-white font-mono">$2,500</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/60 text-xs">Equity Value (Est.)</span>
+                      <span className="text-emerald-400 font-mono">$45,000</span>
+                    </div>
+                    <div className="h-px bg-white/10 my-1" />
+                    <div className="flex justify-between items-center">
+                      <span className="text-violet-400 font-bold text-sm">Total LTV</span>
+                      <span className="text-white font-bold font-mono">$47,500</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Current vs Improved Pricing */}
@@ -1405,3 +1461,4 @@ export const ShowMeTheMoneyPage: React.FC = () => {
 };
 
 export default ShowMeTheMoneyPage;
+
