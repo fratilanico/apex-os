@@ -141,10 +141,10 @@ export const VibePage: React.FC = () => {
           className="mt-12"
         >
           {/* Toggle Buttons */}
-          <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 mb-6 sm:mb-8 px-4 sm:px-0">
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-3 mb-6 sm:mb-8 w-full max-w-md mx-auto px-2 sm:px-0">
             <button
               onClick={() => setSelectedView('before')}
-              className={`px-4 sm:px-6 py-2.5 rounded-lg font-medium transition-all duration-300 min-h-[44px] ${
+              className={`w-full px-4 sm:px-6 py-3 rounded-lg font-medium transition-all duration-300 min-h-[48px] text-sm sm:text-base ${
                 selectedView === 'before'
                   ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white border border-red-500/30 shadow-lg shadow-red-500/20'
                   : 'bg-white/5 text-white/40 border border-white/10 hover:border-white/20'
@@ -154,7 +154,7 @@ export const VibePage: React.FC = () => {
             </button>
             <button
               onClick={() => setSelectedView('after')}
-              className={`px-4 sm:px-6 py-2.5 rounded-lg font-medium transition-all duration-300 min-h-[44px] ${
+              className={`w-full px-4 sm:px-6 py-3 rounded-lg font-medium transition-all duration-300 min-h-[48px] text-sm sm:text-base ${
                 selectedView === 'after'
                   ? 'bg-gradient-to-r from-cyan-500/20 to-violet-500/20 text-white border border-cyan-500/30 shadow-lg shadow-cyan-500/20'
                   : 'bg-white/5 text-white/40 border border-white/10 hover:border-white/20'
@@ -734,24 +734,24 @@ export const VibePage: React.FC = () => {
               </div>
               <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-white/60">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/60 whitespace-normal">Find technical co-founder:</span>
-                  <span className="text-white/80 font-medium whitespace-nowrap">3-6 months</span>
+                  <span className="text-white/60">Find technical co-founder:</span>
+                  <span className="text-white/80 font-medium">3-6 months</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/60 whitespace-normal">Equity given:</span>
-                  <span className="text-white/80 font-medium whitespace-nowrap">20-30%</span>
+                  <span className="text-white/60">Equity given:</span>
+                  <span className="text-white/80 font-medium">20-30%</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/60 whitespace-normal">Annual salary (if paying):</span>
-                  <span className="text-white/80 font-medium whitespace-nowrap">$150K-200K</span>
+                  <span className="text-white/60">Annual salary (if paying):</span>
+                  <span className="text-white/80 font-medium">$150K-200K</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/60 whitespace-normal">Time to MVP:</span>
-                  <span className="text-white/80 font-medium whitespace-nowrap">3-6 months</span>
+                  <span className="text-white/60">Time to MVP:</span>
+                  <span className="text-white/80 font-medium">3-6 months</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/60 whitespace-normal">Risk they quit:</span>
-                  <span className="text-red-400 font-medium whitespace-nowrap">High</span>
+                  <span className="text-white/60">Risk they quit:</span>
+                  <span className="text-red-400 font-medium">High</span>
                 </div>
               </div>
             </div>
@@ -764,24 +764,24 @@ export const VibePage: React.FC = () => {
               </div>
               <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-white/70">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/70 whitespace-normal">Learn orchestration:</span>
-                  <span className="text-white/90 font-medium whitespace-nowrap">2-3 weeks</span>
+                  <span className="text-white/70">Learn orchestration:</span>
+                  <span className="text-white/90 font-medium">2-3 weeks</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/70 whitespace-normal">Equity given:</span>
-                  <span className="text-white/90 font-medium whitespace-nowrap">0%</span>
+                  <span className="text-white/70">Equity given:</span>
+                  <span className="text-white/90 font-medium">0%</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/70 whitespace-normal">Monthly cost:</span>
-                  <span className="text-white/90 font-medium whitespace-nowrap">$200-500</span>
+                  <span className="text-white/70">Monthly cost:</span>
+                  <span className="text-white/90 font-medium">$200-500</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/70 whitespace-normal">Time to MVP:</span>
-                  <span className="text-white/90 font-medium whitespace-nowrap">2-4 weeks</span>
+                  <span className="text-white/70">Time to MVP:</span>
+                  <span className="text-white/90 font-medium">2-4 weeks</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-                  <span className="text-white/70 whitespace-normal">Risk AI quits:</span>
-                  <span className="text-cyan-400 font-medium whitespace-nowrap">Zero</span>
+                  <span className="text-white/70">Risk AI quits:</span>
+                  <span className="text-cyan-400 font-medium">Zero</span>
                 </div>
               </div>
             </div>
@@ -847,14 +847,14 @@ export const VibePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
           <Link
             to="/approach"
-            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors whitespace-nowrap min-h-[44px]"
+            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors min-h-[44px]"
           >
             <span>See the Approach</span>
             <ArrowRight className="w-4 h-4 flex-shrink-0" />
           </Link>
           <Link
             to="/academy"
-            className="text-xs sm:text-sm text-white/40 hover:text-white/60 transition-colors whitespace-nowrap min-h-[44px]"
+            className="text-xs sm:text-sm text-white/40 hover:text-white/60 transition-colors min-h-[44px]"
           >
             Explore the Academy
           </Link>
