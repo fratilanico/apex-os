@@ -188,9 +188,10 @@ export class NLPCommandParser {
 
     // Check for module number patterns
     const moduleMatch = normalizedQuery.match(/(?:module|phase)\s*(\d+)/);
-    if (moduleMatch) {
-      const moduleNum = moduleMatch[1].padStart(2, '0');
-      const module = modules.find(m => m.number === moduleNum);
+    const moduleNum = moduleMatch?.[1];
+    if (moduleNum) {
+      const padded = moduleNum.padStart(2, '0');
+      const module = modules.find(m => m.number === padded);
       if (module) {
         return this.createModuleResult(module);
       }
@@ -198,8 +199,8 @@ export class NLPCommandParser {
 
     // Check for section patterns
     const sectionMatch = normalizedQuery.match(/(?:section|cat)\s*(\d+\.\d+)/);
-    if (sectionMatch) {
-      const sectionId = sectionMatch[1];
+    const sectionId = sectionMatch?.[1];
+    if (sectionId) {
       const section = this.findSectionById(sectionId);
       if (section) {
         return this.createSectionResult(section.section, section.module);
@@ -448,6 +449,8 @@ Try asking naturally!`,
       .slice(Math.max(0, currentIndex - 1), Math.min(module.sections.length, currentIndex + 2))
       .filter(s => s.id !== section.id);
 
+    const nextSection = module.sections[currentIndex + 1];
+
     return {
       type: 'section',
       title: `📖 ${section.title}`,
@@ -458,7 +461,7 @@ Try asking naturally!`,
       suggestions: [
         `cat ${section.id}`,
         ...(relatedSections[0] ? [`Tell me about ${relatedSections[0].title}`] : []),
-        ...(module.sections[currentIndex + 1] ? [`Next: ${module.sections[currentIndex + 1].title}`] : []),
+        ...(nextSection ? [`Next: ${nextSection.title}`] : []),
       ],
       confidence: 0.85,
     };
@@ -504,8 +507,9 @@ Try asking naturally!`,
     // Get first meaningful paragraph (not just headers)
     const paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 50);
     
-    if (paragraphs.length > 0) {
-      return paragraphs[0].substring(0, 400) + (paragraphs[0].length > 400 ? '...' : '');
+    const [firstParagraph] = paragraphs;
+    if (firstParagraph) {
+      return firstParagraph.substring(0, 400) + (firstParagraph.length > 400 ? '...' : '');
     }
 
     return cleanContent.substring(0, 400) + '...';

@@ -17,7 +17,7 @@ import {
 const ToolCard: React.FC<{
   title: string;
   desc: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   tech: string;
   delay: number;
 }> = ({ title, desc, icon: Icon, tech }) => (

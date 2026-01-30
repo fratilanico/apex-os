@@ -88,7 +88,7 @@ export const VibePage: React.FC = () => {
   const deferredView = useDeferredValue(selectedView);
 
   return (
-    <main className="relative z-10 px-4 sm:px-6 max-w-5xl mx-auto pb-16">
+    <main className="relative z-10 px-4 sm:px-6 max-w-5xl mx-auto pb-16 overflow-x-hidden">
       {/* Hero Section - Interactive Paradigm Shift */}
       <section className="max-w-4xl mx-auto pt-4 pb-16 relative">
         {/* Animated Background Gradient */}
@@ -666,18 +666,18 @@ export const VibePage: React.FC = () => {
                     <p className="text-[10px] text-white/40 font-mono">What used to take 3 engineers 2 weeks</p>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-6 text-xs">
+
+                <div className="flex items-center gap-4 sm:gap-6 text-xs flex-wrap justify-center">
                   <div className="text-center">
                     <p className="text-white/40">Cost</p>
                     <p className="font-mono text-cyan-400">$2.40</p>
                   </div>
-                  <div className="w-px h-8 bg-white/10" />
+                  <div className="w-px h-8 bg-white/10 hidden sm:block" />
                   <div className="text-center">
                     <p className="text-white/40">Equity Given</p>
                     <p className="font-mono text-emerald-400">0%</p>
                   </div>
-                  <div className="w-px h-8 bg-white/10" />
+                  <div className="w-px h-8 bg-white/10 hidden sm:block" />
                   <div className="text-center">
                     <p className="text-white/40">Used by</p>
                     <p className="font-mono text-violet-400">500+ founders</p>
@@ -724,71 +724,71 @@ export const VibePage: React.FC = () => {
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6 text-center">
             The Technical Co-Founder Tax
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             {/* Traditional Route */}
-            <div className="rounded-xl p-6 border border-red-500/20 bg-red-500/5">
+            <div className="rounded-xl p-4 sm:p-6 border border-red-500/20 bg-red-500/5">
               <div className="text-red-400 font-mono text-xs uppercase mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-red-400" />
                 Traditional Route
               </div>
               <div className="space-y-3 text-sm text-white/60">
-                <div className="flex justify-between">
-                  <span>Find technical co-founder:</span>
-                  <span className="text-white/80">3-6 months</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/60 whitespace-normal">Find technical co-founder:</span>
+                  <span className="text-white/80 font-medium whitespace-nowrap">3-6 months</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Equity given:</span>
-                  <span className="text-white/80">20-30%</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/60 whitespace-normal">Equity given:</span>
+                  <span className="text-white/80 font-medium whitespace-nowrap">20-30%</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Annual salary (if paying):</span>
-                  <span className="text-white/80">$150K-200K</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/60 whitespace-normal">Annual salary (if paying):</span>
+                  <span className="text-white/80 font-medium whitespace-nowrap">$150K-200K</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Time to MVP:</span>
-                  <span className="text-white/80">3-6 months</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/60 whitespace-normal">Time to MVP:</span>
+                  <span className="text-white/80 font-medium whitespace-nowrap">3-6 months</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Risk they quit:</span>
-                  <span className="text-red-400">High</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/60 whitespace-normal">Risk they quit:</span>
+                  <span className="text-red-400 font-medium whitespace-nowrap">High</span>
                 </div>
               </div>
             </div>
 
             {/* Vibe Route */}
-            <div className="rounded-xl p-6 border border-cyan-500/20 bg-cyan-500/5">
+            <div className="rounded-xl p-4 sm:p-6 border border-cyan-500/20 bg-cyan-500/5">
               <div className="text-cyan-400 font-mono text-xs uppercase mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-cyan-400" />
                 Vibe Route
               </div>
               <div className="space-y-3 text-sm text-white/70">
-                <div className="flex justify-between">
-                  <span>Learn orchestration:</span>
-                  <span className="text-white/90">2-3 weeks</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/70 whitespace-normal">Learn orchestration:</span>
+                  <span className="text-white/90 font-medium whitespace-nowrap">2-3 weeks</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Equity given:</span>
-                  <span className="text-white/90">0%</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/70 whitespace-normal">Equity given:</span>
+                  <span className="text-white/90 font-medium whitespace-nowrap">0%</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Monthly cost:</span>
-                  <span className="text-white/90">$200-500</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/70 whitespace-normal">Monthly cost:</span>
+                  <span className="text-white/90 font-medium whitespace-nowrap">$200-500</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Time to MVP:</span>
-                  <span className="text-white/90">2-4 weeks</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/70 whitespace-normal">Time to MVP:</span>
+                  <span className="text-white/90 font-medium whitespace-nowrap">2-4 weeks</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Risk AI quits:</span>
-                  <span className="text-cyan-400">Zero</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                  <span className="text-white/70 whitespace-normal">Risk AI quits:</span>
+                  <span className="text-cyan-400 font-medium whitespace-nowrap">Zero</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <p className="text-center text-white/50 text-sm">
-            Most founders burn equity or cash before they validate product-market fit. 
+          <p className="text-center text-white/50 text-sm px-2">
+            Most founders burn equity or cash before they validate product-market fit.
             <span className="text-cyan-400"> The Vibe approach lets you ship first, raise later.</span>
           </p>
         </div>
@@ -837,24 +837,24 @@ export const VibePage: React.FC = () => {
       </section>
 
       {/* CTA Section - Elegant cyan links */}
-      <section className="text-center py-10 border-t border-white/5">
+      <section className="text-center py-10 border-t border-white/5 px-4">
         <h2 className="text-xl font-bold text-white mb-2">
           Learn the Framework
         </h2>
         <p className="text-sm text-white/50 mb-6">
           The mindset is just the beginning. Master the methodology and tools.
         </p>
-        <div className="flex items-center justify-center gap-6">
-          <Link 
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+          <Link
             to="/approach"
-            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
+            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors whitespace-nowrap"
           >
             <span>See the Approach</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 flex-shrink-0" />
           </Link>
-          <Link 
+          <Link
             to="/academy"
-            className="text-sm text-white/40 hover:text-white/60 transition-colors"
+            className="text-sm text-white/40 hover:text-white/60 transition-colors whitespace-nowrap"
           >
             Explore the Academy
           </Link>

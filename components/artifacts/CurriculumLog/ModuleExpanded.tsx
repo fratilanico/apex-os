@@ -2,7 +2,7 @@ import React from 'react';
 import { Module } from '../../../types/curriculum';
 import { motion } from 'framer-motion';
 import { Play, CheckCircle, Circle, BookOpen } from 'lucide-react';
-import { useCurriculumStore } from '../../../stores';
+import { useCurriculumStore } from '../../../stores/useCurriculumStore';
 
 interface ModuleExpandedProps {
   module: Module;
@@ -66,7 +66,7 @@ export const ModuleExpanded: React.FC<ModuleExpandedProps> = ({ module, onSectio
       {/* Sections List with Progress */}
       <div className="space-y-1.5">
         <div className="text-cyan-400 text-xs font-bold tracking-wider mb-2">SECTIONS:</div>
-        {module.sections.map((section, index) => {
+        {module.sections.map((section) => {
           const status = getSectionStatus(section.id);
           const isCompleted = status === 'completed';
           const isInProgress = status === 'in-progress';

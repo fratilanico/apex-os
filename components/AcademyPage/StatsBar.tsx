@@ -2,10 +2,61 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, FileText, Clock, Award, TrendingUp, Users } from 'lucide-react';
 
-type ColorKey = 'cyan' | 'violet' | 'emerald' | 'yellow' | 'blue' | 'rose';
+const colorClasses = {
+  cyan: { 
+    bg: 'bg-cyan-500/10', 
+    border: 'border-cyan-500/20', 
+    text: 'text-cyan-400',
+    glow: 'group-hover:shadow-cyan-500/50',
+    gradientFrom: 'from-cyan-500/20',
+    gradientTo: 'to-cyan-500/0'
+  },
+  violet: { 
+    bg: 'bg-violet-500/10', 
+    border: 'border-violet-500/20', 
+    text: 'text-violet-400',
+    glow: 'group-hover:shadow-violet-500/50',
+    gradientFrom: 'from-violet-500/20',
+    gradientTo: 'to-violet-500/0'
+  },
+  emerald: { 
+    bg: 'bg-emerald-500/10', 
+    border: 'border-emerald-500/20', 
+    text: 'text-emerald-400',
+    glow: 'group-hover:shadow-emerald-500/50',
+    gradientFrom: 'from-emerald-500/20',
+    gradientTo: 'to-emerald-500/0'
+  },
+  yellow: { 
+    bg: 'bg-yellow-500/10', 
+    border: 'border-yellow-500/20', 
+    text: 'text-yellow-400',
+    glow: 'group-hover:shadow-yellow-500/50',
+    gradientFrom: 'from-yellow-500/20',
+    gradientTo: 'to-yellow-500/0'
+  },
+  blue: { 
+    bg: 'bg-blue-500/10', 
+    border: 'border-blue-500/20', 
+    text: 'text-blue-400',
+    glow: 'group-hover:shadow-blue-500/50',
+    gradientFrom: 'from-blue-500/20',
+    gradientTo: 'to-blue-500/0'
+  },
+  rose: { 
+    bg: 'bg-rose-500/10', 
+    border: 'border-rose-500/20', 
+    text: 'text-rose-400',
+    glow: 'group-hover:shadow-rose-500/50',
+    gradientFrom: 'from-rose-500/20',
+    gradientTo: 'to-rose-500/0'
+  },
+} as const;
+
+type ColorKey = keyof typeof colorClasses;
 
 interface StatItem {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   value: number;
   suffix?: string;
   label: string;
@@ -47,64 +98,6 @@ export const StatsBar: React.FC = () => {
     { icon: Users, value: 500, suffix: '+', label: 'Founders', color: 'blue', description: 'Building without tech co-founders' },
     { icon: TrendingUp, value: 100, suffix: 'x', label: 'ROI', color: 'rose', description: '$200/mo vs $200K/year' },
   ];
-
-  const colorClasses: Record<ColorKey, {
-    bg: string;
-    border: string;
-    text: string;
-    glow: string;
-    gradientFrom: string;
-    gradientTo: string;
-  }> = {
-    cyan: { 
-      bg: 'bg-cyan-500/10', 
-      border: 'border-cyan-500/20', 
-      text: 'text-cyan-400',
-      glow: 'group-hover:shadow-cyan-500/50',
-      gradientFrom: 'from-cyan-500/20',
-      gradientTo: 'to-cyan-500/0'
-    },
-    violet: { 
-      bg: 'bg-violet-500/10', 
-      border: 'border-violet-500/20', 
-      text: 'text-violet-400',
-      glow: 'group-hover:shadow-violet-500/50',
-      gradientFrom: 'from-violet-500/20',
-      gradientTo: 'to-violet-500/0'
-    },
-    emerald: { 
-      bg: 'bg-emerald-500/10', 
-      border: 'border-emerald-500/20', 
-      text: 'text-emerald-400',
-      glow: 'group-hover:shadow-emerald-500/50',
-      gradientFrom: 'from-emerald-500/20',
-      gradientTo: 'to-emerald-500/0'
-    },
-    yellow: { 
-      bg: 'bg-yellow-500/10', 
-      border: 'border-yellow-500/20', 
-      text: 'text-yellow-400',
-      glow: 'group-hover:shadow-yellow-500/50',
-      gradientFrom: 'from-yellow-500/20',
-      gradientTo: 'to-yellow-500/0'
-    },
-    blue: { 
-      bg: 'bg-blue-500/10', 
-      border: 'border-blue-500/20', 
-      text: 'text-blue-400',
-      glow: 'group-hover:shadow-blue-500/50',
-      gradientFrom: 'from-blue-500/20',
-      gradientTo: 'to-blue-500/0'
-    },
-    rose: { 
-      bg: 'bg-rose-500/10', 
-      border: 'border-rose-500/20', 
-      text: 'text-rose-400',
-      glow: 'group-hover:shadow-rose-500/50',
-      gradientFrom: 'from-rose-500/20',
-      gradientTo: 'to-rose-500/0'
-    },
-  };
 
   return (
     <div className="relative">

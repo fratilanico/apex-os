@@ -120,19 +120,19 @@ export const TimeEstimator: React.FC<TimeEstimatorProps> = ({ onClose }) => {
 
       {/* Slider Control */}
       <div className="space-y-4">
-        <div className="flex items-end justify-between">
-          <div>
+        <div className="flex items-end justify-between gap-2">
+          <div className="min-w-0 flex-1">
             <label className="text-white/70 text-sm font-medium block mb-1">
               Weekly Time Commitment
             </label>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
+              <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
                 {hoursPerWeek}
               </span>
               <span className="text-white/50 text-sm">hours/week</span>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right min-w-0">
             <div className="flex items-center gap-1.5 text-white/90 text-sm">
               <span className="text-xl">{intensity.emoji}</span>
               <span className="font-medium">{intensity.label} Pace</span>
@@ -170,12 +170,12 @@ export const TimeEstimator: React.FC<TimeEstimatorProps> = ({ onClose }) => {
       </div>
 
       {/* Timeline Summary */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <motion.div
           key={`weeks-${timeline.totalWeeks}`}
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 border border-cyan-500/20 rounded-lg p-4"
+          className="bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 border border-cyan-500/20 rounded-lg p-3 sm:p-4"
         >
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-cyan-400" />
@@ -183,7 +183,7 @@ export const TimeEstimator: React.FC<TimeEstimatorProps> = ({ onClose }) => {
               Duration
             </span>
           </div>
-          <div className="text-2xl font-bold text-cyan-400">
+          <div className="text-xl sm:text-2xl font-bold text-cyan-400">
             {timeline.totalWeeks}
           </div>
           <div className="text-white/40 text-xs mt-1">
@@ -196,7 +196,7 @@ export const TimeEstimator: React.FC<TimeEstimatorProps> = ({ onClose }) => {
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.05 }}
-          className="bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20 rounded-lg p-4"
+          className="bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20 rounded-lg p-3 sm:p-4"
         >
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="w-4 h-4 text-violet-400" />
@@ -204,7 +204,7 @@ export const TimeEstimator: React.FC<TimeEstimatorProps> = ({ onClose }) => {
               Completion
             </span>
           </div>
-          <div className="text-sm font-bold text-violet-400 leading-tight">
+          <div className="text-xs sm:text-sm font-bold text-violet-400 leading-tight break-words">
             {formatDate(timeline.completionDate)}
           </div>
           <div className="text-white/40 text-xs mt-1">
@@ -230,18 +230,18 @@ export const TimeEstimator: React.FC<TimeEstimatorProps> = ({ onClose }) => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white/[0.02] border border-white/10 rounded-lg p-3 hover:bg-white/[0.04] transition-colors group"
+                className="bg-white/[0.02] border border-white/10 rounded-lg p-2 sm:p-3 hover:bg-white/[0.04] transition-colors group"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 sm:gap-3">
+                  <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                     <div className="text-cyan-500 font-mono text-xs font-bold shrink-0 mt-0.5">
                       {module.number}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-white/90 text-sm font-medium group-hover:text-cyan-400 transition-colors truncate">
+                      <div className="text-white/90 text-xs sm:text-sm font-medium group-hover:text-cyan-400 transition-colors truncate">
                         {module.title}
                       </div>
-                      <div className="text-white/40 text-xs mt-1 flex items-center gap-2">
+                      <div className="text-white/40 text-[10px] sm:text-xs mt-1 flex items-center gap-1 sm:gap-2 flex-wrap">
                         <span>{module.hours}h total</span>
                         <span className="text-white/20">•</span>
                         <span>{module.weeksToComplete} {module.weeksToComplete === 1 ? 'week' : 'weeks'}</span>
@@ -250,7 +250,7 @@ export const TimeEstimator: React.FC<TimeEstimatorProps> = ({ onClose }) => {
                   </div>
                   
                   {/* Progress bar preview */}
-                  <div className="w-16 shrink-0">
+                  <div className="w-12 sm:w-16 shrink-0">
                     <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
@@ -275,15 +275,15 @@ export const TimeEstimator: React.FC<TimeEstimatorProps> = ({ onClose }) => {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={onClose}
-        className="w-full py-4 px-6 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-shadow relative overflow-hidden group"
+        className="w-full py-3 sm:py-4 px-4 sm:px-6 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-shadow relative overflow-hidden group"
       >
         <motion.div
           className="absolute inset-0 bg-gradient-to-r from-violet-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity"
           initial={false}
         />
         <span className="relative flex items-center justify-center gap-2">
-          <Zap className="w-4 h-4" />
-          <span>
+          <Zap className="w-4 h-4 shrink-0" />
+          <span className="truncate">
             Start My {timeline.totalWeeks}-Week Journey
           </span>
         </span>

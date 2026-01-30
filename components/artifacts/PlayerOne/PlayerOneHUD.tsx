@@ -65,57 +65,59 @@ export const PlayerOneHUD: React.FC = () => {
 
   // On open: initialize centered position, lock body scroll
   useEffect(() => {
-    if (isOpen) {
-      addDMLog(`Apex OS Access Protocol Initiated. Welcome back, Player One.`);
-      addDMLog(`Current Objective: ${narrativeContext}`);
-      
-      // Lock body scroll - prevent background scrolling
-      const originalOverflow = document.body.style.overflow;
-      const originalTouchAction = document.body.style.touchAction;
-      const originalPosition = document.body.style.position;
-      const originalWidth = document.body.style.width;
-      const originalHeight = document.body.style.height;
-      const originalTop = document.body.style.top;
-      const scrollY = window.scrollY;
-      
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
-      document.body.style.top = `-${scrollY}px`;
-      
-      // Store scroll position for restoration
-      document.body.dataset.scrollY = String(scrollY);
-      
-      // Center window on desktop
-      if (typeof window !== 'undefined' && !isMobile) {
-        const w = Math.min(900, window.innerWidth * 0.78);
-        const h = Math.min(700, window.innerHeight * 0.78);
-        setPosition({
-          x: (window.innerWidth - w) / 2,
-          y: (window.innerHeight - h) / 2
-        });
-      }
-      setIsMaximized(false);
-      
-      // Cleanup function
-      return () => {
-        const savedScrollY = parseInt(document.body.dataset.scrollY || '0');
-        document.body.style.overflow = originalOverflow;
-        document.body.style.touchAction = originalTouchAction;
-        document.body.style.position = originalPosition;
-        document.body.style.width = originalWidth;
-        document.body.style.height = originalHeight;
-        document.body.style.top = originalTop;
-        document.body.removeAttribute('data-scroll-y');
-        
-        // Restore scroll position
-        if (savedScrollY) {
-          window.scrollTo(0, savedScrollY);
-        }
-      };
+    if (!isOpen) {
+      return undefined;
     }
+    
+    addDMLog(`Apex OS Access Protocol Initiated. Welcome back, Player One.`);
+    addDMLog(`Current Objective: ${narrativeContext}`);
+    
+    // Lock body scroll - prevent background scrolling
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+    const originalPosition = document.body.style.position;
+    const originalWidth = document.body.style.width;
+    const originalHeight = document.body.style.height;
+    const originalTop = document.body.style.top;
+    const scrollY = window.scrollY;
+    
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    document.body.style.top = `-${scrollY}px`;
+    
+    // Store scroll position for restoration
+    document.body.dataset.scrollY = String(scrollY);
+    
+    // Center window on desktop
+    if (typeof window !== 'undefined' && !isMobile) {
+      const w = Math.min(900, window.innerWidth * 0.78);
+      const h = Math.min(700, window.innerHeight * 0.78);
+      setPosition({
+        x: (window.innerWidth - w) / 2,
+        y: (window.innerHeight - h) / 2
+      });
+    }
+    setIsMaximized(false);
+    
+    // Cleanup function
+    return () => {
+      const savedScrollY = parseInt(document.body.dataset.scrollY || '0');
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+      document.body.style.position = originalPosition;
+      document.body.style.width = originalWidth;
+      document.body.style.height = originalHeight;
+      document.body.style.top = originalTop;
+      document.body.removeAttribute('data-scroll-y');
+      
+      // Restore scroll position
+      if (savedScrollY) {
+        window.scrollTo(0, savedScrollY);
+      }
+    };
   }, [isOpen, addDMLog, narrativeContext, isMobile]);
 
   // --- Drag handlers ---
@@ -271,8 +273,7 @@ export const PlayerOneHUD: React.FC = () => {
 
             {/* ─── Body: Sidebar + Content ─── */}
             <div 
-              className={`flex-1 flex overflow-hidden ${isMaximized ? 'md:flex-row' : 'sm:flex-row'} flex-col`}
-              style={{ touchAction: 'pan-y' }}
+              className={`flex-1 flex ${isMaximized ? 'md:flex-row' : 'sm:flex-row'} flex-col overflow-hidden`}
             >
               {/* Left Sidebar (hidden on mobile) */}
               <div className={`hidden sm:flex ${isMaximized ? 'w-20 lg:w-24' : 'w-14'} bg-zinc-950 border-r border-white/5 flex-col items-center py-4 gap-5 p-1.5 flex-shrink-0`}>
@@ -327,8 +328,8 @@ export const PlayerOneHUD: React.FC = () => {
                   </div>
                 )}
 
-                {/* Content with padding */}
-                <div className="flex-1 flex flex-col overflow-hidden p-3 sm:p-4 md:p-5">
+                {/* Content with padding - scrollable */}
+                <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar p-3 sm:p-4 md:p-5">
                   {/* Mobile Tab Bar — only on small screens */}
                   <div className="flex sm:hidden border-b border-white/5 mb-3 flex-shrink-0">
                     <button
@@ -397,18 +398,14 @@ export const PlayerOneHUD: React.FC = () => {
 
                   {activeView === 'terminal' && (
                     <div 
-                      className="flex-1 flex flex-col overflow-hidden"
-                      style={{ 
-                        touchAction: 'pan-y',
-                        overscrollBehavior: 'contain'
-                      }}
+                      className="flex-1 flex flex-col overflow-y-auto no-scrollbar"
                     >
                       <ApexTerminalHUD />
                     </div>
                   )}
 
                   {activeView === 'matrix' && (
-                    <div className="flex-1 flex flex-col overflow-hidden bg-black/40 rounded-2xl border border-white/5 relative">
+                    <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-black/40 rounded-2xl border border-white/5 relative">
                       <ApexMatrixHUD />
                     </div>
                   )}
