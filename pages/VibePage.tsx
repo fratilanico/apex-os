@@ -88,7 +88,7 @@ export const VibePage: React.FC = () => {
   const deferredView = useDeferredValue(selectedView);
 
   return (
-    <main className="relative z-10 px-3 sm:px-4 lg:px-6 max-w-5xl mx-auto pb-16 overflow-x-hidden">
+    <main className="relative z-10 px-3 sm:px-4 lg:px-6 max-w-5xl mx-auto pb-16 overflow-x-hidden w-full">
       {/* Hero Section - Interactive Paradigm Shift */}
       <section className="max-w-4xl mx-auto pt-2 sm:pt-4 pb-8 sm:pb-16 relative">
         {/* Animated Background Gradient */}
