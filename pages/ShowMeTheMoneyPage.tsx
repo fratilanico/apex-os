@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  TrendingUp, 
-  Users, 
-  Target, 
-  Zap, 
-  DollarSign, 
-  BarChart3, 
+import {
+  TrendingUp,
+  Users,
+  Target,
+  Zap,
+  DollarSign,
+  BarChart3,
   Rocket,
   Shield,
   Award,
@@ -16,10 +16,10 @@ import {
   Landmark
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { 
-  fundingRounds, 
-  capTable, 
-  useOfFunds, 
+import {
+  fundingRounds,
+  capTable,
+  useOfFunds,
   fundingMilestones,
   exitStrategy,
   valuationRationale
@@ -47,7 +47,7 @@ interface PricingTier {
 const generateProjections = (): RevenueProjection[] => {
   const projections: RevenueProjection[] = [];
   let cumulativeRevenue = 0;
-  
+
   // Phase 1: Launch (Months 1-3)
   for (let i = 1; i <= 3; i++) {
     const leads = 32000;
@@ -62,7 +62,7 @@ const generateProjections = (): RevenueProjection[] => {
       cumulative: cumulativeRevenue
     });
   }
-  
+
   // Phase 2: Growth (Months 4-6)
   for (let i = 4; i <= 6; i++) {
     const conversion = 0.12 + (i - 4) * 0.02; // 12%, 14%, 16%
@@ -76,7 +76,7 @@ const generateProjections = (): RevenueProjection[] => {
       cumulative: cumulativeRevenue
     });
   }
-  
+
   // Phase 3: Scale (Months 7-12)
   for (let i = 7; i <= 12; i++) {
     const conversion = 0.18 + (i - 7) * 0.01; // 18% to 23%
@@ -90,7 +90,7 @@ const generateProjections = (): RevenueProjection[] => {
       cumulative: cumulativeRevenue
     });
   }
-  
+
   return projections;
 };
 
@@ -256,9 +256,9 @@ const expansionPlan = [
       'Convert 3–5% of 32K leads into paid tiers',
       'Reach 1,000+ paying users with 30% retention',
       'Ship Academy v2 + live cohorts',
-      'Own the local AI-builder education narrative',
+      'Own the local AI-builder education narrative'
     ],
-    revenueTarget: '$1.5M ARR run-rate by Month 6',
+    revenueTarget: '$1.5M ARR run-rate by Month 6'
   },
   {
     title: 'Phase 2 — India Expansion (Months 7–18)',
@@ -268,10 +268,10 @@ const expansionPlan = [
       'India‑first cohort with localized pricing tiers',
       'Partnerships with 5–10 accelerators/incubators',
       'Campus ambassador + creator programs',
-      'Regional cohort operators + support team',
+      'Regional cohort operators + support team'
     ],
-    revenueTarget: '$6M+ ARR by Month 18',
-  },
+    revenueTarget: '$6M+ ARR by Month 18'
+  }
 ];
 
 const acceleratorPlan = [
@@ -282,11 +282,11 @@ const acceleratorPlan = [
       'Monthly intake of 30–50 SaaS founders',
       'Rapid build sprints with APEX OS playbooks',
       'Investor demo day every 60 days',
-      'Top 10–15% selected for seed readiness',
+      'Top 10–15% selected for seed readiness'
     ],
     equity: '15% equity from top candidates (leaves room for VC follow‑ons)',
-    output: '10–15 seed‑ready startups/year with validated GTM and production deployments.',
-  },
+    output: '10–15 seed‑ready startups/year with validated GTM and production deployments.'
+  }
 ];
 
 // Wireframe Sections
@@ -307,8 +307,6 @@ const wireframes = [
     elements: ['Contextual upsell when user stuck >30min', '"Don\'t ship broken" messaging', 'Calendly integration for booking', 'Slack connect for direct access']
   }
 ];
-
-
 
 // Risk Analysis
 const risks = [
@@ -341,11 +339,10 @@ const risks = [
 export const ShowMeTheMoneyPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('executive');
   const projections = generateProjections();
-  
+
   const totalYear1Revenue = projections[projections.length - 1]?.cumulative ?? 0;
   const month12Mrr = projections[11]?.mrr ?? 0;
-  
-  
+
   return (
     <main className="relative z-10 px-4 sm:px-6 max-w-7xl mx-auto pb-16 overflow-x-hidden">
       {/* Secret Header */}
@@ -358,7 +355,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           <span className="text-sm font-bold text-emerald-400">🤫 TOP SECRET</span>
           <span className="text-white/60 text-sm">| APEX OS Business Plan 2026</span>
         </motion.div>
-        
+
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -368,17 +365,17 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             SHOW ME THE MONEY
           </span>
         </motion.h1>
-        
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="text-base sm:text-lg md:text-xl text-white/60 mb-8 max-w-3xl mx-auto px-2"
         >
-          Comprehensive financial strategy, pricing optimization, and go-to-market plan for 
+          Comprehensive financial strategy, pricing optimization, and go-to-market plan for
           converting 32,000 InfoAcademy students into a Romania‑first launch and India‑scale expansion.
         </motion.p>
-        
+
         {/* Key Metrics Overview */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -390,7 +387,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             { label: 'Year 1 Revenue', value: `$${(totalYear1Revenue / 1000000).toFixed(1)}M`, color: 'emerald' },
             { label: 'Target Customers', value: '7,000+', color: 'cyan' },
             { label: 'Avg MRR (Mo 12)', value: `$${(month12Mrr / 1000).toFixed(0)}K`, color: 'violet' },
-            { label: 'Conversion Rate', value: '22%', color: 'amber' },
+            { label: 'Conversion Rate', value: '22%', color: 'amber' }
           ].map((metric, idx) => (
             <div key={idx} className="p-3 sm:p-4 rounded-xl border border-white/10 bg-white/[0.02]">
               <div className={`text-xl sm:text-2xl font-bold text-${metric.color}-400`}>{metric.value}</div>
@@ -412,7 +409,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             { id: 'accelerator', label: 'Accelerator', mobileLabel: 'Accel' },
             { id: 'fundraising', label: 'Fundraising', mobileLabel: 'Fund' },
             { id: 'wireframes', label: 'Wireframes', mobileLabel: 'Wire' },
-            { id: 'risks', label: 'Risks', mobileLabel: 'Risk' },
+            { id: 'risks', label: 'Risks', mobileLabel: 'Risk' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -505,7 +502,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { label: 'Average Revenue Per User', value: '$149/month (blended)', icon: DollarSign },
                 { label: 'Retention Rate', value: '30% (as stated)', icon: Shield },
                 { label: 'CAC (Customer Acquisition)', value: '$50 (organic + paid)', icon: TrendingUp },
-                { label: 'LTV (Lifetime Value)', value: '$1,800 (12-month avg)', icon: Award },
+                { label: 'LTV (Lifetime Value)', value: '$1,800 (12-month avg)', icon: Award }
               ].map((assumption, idx) => (
                 <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
                   <assumption.icon className="w-5 h-5 text-cyan-400 shrink-0" />
@@ -547,7 +544,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 <div className={`inline-flex px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${tier.color} text-white mb-4`}>
                   {tier.name}
                 </div>
-                
+
                 <div className="mb-4">
                   <div className="text-2xl sm:text-3xl font-bold text-white">
                     {tier.monthly === 0 ? 'FREE' : `$${tier.monthly}`}
@@ -587,28 +584,28 @@ export const ShowMeTheMoneyPage: React.FC = () => {
               <div>
                 <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">🎣 The Freemium Hook</h4>
                 <p className="text-white/60 text-sm">
-                  Module 00 (The Shift) is free for all 32K leads. This builds trust and demonstrates value 
+                  Module 00 (The Shift) is free for all 32K leads. This builds trust and demonstrates value
                   before asking for payment. Conversion rate from free to paid: 15-20% expected.
                 </p>
               </div>
               <div>
                 <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">🪜 The Upgrade Ladder</h4>
                 <p className="text-white/60 text-sm">
-                  Builder ($49) → Professional ($149) is a 3x jump, but justified by 2x more modules and 
+                  Builder ($49) → Professional ($149) is a 3x jump, but justified by 2x more modules and
                   community access. Payment plans ($149 x 6 months) reduce friction.
                 </p>
               </div>
               <div>
                 <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">💎 The Decoy Effect</h4>
                 <p className="text-white/60 text-sm">
-                  Accelerator ($299) makes Professional ($149) look like a bargain while capturing 
+                  Accelerator ($299) makes Professional ($149) look like a bargain while capturing
                   high-value customers who need 1-on-1 support. Expected split: 70% Pro, 20% Accelerator.
                 </p>
               </div>
               <div>
                 <h4 className="text-cyan-400 font-semibold mb-2 text-sm sm:text-base">🏢 B2B Revenue Unlock</h4>
                 <p className="text-white/60 text-sm">
-                  Team tier ($497) targets agencies and startups. 5 seats = $99/seat. White-label option 
+                  Team tier ($497) targets agencies and startups. 5 seats = $99/seat. White-label option
                   justifies premium. Expected: 10% of revenue from teams by Month 12.
                 </p>
               </div>
@@ -625,7 +622,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { tier: 'Professional ($149/mo)', customers: '3,200 (10%)', revenue: '$477K/mo', percent: 45 },
                 { tier: 'Accelerator ($299/mo)', customers: '640 (2%)', revenue: '$191K/mo', percent: 18 },
                 { tier: 'Team ($497/mo)', customers: '320 (1%)', revenue: '$159K/mo', percent: 15 },
-                { tier: 'Enterprise (Custom)', customers: '20 (0.06%)', revenue: '$200K/mo', percent: 12 },
+                { tier: 'Enterprise (Custom)', customers: '20 (0.06%)', revenue: '$200K/mo', percent: 12 }
               ].map((item, idx) => (
                 <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="w-full sm:w-32 text-sm text-white/60 shrink-0">{item.tier}</div>
@@ -635,7 +632,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                       <span className="text-sm text-emerald-400">{item.revenue}</span>
                     </div>
                     <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500"
                         style={{ width: `${item.percent}%` }}
                       />
@@ -884,7 +881,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                     <span className="text-emerald-400 font-bold text-sm sm:text-base">{category.percentage}%</span>
                   </div>
                   <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-3">
-                    <div 
+                    <div
                       className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-full"
                       style={{ width: `${category.percentage}%` }}
                     />
@@ -1131,7 +1128,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { week: 'Week 4', action: 'Open to full 32K list with early bird pricing', metric: 'Goal: 300 total customers' },
                 { week: 'Week 6', action: 'Launch affiliate program + influencer outreach', metric: 'Goal: 50 affiliates signed up' },
                 { week: 'Week 8', action: 'First case study: Student success story', metric: 'Goal: Social proof content' },
-                { week: 'Week 12', action: 'End early bird pricing + referral program launch', metric: 'Goal: 1,000 paying customers' },
+                { week: 'Week 12', action: 'End early bird pricing + referral program launch', metric: 'Goal: 1,000 paying customers' }
               ].map((item, idx) => (
                 <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 p-3 rounded-lg bg-white/[0.03]">
                   <div className="w-16 sm:w-20 text-cyan-400 font-semibold text-sm shrink-0">{item.week}</div>
@@ -1281,7 +1278,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { stage: 'Builder Trial', conversion: '12% (3.8K)', action: 'Pay $49 for Modules 1-2' },
                 { stage: 'Professional Upgrade', conversion: '25% (960)', action: 'Pay $149 for full curriculum' },
                 { stage: 'Accelerator Upsell', conversion: '15% (144)', action: 'Pay $299 for coaching' },
-                { stage: 'Team Expansion', conversion: '5% (7)', action: 'Pay $497 for team seats' },
+                { stage: 'Team Expansion', conversion: '5% (7)', action: 'Pay $497 for team seats' }
               ].map((stage, idx) => (
                 <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="w-full sm:w-40 text-sm text-white/60 shrink-0">{stage.stage}</div>
@@ -1291,7 +1288,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                       <span className="text-xs text-cyan-400">{stage.action}</span>
                     </div>
                     <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500"
                         style={{ width: stage.conversion.includes('%') ? stage.conversion : '100%' }}
                       />
@@ -1366,7 +1363,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
                 { metric: 'NPS Score', target: '> 50', current: 'Not measured', status: 'to-implement' },
                 { metric: 'Course Completion', target: '> 40%', current: '25% (Month 1)', status: 'on-track' },
                 { metric: 'Support Response', target: '< 4 hours', current: '6 hours', status: 'needs-attention' },
-                { metric: 'MRR Growth', target: '> 15% MoM', current: '45% (Month 2)', status: 'exceeding' },
+                { metric: 'MRR Growth', target: '> 15% MoM', current: '45% (Month 2)', status: 'exceeding' }
               ].map((kpi, idx) => (
                 <div key={idx} className="p-3 sm:p-4 rounded-lg bg-white/[0.03]">
                   <div className="text-white font-semibold text-sm">{kpi.metric}</div>
@@ -1383,7 +1380,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
       <section className="text-center py-12 border-t border-white/10 mt-12">
         <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">Ready to Execute?</h2>
         <p className="text-white/60 mb-6 max-w-2xl mx-auto px-2 text-sm sm:text-base">
-          This business plan represents a $2.8M opportunity. The infrastructure is built, 
+          This business plan represents a $2.8M opportunity. The infrastructure is built,
           the curriculum is ready, and 32,000 leads are waiting. Time to ship.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">

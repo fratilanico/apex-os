@@ -991,9 +991,9 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   }, [input, isProcessing, processCommand, commandHistory, historyIndex]);
 
   return (
-    <div 
+    <div
       ref={terminalRef}
-      className={`flex-1 flex flex-col bg-zinc-950 rounded-2xl border border-cyan-500/10 overflow-hidden transition-all duration-300 ease-out pointer-events-auto ${className}`}
+      className={`flex-1 flex flex-col bg-zinc-950 rounded-2xl border border-cyan-500/10 overflow-hidden min-h-0 transition-all duration-300 ease-out pointer-events-auto ${className}`}
       onClick={() => inputRef.current?.focus()}
       style={{
         // Ensure smooth transitions during resize
@@ -1011,9 +1011,9 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
         </div>
       </div>
 
-      <div 
+      <div
         ref={outputRef}
-        className="flex-1 p-6 overflow-y-auto font-mono text-sm space-y-4 no-scrollbar terminal-scrollable custom-scrollbar pointer-events-auto"
+        className="flex-1 min-h-0 p-6 overflow-y-auto font-mono text-sm space-y-4 no-scrollbar terminal-scrollable custom-scrollbar pointer-events-auto"
         style={{
           touchAction: 'pan-y',
           overscrollBehavior: 'contain',
