@@ -48,9 +48,9 @@ export const AcademyPage: React.FC = () => {
   };
 
   return (
-    <main className="relative z-10 px-4 sm:px-6 max-w-5xl mx-auto pb-16">
+    <main className="relative z-10 px-3 sm:px-4 lg:px-6 max-w-5xl mx-auto pb-16 overflow-x-hidden">
       {/* Enhanced Hero Section with Floating Particles */}
-      <section className="relative text-center max-w-4xl mx-auto pt-8 pb-12">
+      <section className="relative text-center max-w-4xl mx-auto pt-6 sm:pt-8 pb-8 sm:pb-12">
         {/* Animated gradient background */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-64 h-64 bg-cyan-500/20 rounded-full blur-[100px] animate-pulse" />
@@ -85,14 +85,14 @@ export const AcademyPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-6"
+          className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-4 sm:mb-6"
         >
-          <div className="flex -space-x-2">
+          <div className="flex -space-x-2 shrink-0">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-violet-400 border-2 border-black" />
+              <div key={i} className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-cyan-400 to-violet-400 border-2 border-black" />
             ))}
           </div>
-          <span className="text-sm font-medium text-cyan-400">
+          <span className="text-xs sm:text-sm font-medium text-cyan-400">
             Join 500+ founders building without tech co-founders
           </span>
         </motion.div>
@@ -109,7 +109,7 @@ export const AcademyPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6"
         >
           <span className="text-white">The Complete</span>
           <br />
@@ -122,7 +122,7 @@ export const AcademyPage: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-lg sm:text-xl text-white/60 mb-8 max-w-2xl mx-auto leading-relaxed"
+          className="text-base sm:text-lg md:text-xl text-white/60 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0"
         >
           From autocomplete mindset to orchestrator mastery.
           <br />
@@ -134,12 +134,12 @@ export const AcademyPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid sm:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8 max-w-3xl mx-auto px-2 sm:px-0"
         >
           {[
-            { label: 'Investment', value: '$200/month', color: 'from-cyan-500 to-cyan-600' },
-            { label: 'vs Tech Co-Founder', value: '$200K/year', color: 'from-violet-500 to-violet-600' },
-            { label: 'Time to Ship', value: 'Start Today', color: 'from-emerald-500 to-emerald-600' },
+            { label: 'Investment', value: '$200/mo', color: 'from-cyan-500 to-cyan-600' },
+            { label: 'vs Co-Founder', value: '$200K/yr', color: 'from-violet-500 to-violet-600' },
+            { label: 'Time to Ship', value: 'Today', color: 'from-emerald-500 to-emerald-600' },
           ].map((item, idx) => (
             <motion.div
               key={item.label}
@@ -149,9 +149,9 @@ export const AcademyPage: React.FC = () => {
               className="relative group"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-20 group-hover:opacity-30 rounded-xl blur-lg transition-opacity`} />
-              <div className="relative p-4 rounded-xl border border-white/10 bg-white/[0.02] backdrop-blur-sm">
-                <div className="text-xs text-white/40 mb-1 font-mono uppercase">{item.label}</div>
-                <div className={`text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-br ${item.color}`}>
+              <div className="relative p-3 sm:p-4 rounded-xl border border-white/10 bg-white/[0.02] backdrop-blur-sm">
+                <div className="text-[10px] sm:text-xs text-white/40 mb-1 font-mono uppercase">{item.label}</div>
+                <div className={`text-lg sm:text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-br ${item.color}`}>
                   {item.value}
                 </div>
               </div>
@@ -164,46 +164,46 @@ export const AcademyPage: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="flex flex-wrap justify-center gap-3 text-sm"
+          className="flex flex-wrap justify-center gap-2 sm:gap-3 text-xs sm:text-sm px-2 sm:px-0"
         >
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
-            <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-            <span className="text-cyan-400 font-medium">20+ hours of content</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
+            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+            <span className="text-cyan-400 font-medium">20+ hours</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20">
-            <CheckCircle2 className="w-4 h-4 text-violet-400" />
-            <span className="text-violet-400 font-medium">Lifetime access</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20">
+            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-400" />
+            <span className="text-violet-400 font-medium">Lifetime</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span className="text-emerald-400 font-medium">Certificate included</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+            <span className="text-emerald-400 font-medium">Certificate</span>
           </div>
         </motion.div>
       </section>
 
       {/* Enhanced Stats Bar */}
-      <section className="pb-12">
+      <section className="pb-8 sm:pb-12 px-2 sm:px-0">
         <StatsBar />
       </section>
 
       {/* Modules Section with View Toggle */}
-      <section className="pb-12" data-curriculum-section>
-        <div className="text-center max-w-3xl mx-auto mb-10">
+      <section className="pb-8 sm:pb-12" data-curriculum-section>
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 px-2 sm:px-0">
           {/* Section badge */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-4"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-3 sm:mb-4"
           >
             <GraduationCap className="w-4 h-4 text-cyan-400" />
-            <span className="text-sm font-medium text-cyan-400">COMPLETE LEARNING PATH</span>
+            <span className="text-xs sm:text-sm font-medium text-cyan-400">COMPLETE LEARNING PATH</span>
           </motion.div>
 
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-3xl sm:text-4xl font-bold mb-4"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4"
           >
             <span className="text-white">Explore the </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400">
@@ -215,7 +215,7 @@ export const AcademyPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-base text-white/60 mb-6 leading-relaxed"
+            className="text-sm sm:text-base text-white/60 mb-4 sm:mb-6 leading-relaxed px-2 sm:px-0"
           >
             {isAuthenticated 
               ? 'Choose your view: visual grid or interactive terminal. Both designed for rapid mastery.' 
@@ -235,7 +235,7 @@ export const AcademyPage: React.FC = () => {
 
         {/* Grid View - Use CSS hiding instead of unmount to prevent re-renders (flickering fix) */}
         <div className={displayMode !== 'grid' ? 'hidden' : ''}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 px-2 sm:px-0">
             {modulesWithIcons.map((module) => (
               <BentoCard
                 key={module.id}
@@ -263,12 +263,12 @@ export const AcademyPage: React.FC = () => {
 
         {/* Locked State - Show when not authenticated and terminal view selected */}
         {!isAuthenticated && displayMode === 'terminal' && (
-          <div className="text-center py-16 border border-white/10 rounded-xl bg-white/[0.02]">
-            <Terminal className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-            <p className="text-white/50 mb-6">Terminal access requires authentication.</p>
+          <div className="text-center py-12 sm:py-16 border border-white/10 rounded-xl bg-white/[0.02] mx-2 sm:mx-0">
+            <Terminal className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-cyan-400/30" />
+            <p className="text-white/50 mb-4 sm:mb-6 text-sm sm:text-base">Terminal access requires authentication.</p>
             <button
               onClick={() => setShowAuthTerminal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 font-medium transition-all"
+              className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 font-medium transition-all min-h-[44px]"
             >
               <Terminal className="w-4 h-4" />
               <span>Access Terminal</span>
@@ -311,12 +311,12 @@ export const AcademyPage: React.FC = () => {
       )}
 
       {/* Tools Section */}
-      <section className="pb-12">
-        <div className="text-center max-w-2xl mx-auto mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+      <section className="pb-8 sm:pb-12">
+        <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8 px-2 sm:px-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
             Your C-Suite of AI Tools
           </h2>
-          <p className="text-sm text-white/50">
+          <p className="text-xs sm:text-sm text-white/50">
             Each tool serves a founder-focused role in your technical team.
           </p>
         </div>
@@ -326,17 +326,17 @@ export const AcademyPage: React.FC = () => {
       </section>
 
       {/* What You'll Master - Compact horizontal cards */}
-      <section className="pb-12">
-        <div className="text-center max-w-2xl mx-auto mb-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+      <section className="pb-8 sm:pb-12">
+        <div className="text-center max-w-2xl mx-auto mb-4 sm:mb-6 px-2 sm:px-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
             What You'll Master
           </h2>
-          <p className="text-sm text-white/50">
+          <p className="text-xs sm:text-sm text-white/50">
             By the end, you'll orchestrate AI agents like a senior engineer manages a team.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto px-2 sm:px-0">
           {[
             { icon: Wrench, title: 'Hands-On Projects', desc: 'Build real features with multi-agent orchestration' },
             { icon: Zap, title: 'Tool Mastery', desc: 'Master all 12 tools in the modern AI stack' },
@@ -347,23 +347,23 @@ export const AcademyPage: React.FC = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="p-4 rounded-lg border border-white/10 bg-white/[0.02] text-center"
+              className="p-3 sm:p-4 rounded-lg border border-white/10 bg-white/[0.02] text-center"
             >
-              <div className="inline-flex w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 items-center justify-center mx-auto mb-3 flex-shrink-0">
-                <item.icon className="w-5 h-5 text-cyan-400 flex-shrink-0" strokeWidth={2} />
+              <div className="inline-flex w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 items-center justify-center mx-auto mb-2 sm:mb-3 flex-shrink-0">
+                <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 flex-shrink-0" strokeWidth={2} />
               </div>
-              <h3 className="text-sm font-semibold text-white mb-1">{item.title}</h3>
-              <p className="text-xs text-white/50">{item.desc}</p>
+              <h3 className="text-xs sm:text-sm font-semibold text-white mb-1">{item.title}</h3>
+              <p className="text-[10px] sm:text-xs text-white/50">{item.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* Core Principles - Compact */}
-      <section className="pb-12">
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 max-w-3xl mx-auto">
-          <h3 className="text-lg font-bold text-white mb-4 text-center">Core Principles You'll Learn</h3>
-          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+      <section className="pb-8 sm:pb-12">
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 sm:p-6 max-w-3xl mx-auto mx-2 sm:mx-auto">
+          <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4 text-center">Core Principles You'll Learn</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-1.5 sm:gap-y-2">
             {[
               'AI orchestration beats AI assistance',
               'Context windows enable repository-aware reasoning',
@@ -375,8 +375,8 @@ export const AcademyPage: React.FC = () => {
               'Parallel execution saves hours',
             ].map((principle, idx) => (
               <div key={idx} className="flex items-start gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-white/60">{principle}</span>
+                <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400 mt-0.5 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-white/60">{principle}</span>
               </div>
             ))}
           </div>
@@ -384,23 +384,23 @@ export const AcademyPage: React.FC = () => {
       </section>
 
       {/* CTA Section - Founder Focused */}
-      <section className="text-center py-10 border-t border-white/5">
-        <h2 className="text-xl font-bold text-white mb-2">
+      <section className="text-center py-8 sm:py-10 border-t border-white/5 px-2 sm:px-0">
+        <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
           Ready to Build Your AI Engineering Team?
         </h2>
-        <p className="text-sm text-white/50 mb-6">
+        <p className="text-xs sm:text-sm text-white/50 mb-4 sm:mb-6 max-w-2xl mx-auto">
           Stop hunting for a technical co-founder. Start deploying specialized agents that work 24/7 for $200/month instead of $200K/year.
         </p>
         {!isAuthenticated ? (
           <button
             onClick={() => setShowAuthTerminal(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/20 transition-all"
+            className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/20 transition-all min-h-[44px]"
           >
             <Terminal className="w-4 h-4" />
             <span>Access Terminal</span>
           </button>
         ) : (
-          <div className="flex items-center justify-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
             <button
               onClick={() => {
                 setView('terminal');  // Zustand action
@@ -409,14 +409,14 @@ export const AcademyPage: React.FC = () => {
                   curriculumSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
+              className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors min-h-[44px]"
             >
               <span>Explore Terminal View</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => navigate('/')}
-              className="text-sm text-white/40 hover:text-white/60 transition-colors"
+              className="text-xs sm:text-sm text-white/40 hover:text-white/60 transition-colors min-h-[44px]"
             >
               Back to Home
             </button>

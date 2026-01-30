@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { useMatrixStore } from '@/stores/useMatrixStore';
 import { useGameEngine } from '@/stores/useGameEngine';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
+import { useSession, type SessionState } from '@/hooks/useSession';
 import { MAIN_QUESTS } from '@/data/questsData';
 import * as CLIFormatter from '@/lib/cliFormatter';
 
@@ -51,7 +52,7 @@ const TerminalCodeBlock = ({ children, language }: { children: string; language?
   </div>
 );
 
-interface TerminalLine {
+interface ApexTerminalLine {
   id: string;
   type: 'input' | 'output' | 'error' | 'system' | 'ai' | 'branding';
   content: string | React.ReactNode;
@@ -252,12 +253,14 @@ const NeuralPixelBranding = () => {
 };
 
 export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = '' }) => {
-  const [lines, setLines] = useState<TerminalLine[]>([]);
+  const [lines, setLines] = useState<ApexTerminalLine[]>([]);
   const [input, setInput] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
+  const [terminalSize, setTerminalSize] = useState({ width: 0, height: 0 });
+  const [hasRestoredSession, setHasRestoredSession] = useState(false);
   
   const { syncTerminalContext, processDirectorResponse, nodes, edges } = useMatrixStore();
   const gameEngine = useGameEngine();
@@ -265,9 +268,98 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const latestSessionRef = useRef<Partial<SessionState<ApexTerminalLine>>>({});
 
-  const addLine = useCallback((type: TerminalLine['type'], content: TerminalLine['content']) => {
-    const newLine: TerminalLine = {
+  const { loadState, saveState, clearSession, setupAutoSave } = useSession<ApexTerminalLine>({
+    terminalId: 'apex-os-terminal',
+    autoSaveInterval: 4000,
+  });
+
+  useEffect(() => {
+    const restored = loadState();
+    if (!restored) return;
+
+    const restoredLines = Array.isArray(restored.lines)
+      ? (restored.lines as ApexTerminalLine[])
+      : [];
+    const normalizedLines = restoredLines
+      .filter((line) => line && typeof line.content === 'string')
+      .map((line) => ({
+        ...line,
+        content: line.content as string,
+        timestamp: line.timestamp ? new Date(line.timestamp) : new Date(),
+      }));
+
+    setLines(normalizedLines);
+    setCommandHistory(restored.history ?? []);
+    setInput(restored.inputValue ?? '');
+    setHistoryIndex(-1);
+    setIsBooting(false);
+    setHasRestoredSession(true);
+
+    const scrollPosition = restored.scrollPosition;
+    setTimeout(() => {
+      if (outputRef.current) {
+        outputRef.current.scrollTop = scrollPosition ?? 0;
+      }
+    }, 50);
+  }, [loadState]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESIZE OBSERVER FOR RESPONSIVE TERMINAL
+  // ═══════════════════════════════════════════════════════════════════════════
+  useEffect(() => {
+    const serializableLines = lines
+      .filter((line) => typeof line.content === 'string')
+      .map((line) => ({
+        ...line,
+        content: line.content as string,
+      }));
+
+    latestSessionRef.current = {
+      lines: serializableLines,
+      history: commandHistory,
+      inputValue: input,
+      scrollPosition: outputRef.current?.scrollTop ?? 0,
+    };
+  }, [lines, commandHistory, input]);
+
+  useEffect(() => {
+    return setupAutoSave(() => latestSessionRef.current);
+  }, [setupAutoSave]);
+
+  useEffect(() => {
+    return () => {
+      try {
+        saveState(latestSessionRef.current);
+      } catch (error) {
+        console.warn('Failed to persist terminal session on unmount:', error);
+      }
+    };
+  }, [saveState]);
+
+  useEffect(() => {
+    if (!terminalRef.current) return;
+    
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setTerminalSize({ width, height });
+        
+        // Trigger terminal refit - scroll to bottom after resize
+        if (outputRef.current) {
+          outputRef.current.scrollTop = outputRef.current.scrollHeight;
+        }
+      }
+    });
+    
+    resizeObserver.observe(terminalRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const addLine = useCallback((type: ApexTerminalLine['type'], content: ApexTerminalLine['content']) => {
+    const newLine: ApexTerminalLine = {
       id: generateId(),
       type,
       content,
@@ -280,6 +372,8 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   // THE BOOT SEQUENCE
   // ═══════════════════════════════════════════════════════════════════════════
   useEffect(() => {
+    if (hasRestoredSession) return;
+
     const boot = async () => {
       setIsBooting(true);
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -287,7 +381,7 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
       setIsBooting(false);
     };
     boot();
-  }, [addLine]);
+  }, [addLine, hasRestoredSession]);
 
   // Auto-scroll
   useEffect(() => {
@@ -372,6 +466,10 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
 
       case 'clear':
         setLines([]);
+        setCommandHistory([]);
+        setHistoryIndex(-1);
+        setInput('');
+        clearSession();
         break;
 
       case 'vibe':
@@ -803,13 +901,45 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
         }
         break;
 
-      // ========== DEFAULT: AI NATURAL LANGUAGE ==========
-      default:
+      // ========== SHOW ME THE MONEY COMMAND ==========
+      default: {
+        // Check for showmethemoney command (flexible matching)
+        const normalized = trimmedCmd.toLowerCase().replace(/\s/g, '');
+        const lowerCmd = trimmedCmd.toLowerCase();
+        const isShowMeTheMoney = 
+          normalized === 'showmethemoney' ||
+          normalized.includes('showmethemoney') ||
+          lowerCmd.includes('money') ||
+          lowerCmd.includes('financial') ||
+          lowerCmd.includes('business plan') ||
+          lowerCmd.includes('businessplan');
+        
+        if (isShowMeTheMoney) {
+          addLine('system', `
+╔═══════════════════════════════════════════════════════════════╗
+║  💰 ACCESSING FINANCIAL VAULT...                              ║
+╠═══════════════════════════════════════════════════════════════╣
+║  📊 LOADING_BUSINESS_PLAN_V1.0...                             ║
+║  💰 FINANCIAL_PROJECTIONS_DECRYPTED                           ║
+║  ✓ CLEARANCE_GRANTED                                          ║
+╠═══════════════════════════════════════════════════════════════╣
+║  Redirecting to Business Plan...                              ║
+╚═══════════════════════════════════════════════════════════════╝`);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('apexos:close'));
+            // Navigate to showmethemoney page
+            window.location.href = '/showmethemoney';
+          }, 1500);
+          break;
+        }
+
+        // ========== DEFAULT: AI NATURAL LANGUAGE ==========
         setIsProcessing(true);
         const res = await callAI(trimmedCmd);
         setIsProcessing(false);
         addLine('system', CLIFormatter.convertMarkdownToCLI(res));
         break;
+      }
     }
   }, [addLine, callAI, gameEngine, skillTree]);
 
@@ -861,11 +991,17 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
   }, [input, isProcessing, processCommand, commandHistory, historyIndex]);
 
   return (
-    <div 
-      className={`flex-1 flex flex-col bg-zinc-950 rounded-2xl border border-cyan-500/10 overflow-hidden ${className}`}
+    <div
+      ref={terminalRef}
+      className={`flex-1 flex flex-col bg-zinc-950 rounded-2xl border border-cyan-500/10 overflow-hidden min-h-0 transition-all duration-300 ease-out pointer-events-auto ${className}`}
       onClick={() => inputRef.current?.focus()}
+      style={{
+        // Ensure smooth transitions during resize
+        willChange: terminalSize.width > 0 ? 'auto' : 'transform',
+        touchAction: 'manipulation'
+      }}
     >
-      <div className="px-6 py-4 border-b border-white/5 bg-gradient-to-r from-cyan-500/5 to-transparent flex items-center gap-3">
+      <div className="px-6 py-4 border-b border-white/5 bg-gradient-to-r from-cyan-500/5 to-transparent flex items-center gap-3 pointer-events-none">
         <Terminal className="w-5 h-5 text-cyan-400" />
         <span className="text-white font-semibold tracking-wide uppercase tracking-[0.2em]">Apex OS</span>
         <span className="text-white/30 text-xs">v1.2.0_SOVEREIGN</span>
@@ -875,9 +1011,9 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
         </div>
       </div>
 
-      <div 
+      <div
         ref={outputRef}
-        className="flex-1 p-6 overflow-y-auto font-mono text-sm space-y-4 no-scrollbar"
+        className="flex-1 min-h-0 p-6 overflow-y-auto font-mono text-sm space-y-4 no-scrollbar terminal-scrollable custom-scrollbar pointer-events-auto"
         style={{
           touchAction: 'pan-y',
           overscrollBehavior: 'contain',
@@ -893,13 +1029,13 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
         }}
       >
         {lines.map((line) => (
-          <div key={line.id}>
+          <div key={line.id} className="pointer-events-auto">
             {line.type === 'input' && <div className="text-yellow-400/90">{line.content as string}</div>}
             {line.type === 'system' && <div className="text-cyan-400/90 whitespace-pre-wrap">{line.content as string}</div>}
             {line.type === 'error' && <div className="text-red-400">✗ {line.content as string}</div>}
-            {line.type === 'branding' && <div>{line.content}</div>}
+            {line.type === 'branding' && <div className="pointer-events-none">{line.content}</div>}
             {line.type === 'ai' && (
-              <div className="text-white/80">
+              <div className="text-white/80 pointer-events-auto">
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase mb-2">
                   <Sparkles className="w-3 h-3" /> APEX AI
                 </span>
@@ -929,14 +1065,14 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
         ))}
         
         {isProcessing && (
-          <div className="flex items-center gap-2 text-cyan-400/70">
+          <div className="flex items-center gap-2 text-cyan-400/70 pointer-events-none">
             <Sparkles className="w-3 h-3 animate-pulse" />
             <span className="text-[10px] uppercase font-bold tracking-widest animate-pulse">Neural Handshake...</span>
           </div>
         )}
       </div>
 
-      <div className="border-t border-white/5 bg-zinc-900/50 p-4">
+      <div className="border-t border-white/5 bg-zinc-900/50 p-4 pointer-events-auto">
         <form 
           onSubmit={(e) => {
             e.preventDefault();
@@ -950,7 +1086,7 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
           }}
           className="flex items-center gap-3"
         >
-          <div className="flex items-center gap-1 flex-shrink-0 font-mono text-xs">
+          <div className="flex items-center gap-1 flex-shrink-0 font-mono text-xs pointer-events-none">
             <span className="text-emerald-400">apex</span>
             <span className="text-white/30">@</span>
             <span className="text-cyan-400">sovereign</span>
@@ -966,7 +1102,8 @@ export const ApexTerminalHUD: React.FC<{ className?: string }> = ({ className = 
             onKeyDown={handleKeyDown}
             disabled={isProcessing || isBooting}
             placeholder={isProcessing ? 'Thinking...' : 'Enter command...'}
-            className="w-full bg-transparent outline-none text-white font-mono placeholder:text-white/20 min-h-[44px] text-base"
+            className="w-full bg-transparent outline-none text-white font-mono placeholder:text-white/20 min-h-[44px] text-base pointer-events-auto"
+            style={{ touchAction: 'manipulation' }}
             autoFocus
             enterKeyHint="send"
             autoComplete="off"

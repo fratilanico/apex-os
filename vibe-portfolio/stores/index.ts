@@ -36,6 +36,13 @@ export type {
   ActiveQuizSession,
 } from './useQuizStore';
 
+// Curriculum Store
+export { useCurriculumStore } from './useCurriculumStore';
+export type {
+  CurriculumState,
+  SectionStatus,
+} from './useCurriculumStore';
+
 /**
  * Store reset utility
  * Clears all persisted state from localStorage
@@ -46,6 +53,7 @@ export const resetAllStores = () => {
     'vibe-academy-storage',
     'vibe-skills-storage',
     'vibe-quiz-storage',
+    'vibe-curriculum-storage',
   ];
 
   storeKeys.forEach((key) => {
