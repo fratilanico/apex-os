@@ -10,6 +10,7 @@ interface ChatMessage {
 interface RequestBody {
   message: string;
   history?: ChatMessage[];
+  tools?: any[];
 }
 
 // System prompt for APEX Terminal - elite coding assistant
@@ -67,11 +68,12 @@ async function callGemini(
   genAI: GoogleGenerativeAI,
   message: string,
   history: ChatMessage[],
-  modelName: string
+  modelName: string,
+  systemPrompt: string = TERMINAL_SYSTEM_PROMPT
 ): Promise<{ text: string; model: string }> {
   const model = genAI.getGenerativeModel({
     model: modelName,
-    systemInstruction: TERMINAL_SYSTEM_PROMPT,
+    systemInstruction: systemPrompt,
     generationConfig: {
       temperature: 0.3,
       topP: 0.85,
@@ -134,10 +136,20 @@ export default async function handler(
   }
 
   const history = Array.isArray(body.history) ? body.history : [];
+  const tools = Array.isArray(body.tools) ? body.tools : [];
   const genAI = new GoogleGenerativeAI(apiKey);
 
+  // Construct dynamic system prompt with tools
+  let systemPrompt = TERMINAL_SYSTEM_PROMPT;
+  if (tools.length > 0) {
+    systemPrompt += `\n\nAVAILABLE_TOOLS:\nYou have access to the following tools via MCP. To use them, output a JSON block with the format: {"tool_call": {"name": "tool_name", "args": { ... }}}\n`;
+    tools.forEach(tool => {
+      systemPrompt += `- ${tool.name}: ${tool.description} (Parameters: ${JSON.stringify(tool.parameters)})\n`;
+    });
+  }
+
   try {
-    const { text, model } = await callGemini(genAI, message, history, PRIMARY_MODEL);
+    const { text, model } = await callGemini(genAI, message, history, PRIMARY_MODEL, systemPrompt);
     res.status(200).json({ response: text, model });
     return;
     
@@ -152,7 +164,7 @@ export default async function handler(
 
     try {
       console.log(`Attempting fallback model: ${FALLBACK_MODEL}`);
-      const { text, model } = await callGemini(genAI, message, history, FALLBACK_MODEL);
+      const { text, model } = await callGemini(genAI, message, history, FALLBACK_MODEL, systemPrompt);
       res.status(200).json({ response: text, model });
       return;
       

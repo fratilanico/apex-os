@@ -5,7 +5,7 @@ const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 // Dynamic import to allow mocking
-let callPerplexity: typeof import('../../api/_lib/perplexity').callPerplexity;
+let callPerplexity: typeof import('../../lib/server/perplexity').callPerplexity;
 
 describe('callPerplexity', () => {
   beforeEach(async () => {
@@ -14,7 +14,7 @@ describe('callPerplexity', () => {
     // Set API key for tests
     process.env.PERPLEXITY_API_KEY = 'test-api-key';
     // Re-import to get fresh module
-    const module = await import('../../api/_lib/perplexity');
+    const module = await import('../../lib/server/perplexity');
     callPerplexity = module.callPerplexity;
   });
 
@@ -24,7 +24,7 @@ describe('callPerplexity', () => {
 
   it('should throw error if PERPLEXITY_API_KEY is missing', async () => {
     delete process.env.PERPLEXITY_API_KEY;
-    const module = await import('../../api/_lib/perplexity');
+    const module = await import('../../lib/server/perplexity');
 
     await expect(
       module.callPerplexity('system', 'user')

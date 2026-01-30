@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { hasSupabaseServerConfig, supabaseServer } from '../lib/supabaseServer.js';
-import { callGemini } from './_lib/gemini.js';
+import { hasSupabaseServerConfig, supabaseServer } from '../lib/supabaseServer';
+import { callGemini } from '../lib/server/gemini';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!hasSupabaseServerConfig) {

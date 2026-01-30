@@ -7,13 +7,13 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { chunkText } from './_lib/chunker';
-import { generateEmbeddings } from './_lib/embedder';
-import { parseURL } from './_lib/parsers/url';
-import { parseMarkdown } from './_lib/parsers/markdown';
-import { parseYouTube } from './_lib/parsers/youtube';
-import { parseGitHub } from './_lib/parsers/github';
-import { parseNotion } from './_lib/parsers/notion';
+import { chunkText } from '../../lib/knowledge/chunker';
+import { generateEmbeddings } from '../../lib/knowledge/embedder';
+import { parseURL } from '../../lib/knowledge/parsers/url';
+import { parseMarkdown } from '../../lib/knowledge/parsers/markdown';
+import { parseYouTube } from '../../lib/knowledge/parsers/youtube';
+import { parseGitHub } from '../../lib/knowledge/parsers/github';
+import { parseNotion } from '../../lib/knowledge/parsers/notion';
 
 interface IngestRequest {
   type: 'url' | 'pdf' | 'youtube' | 'github' | 'notion' | 'markdown';
@@ -93,11 +93,11 @@ export default async function handler(
     });
 
     // 3. Generate embeddings for all chunks
-    const chunkTexts = chunks.map(c => c.content);
+    const chunkTexts = chunks.map((c: { content: string }) => c.content);
     const embeddings = await generateEmbeddings(chunkTexts);
 
     // 4. Store chunks + embeddings in Supabase
-    const chunkRecords = chunks.map((chunk, i) => ({
+    const chunkRecords = chunks.map((chunk: any, i: number) => ({
       source_id: sourceRecord.id,
       content: chunk.content,
       embedding: embeddings[i]?.embedding ?? [],

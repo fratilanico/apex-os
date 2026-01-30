@@ -7,17 +7,17 @@ vi.mock('../../lib/supabase', () => ({
   }
 }));
 
-vi.mock('../../api/_lib/gemini', () => ({
+vi.mock('../../lib/server/gemini', () => ({
   callGemini: vi.fn()
 }));
 
-vi.mock('../../api/_lib/perplexity', () => ({
+vi.mock('../../lib/server/perplexity', () => ({
   callPerplexity: vi.fn()
 }));
 
 import { supabase } from '../../lib/supabase';
-import { callGemini } from '../../api/_lib/gemini';
-import { callPerplexity } from '../../api/_lib/perplexity';
+import { callGemini } from '../../lib/server/gemini';
+import { callPerplexity } from '../../lib/server/perplexity';
 
 // Import handler after mocks
 import handler from '../../api/intelligence/sync';
