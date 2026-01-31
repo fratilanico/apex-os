@@ -9,7 +9,6 @@ interface GridLoaderProps {
 export const GridLoader: React.FC<GridLoaderProps> = ({ isLoading, onLoadingComplete }) => {
   const [progress, setProgress] = useState(0);
   const [currentText, setCurrentText] = useState('INITIALIZING_SECURE_CONNECTION...');
-  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
 
   const loadingTexts = [
     'INITIALIZING_SECURE_CONNECTION...',
@@ -24,15 +23,6 @@ export const GridLoader: React.FC<GridLoaderProps> = ({ isLoading, onLoadingComp
     'HANDSHAKE_AUTHORIZED',
     'CLEARANCE_GRANTED'
   ];
-
-  useEffect(() => {
-    const handleResize = () => {
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     if (!isLoading) {
@@ -59,14 +49,27 @@ export const GridLoader: React.FC<GridLoaderProps> = ({ isLoading, onLoadingComp
     return () => clearInterval(interval);
   }, [isLoading, onLoadingComplete]);
 
-  // Calculate grid dimensions based on viewport
-  const cellSize = 24; // Size of each cell in pixels
-  const gap = 8; // Gap between cells
+  // Fixed dense grid - 20x12 = 240 cells total
+  const cols = 20;
+  const rows = 12;
+  const totalCells = cols * rows;
   
-  const cols = Math.floor((dimensions.width - 64) / (cellSize + gap)); // 64px for padding
-  const rows = Math.floor((dimensions.height - 64) / (cellSize + gap));
-  const totalCells = rows * cols;
-  const activeCells = Math.floor((progress / 100) * totalCells);
+  // Calculate which cells should be active based on progress
+  // At 100%, ALL cells should be active
+  const targetActiveCells = Math.ceil((progress / 100) * totalCells);
+  
+  // Create array of cell indices and shuffle for random fill pattern
+  const cellOrder = React.useMemo(() => {
+    const indices: number[] = Array.from({ length: totalCells }, (_, i) => i);
+    // Shuffle using Fisher-Yates
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = indices[i]!;
+      indices[i] = indices[j]!;
+      indices[j] = temp;
+    }
+    return indices;
+  }, []);
 
   return (
     <AnimatePresence>
@@ -81,23 +84,26 @@ export const GridLoader: React.FC<GridLoaderProps> = ({ isLoading, onLoadingComp
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-zinc-900/50 to-zinc-950" />
           
-          {/* Grid Container */}
-          <div className="relative z-10 flex flex-col items-center gap-8">
-            {/* Grid Pattern */}
-            <div className="relative p-8 rounded-2xl border border-white/10 bg-zinc-900/30 backdrop-blur-sm">
+          {/* Grid Container - Fixed size, centered */}
+          <div className="relative z-10 flex flex-col items-center gap-6">
+            {/* Grid Pattern - Fixed 20x12 grid */}
+            <div className="relative p-6 rounded-xl border border-white/10 bg-zinc-900/50 backdrop-blur-sm">
               <div 
-                className="grid gap-2"
+                className="grid gap-1.5"
                 style={{ 
                   gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-                  gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`
+                  width: '480px',
+                  height: '288px'
                 }}
               >
                 {Array.from({ length: totalCells }).map((_, index) => {
-                  const isActive = index < activeCells;
+                  // Check if this cell should be active based on shuffled order
+                  const cellIndex = cellOrder[index] ?? 0;
+                  const isActive = cellIndex < targetActiveCells;
                   const row = Math.floor(index / cols);
                   const col = index % cols;
                   
-                  // Checkerboard pattern
+                  // Checkerboard pattern for color variation
                   const isCheckerboard = (row + col) % 2 === 0;
                   
                   return (
@@ -105,74 +111,73 @@ export const GridLoader: React.FC<GridLoaderProps> = ({ isLoading, onLoadingComp
                       key={index}
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ 
-                        opacity: isActive ? 1 : 0.1,
+                        opacity: isActive ? 1 : 0.15,
                         scale: 1,
-                        backgroundColor: isActive && isCheckerboard 
-                          ? 'rgba(6, 182, 212, 0.6)' // cyan-400
-                          : isActive 
-                            ? 'rgba(16, 185, 129, 0.3)' // emerald-500
-                            : 'rgba(255, 255, 255, 0.05)'
+                        backgroundColor: isActive 
+                          ? isCheckerboard 
+                            ? 'rgba(6, 182, 212, 0.8)' // cyan-400
+                            : 'rgba(16, 185, 129, 0.6)' // emerald-500
+                          : 'rgba(255, 255, 255, 0.03)'
                       }}
                       transition={{ 
-                        duration: 0.3,
-                        delay: index * 0.01,
+                        duration: 0.15,
+                        delay: isActive ? Math.random() * 0.1 : 0,
                         ease: "easeOut"
                       }}
-                      className="w-4 h-4 rounded-sm"
+                      className="w-5 h-5 rounded-[2px]"
                     />
                   );
                 })}
               </div>
               
               {/* Glow effect */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 blur-xl -z-10" />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 blur-2xl -z-10" />
             </div>
 
             {/* Loading Text */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-3">
               <motion.div
                 key={currentText}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="font-mono text-sm text-cyan-400 tracking-wider"
+                className="font-mono text-sm text-cyan-400 tracking-widest uppercase"
               >
                 {currentText}
               </motion.div>
               
               {/* Progress bar */}
-              <div className="w-64 h-1 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="w-72 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400"
+                  className="h-full bg-gradient-to-r from-cyan-400 via-emerald-400 to-cyan-400"
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                 />
               </div>
               
-              <div className="text-xs font-mono text-zinc-500">
+              <div className="text-xs font-mono text-zinc-500 tracking-wider">
                 {Math.round(progress)}% COMPLETE
               </div>
             </div>
           </div>
 
           {/* Corner decorations */}
-          <div className="absolute top-4 left-4 font-mono text-[10px] text-zinc-600">
+          <div className="absolute top-4 left-4 font-mono text-[10px] text-zinc-600 space-y-1">
             <div>SOVEREIGN_VAULT_ACCESS</div>
             <div>ENCRYPTION: AES-256</div>
           </div>
           
-          <div className="absolute top-4 right-4 font-mono text-[10px] text-zinc-600 text-right">
+          <div className="absolute top-4 right-4 font-mono text-[10px] text-zinc-600 text-right space-y-1">
             <div>SESSION_ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</div>
             <div>NODE: ZURICH-04</div>
           </div>
           
-          <div className="absolute bottom-4 left-4 font-mono text-[10px] text-zinc-600">
+          <div className="absolute bottom-4 left-4 font-mono text-[10px] text-zinc-600 space-y-1">
             <div>LATENCY: 14ms</div>
             <div>BANDWIDTH: 10Gbps</div>
           </div>
           
-          <div className="absolute bottom-4 right-4 font-mono text-[10px] text-zinc-600 text-right">
+          <div className="absolute bottom-4 right-4 font-mono text-[10px] text-zinc-600 text-right space-y-1">
             <div>PROTOCOL: TLS_1.3</div>
             <div>CIPHER_SUITE: CHACHA20_POLY1305</div>
           </div>
