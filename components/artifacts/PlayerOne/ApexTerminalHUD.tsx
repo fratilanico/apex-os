@@ -312,11 +312,11 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     const boot = async () => {
       setIsBooting(true);
       await new Promise(resolve => setTimeout(resolve, 300));
-      addLine('branding', <NeuralPixelBranding isAuthorized={isAuthorized} />);
+      // Removed NeuralPixelBranding startup logo to avoid duplication
       setIsBooting(false);
     };
     boot();
-  }, [addLine, hasRestoredSession, isAuthorized]);
+  }, [hasRestoredSession]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

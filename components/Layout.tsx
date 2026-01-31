@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { CurriculumModal } from './CurriculumModal';
 import { BackgroundGrid } from './BackgroundGrid';
-import { StickyCTA } from './StickyCTA';
 
 export const Layout: React.FC = () => {
   const [curriculumOpen, setCurriculumOpen] = useState(false);
@@ -47,9 +46,6 @@ export const Layout: React.FC = () => {
         isOpen={curriculumOpen}
         onClose={() => setCurriculumOpen(false)}
       />
-
-      {/* Sticky CTA - shows after scrolling */}
-      <StickyCTA />
     </div>
   );
 };
