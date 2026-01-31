@@ -89,7 +89,7 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     setLines(prev => [...prev.slice(-99), newLine]);
   }, []);
 
-  // 6. AI Interaction Logic
+  // 6. AI Interaction Logic with Seamless Fallback
   const callAI = useCallback(async (message: string): Promise<string> => {
     const idempotencyKey = generateIdempotencyKey();
     
@@ -98,15 +98,17 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     }
     processedCommands.current.add(idempotencyKey);
 
-    try {
-      const history = lines
-        .filter(l => l.type === 'input' || l.type === 'ai')
-        .slice(-10)
-        .map(l => ({
-          role: l.type === 'input' ? 'user' : 'assistant',
-          content: typeof l.content === 'string' ? l.content.replace(/^> /, '') : '',
-        }));
+    // Prepare history for both APIs
+    const history = lines
+      .filter(l => l.type === 'input' || l.type === 'ai')
+      .slice(-10)
+      .map(l => ({
+        role: l.type === 'input' ? 'user' : 'assistant',
+        content: typeof l.content === 'string' ? l.content.replace(/^> /, '') : '',
+      }));
 
+    // PRIMARY: Try Gemini first
+    try {
       const data = await apiCircuitBreaker.execute(async () => {
         return retryWithBackoff(async () => {
           const response = await withTimeout(
@@ -137,6 +139,7 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
       
       syncTerminalContext(data.response || '');
       
+      // Fire-and-forget director sync
       fetch('/api/matrix-director', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -150,9 +153,56 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
       }).catch(err => console.warn('Director sync failed:', err));
 
       return data.response || SYSTEM_MESSAGES.NEURAL_HANDSHAKE_COMPLETE;
-    } catch (err: any) {
-      console.error('AI call error:', err);
-      return ERROR_MESSAGES.SYSTEM_OFFLINE(err.message || '500');
+    } catch (geminiError: any) {
+      console.warn('Gemini API failed, attempting Perplexity fallback:', geminiError.message);
+      
+      // FALLBACK: Try Perplexity
+      try {
+        const fallbackData = await retryWithBackoff(async () => {
+          const response = await withTimeout(
+            fetch('/api/terminal-perplexity', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'X-Idempotency-Key': idempotencyKey,
+              },
+              body: JSON.stringify({ message, history }),
+            }),
+            TERMINAL_CONFIG.API_TIMEOUT_MS,
+            'Fallback API request timeout'
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP_${response.status}`);
+          }
+
+          return response.json();
+        }, {
+          maxRetries: 2, // Fewer retries for fallback
+          baseDelay: 200,
+          maxDelay: 3000,
+        });
+
+        // Still sync to director even on fallback
+        fetch('/api/matrix-director', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            currentGraph: { nodes, edges },
+            terminalLog: fallbackData.response,
+            userGoal: 'Achieve Sovereign Dominance',
+            source: 'perplexity-fallback'
+          }),
+        }).then(res => {
+          if (res.ok) res.json().then(processDirectorResponse);
+        }).catch(err => console.warn('Director sync failed:', err));
+
+        return fallbackData.response || SYSTEM_MESSAGES.NEURAL_HANDSHAKE_COMPLETE;
+      } catch (perplexityError: any) {
+        console.error('Both AI providers failed:', perplexityError);
+        return ERROR_MESSAGES.ALL_AI_OFFLINE(perplexityError.message || 'All services unavailable');
+      }
     } finally {
       setTimeout(() => {
         processedCommands.current.delete(idempotencyKey);

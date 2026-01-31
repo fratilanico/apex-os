@@ -26,22 +26,24 @@ export const NeuralPixelBranding: React.FC<NeuralPixelBrandingProps> = ({
       transition={{ duration: 0.5 }}
       className={`font-mono text-xs leading-tight ${className}`}
     >
-      {/* APEX Logo with aggressive glitch effect */}
+      {/* APEX Logo with aggressive chromatic aberration "buzz" effect */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="relative mb-2"
+        className="relative mb-2 overflow-visible"
       >
-        {/* Cyan layer (offset left) */}
+        {/* Cyan layer (offset left) - AGGRESSIVE JITTER */}
         <motion.pre
-          className="absolute top-0 left-0 text-cyan-400/60 select-none pointer-events-none"
+          className="absolute top-0 left-0 text-cyan-400/70 select-none pointer-events-none"
+          style={{ willChange: 'transform, opacity' }}
           animate={{
-            x: [-2, 2, -1, 1, -2],
-            opacity: [0.6, 0.8, 0.4, 0.7, 0.6],
+            x: [-3, 3, -2, 2, -3, 1, -1, 0, -3],
+            y: [-1, 1, 0, -1, 1, 0, -1, 0, -1],
+            opacity: [0.7, 0.9, 0.5, 0.8, 0.6, 0.9, 0.5, 0.7, 0.7],
           }}
           transition={{
-            duration: 0.15,
+            duration: 0.08,
             repeat: Infinity,
             ease: "linear",
           }}
@@ -49,15 +51,17 @@ export const NeuralPixelBranding: React.FC<NeuralPixelBrandingProps> = ({
           {APEX_LOGO_ASCII}
         </motion.pre>
         
-        {/* Pink/Magenta layer (offset right) */}
+        {/* Pink/Magenta layer (offset right) - AGGRESSIVE JITTER */}
         <motion.pre
-          className="absolute top-0 left-0 text-pink-500/60 select-none pointer-events-none"
+          className="absolute top-0 left-0 text-pink-500/70 select-none pointer-events-none"
+          style={{ willChange: 'transform, opacity' }}
           animate={{
-            x: [2, -2, 1, -1, 2],
-            opacity: [0.6, 0.4, 0.8, 0.5, 0.6],
+            x: [3, -3, 2, -2, 3, -1, 1, 0, 3],
+            y: [1, -1, 0, 1, -1, 0, 1, 0, 1],
+            opacity: [0.7, 0.5, 0.9, 0.6, 0.8, 0.5, 0.9, 0.7, 0.7],
           }}
           transition={{
-            duration: 0.12,
+            duration: 0.06,
             repeat: Infinity,
             ease: "linear",
           }}
@@ -65,16 +69,17 @@ export const NeuralPixelBranding: React.FC<NeuralPixelBrandingProps> = ({
           {APEX_LOGO_ASCII}
         </motion.pre>
         
-        {/* White layer (main) with jitter */}
+        {/* White layer (main) with micro-jitter */}
         <motion.pre
-          className="text-white/90 relative z-10"
+          className="text-white/95 relative z-10"
+          style={{ willChange: 'transform, opacity' }}
           animate={{
-            x: [0, 1, -1, 0, 0],
-            y: [0, -1, 1, 0, 0],
-            opacity: [1, 0.9, 1, 0.8, 1],
+            x: [0, 1, -1, 0, 0, 1, 0, -1, 0],
+            y: [0, -1, 1, 0, 0, -1, 0, 1, 0],
+            opacity: [1, 0.95, 1, 0.9, 1, 0.95, 1, 0.9, 1],
           }}
           transition={{
-            duration: 0.1,
+            duration: 0.05,
             repeat: Infinity,
             ease: "linear",
           }}
@@ -116,15 +121,26 @@ export const NeuralPixelBranding: React.FC<NeuralPixelBrandingProps> = ({
       >
         <div className="backdrop-blur-md bg-black/20 border border-zinc-700/50 rounded-lg px-6 py-4 shadow-xl">
           <motion.pre
-            className="text-xs leading-tight select-flicker"
+            className="text-xs leading-tight"
             animate={{
               color: isAuthorized 
-                ? 'rgba(52, 211, 153, 0.9)' 
-                : 'rgba(34, 211, 238, 0.9)'
+                ? ['rgba(34, 211, 238, 0.9)', 'rgba(52, 211, 153, 0.9)']
+                : 'rgba(34, 211, 238, 0.9)',
+              filter: isAuthorized 
+                ? ['contrast(1) invert(0)', 'contrast(1.2) invert(0.1)', 'contrast(1) invert(0)']
+                : ['contrast(1) invert(0)', 'contrast(1.1) invert(0.05)', 'contrast(1) invert(0)'],
             }}
-            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            transition={{ 
+              duration: isAuthorized ? 0.6 : 0.3, 
+              ease: 'easeInOut',
+              repeat: isAuthorized ? 0 : Infinity,
+              repeatType: 'reverse'
+            }}
             style={{
-              color: isAuthorized ? 'rgba(52, 211, 153, 0.9)' : 'rgba(34, 211, 238, 0.9)'
+              color: isAuthorized ? 'rgba(52, 211, 153, 0.9)' : 'rgba(34, 211, 238, 0.9)',
+              textShadow: isAuthorized 
+                ? '0 0 20px rgba(52, 211, 153, 0.5)'
+                : '0 0 20px rgba(34, 211, 238, 0.5)',
             }}
           >
             {PLAYER_ONE_ASCII}
@@ -137,8 +153,14 @@ export const NeuralPixelBranding: React.FC<NeuralPixelBrandingProps> = ({
             transition={{ duration: 0.3, delay: 0.8 }}
             className="text-center mt-2"
           >
-            <span 
+            <motion.span 
               className="text-[10px] uppercase tracking-widest"
+              animate={{
+                color: isAuthorized 
+                  ? ['rgba(34, 211, 238, 0.7)', 'rgba(52, 211, 153, 0.7)']
+                  : 'rgba(34, 211, 238, 0.7)',
+              }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
               style={{
                 color: isAuthorized ? 'rgba(52, 211, 153, 0.7)' : 'rgba(34, 211, 238, 0.7)'
               }}
@@ -146,7 +168,7 @@ export const NeuralPixelBranding: React.FC<NeuralPixelBrandingProps> = ({
               {isAuthorized 
                 ? SYSTEM_MESSAGES.NEURAL_HANDSHAKE_COMPLETE 
                 : SYSTEM_MESSAGES.SYNCING_SYNAPSES}
-            </span>
+            </motion.span>
           </motion.div>
         </div>
       </motion.div>

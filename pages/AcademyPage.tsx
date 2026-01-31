@@ -223,15 +223,14 @@ export const AcademyPage: React.FC = () => {
               : 'Explore the visual grid below, or authenticate to access the interactive terminal experience.'}
           </motion.p>
           
-          {isAuthenticated && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <ViewToggle activeView={displayMode} onViewChange={setView} />
-            </motion.div>
-          )}
+          {/* View Toggle - Available to all users on all devices */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <ViewToggle activeView={displayMode} onViewChange={setView} />
+          </motion.div>
         </div>
 
         {/* Grid View - Use CSS hiding instead of unmount to prevent re-renders (flickering fix) */}

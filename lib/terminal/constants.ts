@@ -75,6 +75,9 @@ export const ERROR_MESSAGES = {
   SYSTEM_OFFLINE: (status: string) => 
     `✗ SYSTEM_OFFLINE: Could not establish neural handshake with Vertex. Please retry. (Status: ${status})`,
   
+  ALL_AI_OFFLINE: (status: string) => 
+    `✗ ALL_AI_OFFLINE: Both primary and fallback AI services are unavailable. Please try again later. (Status: ${status})`,
+  
   USAGE_ASK: 'Usage: ask <question>',
   USAGE_CODE: 'Usage: code <description>',
   USAGE_EXPLAIN: 'Usage: explain <topic>',
