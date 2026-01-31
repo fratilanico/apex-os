@@ -7,7 +7,7 @@ import { useGameEngine } from '@/stores/useGameEngine';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
 import { useSession, type SessionState } from '@/hooks/useSession';
 import { sanitizeInput } from '@/lib/validation/terminalSchemas';
-
+import { withTimeout, retryWithBackoff, CircuitBreaker } from '@/lib/utils/resilience';
 import { commandRegistry, executeCommand, type CommandContext } from '@/lib/terminal/commands';
 import { 
   APEX_LOGO_ASCII, 
@@ -37,6 +37,14 @@ import * as CLIFormatter from '@/lib/cliFormatter';
 // Idempotency key generator for API calls
 const generateIdempotencyKey = (): string => 
   `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${crypto.randomUUID().slice(0, 8)}`;
+
+// Circuit breaker for external API calls
+const apiCircuitBreaker = new CircuitBreaker({
+  failureThreshold: 5,
+  timeoutDuration: 30000,
+  halfOpenMaxCalls: 3,
+  successThreshold: 2
+});
 
 const generateId = (): string => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -298,13 +306,6 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     resizeObserver.observe(terminalRef.current);
     return () => resizeObserver.disconnect();
   }, []);
-
-  // Additional scroll hook for line updates
-  useEffect(() => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
-    }
-  }, [lines, isProcessing]);
 
   useEffect(() => {
     if (hasRestoredSession) return;

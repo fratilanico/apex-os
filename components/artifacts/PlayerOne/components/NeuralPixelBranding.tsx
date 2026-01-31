@@ -112,60 +112,32 @@ export const NeuralPixelBranding: React.FC<NeuralPixelBrandingProps> = ({
         </span>
       </motion.div>
 
-      {/* PLAYER 1 Badge Container - Centered with Dynamic Vibe Animation */}
+      {/* PLAYER 1 Badge Container - Centered with Glassmorphism */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.5 }}
-        className="flex flex-col items-center justify-center mb-4 w-full"
+        className="flex flex-col items-center justify-center mb-4"
       >
-        <motion.div 
-          animate={{
-            backgroundColor: isAuthorized 
-              ? ['rgba(0, 0, 0, 0.2)', 'rgba(16, 185, 129, 0.1)', 'rgba(16, 185, 129, 0.2)', 'rgba(0, 0, 0, 0.2)']
-              : 'rgba(0, 0, 0, 0.2)',
-            borderColor: isAuthorized
-              ? ['rgba(63, 63, 70, 0.5)', 'rgba(52, 211, 153, 0.5)', 'rgba(52, 211, 153, 0.8)', 'rgba(63, 63, 70, 0.5)']
-              : 'rgba(63, 63, 70, 0.5)',
-            boxShadow: isAuthorized
-              ? ['0 0 0px rgba(16, 185, 129, 0)', '0 0 20px rgba(16, 185, 129, 0.2)', '0 0 40px rgba(16, 185, 129, 0.4)', '0 0 0px rgba(16, 185, 129, 0)']
-              : 'none',
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="backdrop-blur-md border rounded-lg px-6 py-4 shadow-xl w-fit"
-        >
+        <div className="backdrop-blur-md bg-black/20 border border-zinc-700/50 rounded-lg px-6 py-4 shadow-xl">
           <motion.pre
-            className="text-xs leading-tight font-bold"
+            className="text-xs leading-tight"
             animate={{
               color: isAuthorized 
-                ? [
-                    'rgba(34, 211, 238, 0.9)', // Cyan
-                    'rgba(167, 139, 250, 0.9)', // Purple
-                    'rgba(52, 211, 153, 0.9)', // Green
-                    'rgba(0, 0, 0, 1)',         // Black
-                    'rgba(52, 211, 153, 0.9)'  // Back to Green
-                  ]
-                : ['rgba(34, 211, 238, 0.9)', 'rgba(167, 139, 250, 0.9)', 'rgba(34, 211, 238, 0.9)'],
+                ? ['rgba(34, 211, 238, 0.9)', 'rgba(52, 211, 153, 0.9)']
+                : 'rgba(34, 211, 238, 0.9)',
               filter: isAuthorized 
-                ? [
-                    'contrast(1) invert(0)', 
-                    'contrast(1.5) drop-shadow(0 0 5px rgba(52, 211, 153, 0.5))', 
-                    'contrast(2) invert(0)', 
-                    'contrast(1) invert(1)', 
-                    'contrast(1) invert(0)'
-                  ]
+                ? ['contrast(1) invert(0)', 'contrast(1.2) invert(0.1)', 'contrast(1) invert(0)']
                 : ['contrast(1) invert(0)', 'contrast(1.1) invert(0.05)', 'contrast(1) invert(0)'],
             }}
             transition={{ 
-              duration: isAuthorized ? 5 : 2, 
+              duration: isAuthorized ? 0.6 : 0.3, 
               ease: 'easeInOut',
-              repeat: Infinity,
+              repeat: isAuthorized ? 0 : Infinity,
+              repeatType: 'reverse'
             }}
             style={{
+              color: isAuthorized ? 'rgba(52, 211, 153, 0.9)' : 'rgba(34, 211, 238, 0.9)',
               textShadow: isAuthorized 
                 ? '0 0 20px rgba(52, 211, 153, 0.5)'
                 : '0 0 20px rgba(34, 211, 238, 0.5)',
@@ -198,7 +170,7 @@ export const NeuralPixelBranding: React.FC<NeuralPixelBrandingProps> = ({
                 : SYSTEM_MESSAGES.SYNCING_SYNAPSES}
             </motion.span>
           </motion.div>
-        </motion.div>
+        </div>
       </motion.div>
 
       <motion.div
