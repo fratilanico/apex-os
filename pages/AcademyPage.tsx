@@ -22,6 +22,7 @@ import { modules } from '../data/curriculumData';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useAuthStore } from '../stores';
 import { useAcademyStore } from '../stores';
+import { CLITypingButton } from '../components/CLITypingButton';
 
 export const AcademyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -383,7 +384,7 @@ export const AcademyPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section - Founder Focused */}
+      {/* CTA Section - Founder Focused with CLI Animation */}
       <section className="text-center py-8 sm:py-10 border-t border-white/5 px-2 sm:px-0">
         <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
           Ready to Build Your AI Engineering Team?
@@ -392,13 +393,12 @@ export const AcademyPage: React.FC = () => {
           Stop hunting for a technical co-founder. Start deploying specialized agents that work 24/7 for $200/month instead of $200K/year.
         </p>
         {!isAuthenticated ? (
-          <button
-            onClick={() => setShowAuthTerminal(true)}
-            className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/20 transition-all min-h-[44px]"
-          >
-            <Terminal className="w-4 h-4" />
-            <span>Access Terminal</span>
-          </button>
+          <CLITypingButton
+            initialText="Start the Academy"
+            finalButtonText="Start Terminal"
+            onFinalClick={() => setShowAuthTerminal(true)}
+            typingSpeed={60}
+          />
         ) : (
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
             <button

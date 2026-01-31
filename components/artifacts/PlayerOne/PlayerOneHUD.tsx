@@ -259,24 +259,23 @@ export const PlayerOneHUD: React.FC = () => {
     const isInitialPosition = position.x === 0 && position.y === 0;
 
     if (isMobile) {
-      // Mobile: Square sizing
-      const mobileSize = 'min(92vw, 85vh)';
-      
-      if (isInitialPosition) {
-        return {
-          width: mobileSize,
-          height: mobileSize,
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)' // Only use transform for initial centering
-        };
-      }
+      // Mobile: Fixed centering with explicit safe area offsets
+      // Uses a very high z-index and forces visibility
+      const width = '96vw';
+      const height = '86vh';
       
       return {
-        width: mobileSize,
-        height: mobileSize,
-        left: position.x,
-        top: position.y
+        width,
+        height,
+        left: isInitialPosition ? '2vw' : position.x,
+        top: isInitialPosition ? '7vh' : position.y,
+        transform: 'none',
+        position: 'fixed',
+        zIndex: 10000,
+        margin: 0,
+        padding: 0,
+        maxWidth: '96vw',
+        maxHeight: '86vh'
       };
     }
 

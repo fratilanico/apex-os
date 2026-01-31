@@ -35,13 +35,13 @@ export const WASMForgeHUD: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 bg-zinc-900/50 border border-white/5 rounded-2xl backdrop-blur-xl h-full flex flex-col">
+    <div className="p-4 sm:p-6 bg-zinc-900/50 border border-white/5 rounded-2xl backdrop-blur-xl h-full flex flex-col md:shadow-[0_0_50px_rgba(168,85,247,0.05)] transition-all">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <Hammer className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0" />
+          <Hammer className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] flex-shrink-0" />
           <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-widest truncate">WASM Module Forge</h3>
         </div>
-        <div className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded text-[8px] font-black text-purple-400 uppercase tracking-tighter flex-shrink-0">
+        <div className="px-2 py-1 bg-violet-500/10 border border-violet-500/20 rounded text-[8px] font-black text-violet-400 uppercase tracking-tighter flex-shrink-0 shadow-[0_0_10px_rgba(139,92,246,0.3)]">
           Edge SDK
         </div>
       </div>
@@ -67,14 +67,14 @@ export const WASMForgeHUD: React.FC = () => {
               }
             }}
             placeholder="Describe a tool to forge..."
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 transition-all min-h-[44px]"
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 transition-all min-h-[44px] shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
             disabled={isForging}
             enterKeyHint="send"
           />
           <button
             type="submit"
             disabled={isForging || !prompt.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-all disabled:opacity-0 pointer-events-auto touch-manipulation"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-violet-500/20 hover:bg-violet-500/30 text-violet-400 rounded-lg transition-all disabled:opacity-0 pointer-events-auto touch-manipulation shadow-[0_0_15px_rgba(139,92,246,0.2)]"
             style={{ touchAction: 'manipulation' }}
             aria-label="Forge module"
           >
@@ -85,7 +85,7 @@ export const WASMForgeHUD: React.FC = () => {
 
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="flex items-center gap-2 mb-2 sm:mb-3 px-2">
-          <Binary className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/20" />
+          <Binary className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-violet-400/40" />
           <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Active Modules</span>
         </div>
         
@@ -102,18 +102,18 @@ export const WASMForgeHUD: React.FC = () => {
                   key={`${mod}-${i}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="p-2 sm:p-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between group hover:border-purple-500/30 transition-all"
+                  className="p-2 sm:p-3 bg-violet-500/5 border border-violet-500/10 rounded-xl flex items-center justify-between group hover:border-violet-500/30 transition-all shadow-[0_0_15px_rgba(139,92,246,0.05)]"
                 >
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-950 flex items-center justify-center border border-white/5 flex-shrink-0">
-                      <Binary className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400/60" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-950 flex items-center justify-center border border-violet-500/20 shadow-[0_0_10px_rgba(139,92,246,0.1)] flex-shrink-0">
+                      <Binary className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-400/60" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[9px] sm:text-[10px] font-bold text-white uppercase tracking-tight truncate">{mod}</p>
                       <p className="text-[7px] sm:text-[8px] font-mono text-white/20 uppercase">wasm32-wasi // 42kb</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-3 h-3 text-white/10 group-hover:text-purple-400/40 transition-colors flex-shrink-0" />
+                  <ChevronRight className="w-3 h-3 text-white/10 group-hover:text-violet-400/40 transition-colors flex-shrink-0" />
                 </motion.div>
               ))}
             </AnimatePresence>

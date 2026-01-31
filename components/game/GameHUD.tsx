@@ -2,24 +2,10 @@
 import { XPBar } from '../XPBar';
 
 export function GameHUD() {
-  // TODO: Replace with actual useGameEngine hook when implemented
-  const currentObjective = 'Explore the system...';
   const notifications: Array<{ message: string }> = [];
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50">
-      {/* Top-left: Current Objective */}
-      <div className="absolute top-8 left-8 pointer-events-auto">
-        <div className="bg-black/60 border border-tron-cyan/30 p-4 rounded backdrop-blur-sm">
-          <h3 className="text-tron-cyan font-mono text-sm uppercase tracking-wider mb-2">
-            Current Objective
-          </h3>
-          <p className="text-white/90 font-mono text-base">
-            {currentObjective || 'Explore the system...'}
-          </p>
-        </div>
-      </div>
-
       {/* Top-right: Notification Area */}
       <div className="absolute top-8 right-8 pointer-events-auto flex flex-col gap-3 max-w-sm">
         {notifications.map((notification, index) => (
@@ -37,7 +23,7 @@ export function GameHUD() {
 
       {/* Bottom: XP Bar */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-8 pointer-events-auto">
-        <div className="bg-black/60 border border-tron-cyan/30 p-3 rounded backdrop-blur-sm">
+        <div className="bg-black/60 border border-tron-cyan/30 p-3 rounded backdrop-blur-sm shadow-[0_0_30px_rgba(0,255,255,0.1)]">
           <XPBar 
             className="[&_.xp-bar-fill]:bg-gradient-to-r [&_.xp-bar-fill]:from-tron-cyan [&_.xp-bar-fill]:to-tron-blue
                        [&_.xp-bar-container]:bg-black/40 [&_.xp-bar-container]:border-tron-cyan/20

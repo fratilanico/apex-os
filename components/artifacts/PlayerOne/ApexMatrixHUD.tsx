@@ -354,26 +354,26 @@ export const ApexMatrixHUD: React.FC = () => {
       <div className="w-full h-full relative">
         {/* Background Neural Nebula Effect */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px] animate-pulse delay-700" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[200px]" />
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 md:bg-indigo-500/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-purple-500/10 md:bg-purple-500/20 rounded-full blur-[150px] animate-pulse delay-700" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 md:bg-cyan-500/10 rounded-full blur-[200px]" />
         </div>
 
         {/* Header Info */}
         <div className="absolute top-6 left-6 z-20 pointer-events-none flex flex-col gap-1">
-          <h2 className="text-white font-black text-2xl tracking-tighter italic uppercase flex items-center gap-3">
+          <h2 className="text-white font-black text-2xl tracking-tighter italic uppercase flex items-center gap-3 md:drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
             <Sparkles className="text-cyan-400 animate-pulse" />
             Apex_Learning_Matrix
           </h2>
           <div className="flex items-center gap-4 text-[9px] font-mono text-white/40 uppercase tracking-widest">
-            <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-cyan-400" /> Mode: Dynamic_Hybrid</span>
-            <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-[#D946EF]" /> State: Sovereign_Dominance</span>
-            <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-500" /> Trace: {traceLevel}%</span>
+            <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-cyan-400 md:shadow-[0_0_8px_#22d3ee]" /> Mode: Dynamic_Hybrid</span>
+            <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-[#D946EF] md:shadow-[0_0_8px_#D946EF]" /> State: Sovereign_Dominance</span>
+            <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-500 md:shadow-[0_0_8px_#ef4444]" /> Trace: {traceLevel}%</span>
           </div>
         </div>
 
         {/* Director Transmission Overlay */}
-        <div className="absolute top-6 right-6 z-20 w-72 p-4 rounded-xl bg-black/60 border border-white/5 backdrop-blur-xl pointer-events-none">
+        <div className="absolute top-6 right-6 z-20 w-72 p-4 rounded-xl bg-black/60 border border-white/5 md:border-cyan-400/20 md:shadow-[0_0_35px_rgba(34,211,238,0.12)] backdrop-blur-xl pointer-events-none">
           <p className="text-[10px] text-cyan-400/60 font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
             <Activity size={12} /> Director_Transmission
           </p>
@@ -396,7 +396,7 @@ export const ApexMatrixHUD: React.FC = () => {
         </Suspense>
 
         {/* Footer Hint */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 px-6 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl pointer-events-none">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 px-6 py-2 rounded-full bg-white/5 border border-white/10 md:shadow-[0_0_25px_rgba(34,211,238,0.1)] backdrop-blur-xl pointer-events-none transition-all">
           <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-2">
             <Brain size={12} className="text-purple-400" />
             Navigate the matrix to unlock sovereign potential

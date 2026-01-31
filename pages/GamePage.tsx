@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { TronScene, TronGrid, DataStreams } from '../components/game/TronEnvironment';
 import { HoloTerminal, Cyberdeck } from '../components/game/HolographicUI';
-import { GameHUD } from '../components/game';
+import { GameHUD, DashboardOverlay } from '../components/game';
 // import { useGameEngine } from '../hooks/useGameEngine'; // TODO: Implement game engine hook
 
 export function GamePage() {
@@ -69,6 +69,7 @@ export function GamePage() {
 
       {/* 2D HUD Overlay */}
       <GameHUD />
+      <DashboardOverlay />
     </div>
   );
 }

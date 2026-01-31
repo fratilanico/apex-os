@@ -761,8 +761,8 @@ Try asking naturally!`,
    * Create result for a section
    */
   private createSectionResult(section: Section, module: Module, confidence: number = 0.85): NLPSearchResult {
-    // Extract a relevant snippet from content
-    const contentSnippet = this.extractRelevantSnippet(section.content);
+    // Return full content as requested - no more truncation
+    const fullContent = section.content;
 
     // Find related sections
     const currentIndex = module.sections.findIndex(s => s.id === section.id);
@@ -775,7 +775,7 @@ Try asking naturally!`,
     return {
       type: 'section',
       title: `📖 ${section.title}`,
-      content: contentSnippet,
+      content: fullContent,
       module,
       section,
       relatedSections,
@@ -811,29 +811,6 @@ Try asking naturally!`,
       suggestions: relatedSections.slice(0, 2).map(s => `Learn about ${s.title}`),
       confidence,
     };
-  }
-
-  /**
-   * Extract a relevant snippet from section content
-   */
-  private extractRelevantSnippet(content: string): string {
-    // Remove markdown formatting for display
-    const cleanContent = content
-      .replace(/#{1,6}\s/g, '')
-      .replace(/\*\*/g, '')
-      .replace(/\*/g, '')
-      .replace(/`/g, '')
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-
-    // Get first meaningful paragraph (not just headers)
-    const paragraphs = cleanContent.split('\n\n').filter(p => p.trim().length > 50);
-
-    const [firstParagraph] = paragraphs;
-    if (firstParagraph) {
-      return firstParagraph.substring(0, 400) + (firstParagraph.length > 400 ? '...' : '');
-    }
-
-    return cleanContent.substring(0, 400) + '...';
   }
 
   /**
