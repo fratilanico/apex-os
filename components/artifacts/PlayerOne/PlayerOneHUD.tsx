@@ -365,7 +365,7 @@ export const PlayerOneHUD: React.FC = () => {
             <div
               className={`flex-1 flex ${isMaximized ? 'md:flex-row' : 'sm:flex-row'} flex-col overflow-hidden min-h-0`}
             >
-              {/* Left Sidebar (hidden on mobile) */}
+              {/* Left Sidebar (hidden on mobile or when terminal is active on mobile) */}
               <div className={`hidden sm:flex ${isMaximized ? 'w-20 lg:w-24' : 'w-14'} bg-zinc-950 border-r border-white/5 flex-col items-center py-4 gap-5 p-1.5 flex-shrink-0`}>
                 <div className="flex flex-col items-center gap-1">
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-500 flex items-center justify-center text-white shadow-lg">
@@ -404,8 +404,8 @@ export const PlayerOneHUD: React.FC = () => {
 
               {/* Main Content */}
               <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-                {/* Apex OS Header — only shown when maximized */}
-                {isMaximized && (
+                {/* Apex OS Header — only shown when maximized AND (not mobile OR not terminal active) */}
+                {isMaximized && (!isMobile || activeView !== 'terminal') && (
                   <div className="px-6 py-4 border-b border-white/5 flex-shrink-0">
                     <div className="flex items-center justify-between">
                       <div>
@@ -423,12 +423,12 @@ export const PlayerOneHUD: React.FC = () => {
 
                 {/* Content with padding - scrollable */}
                 <div
-                  className={`flex-1 flex flex-col p-3 sm:p-4 md:p-5 min-h-0 ${
+                  className={`flex-1 flex flex-col ${isMobile && activeView === 'terminal' ? 'p-0' : 'p-3 sm:p-4 md:p-5'} min-h-0 ${
                     activeView === 'terminal' ? 'overflow-hidden' : 'overflow-y-auto hud-scroll-container'
                   }`}
                 >
-                  {/* Mobile Tab Bar — only on small screens */}
-                  <div className="flex sm:hidden border-b border-white/5 mb-3 flex-shrink-0">
+                  {/* Mobile Tab Bar — only on small screens AND not terminal active (to show only terminal) */}
+                  <div className={`${isMobile && activeView === 'terminal' ? 'hidden' : 'flex'} sm:hidden border-b border-white/5 mb-3 flex-shrink-0`}>
                     <button
                       onClick={() => setActiveView('skills')}
                       className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all pointer-events-auto touch-manipulation min-h-[44px] ${activeView === 'skills' ? 'text-cyan-400 border-b-2 border-cyan-400 bg-cyan-500/5' : 'text-white/60'}`}

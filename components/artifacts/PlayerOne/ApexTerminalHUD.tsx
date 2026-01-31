@@ -299,6 +299,13 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     return () => resizeObserver.disconnect();
   }, []);
 
+  // Additional scroll hook for line updates
+  useEffect(() => {
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [lines, isProcessing]);
+
   useEffect(() => {
     if (hasRestoredSession) return;
     const boot = async () => {

@@ -91,6 +91,14 @@ export default defineConfig(({ mode }) => ({
       brotliSize: true,
     }),
   ],
+
+  // Define process.env for client-side compatibility with the migrated terminal logic
+  define: {
+    'process.env.PERPLEXITY_API_KEY': JSON.stringify(process.env.PERPLEXITY_API_KEY),
+    'process.env.GROQ_API_KEY': JSON.stringify(process.env.GROQ_API_KEY),
+    'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY),
+    'process.env.COHERE_API_KEY': JSON.stringify(process.env.COHERE_API_KEY),
+  },
   
   resolve: {
     alias: {
