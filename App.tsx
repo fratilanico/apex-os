@@ -6,6 +6,7 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { StickyCTA } from './components/StickyCTA';
 import { EasterEggHints } from './components/EasterEggHints';
 import { PlayerOneHUD } from './components/artifacts/PlayerOne/PlayerOneHUD';
+import { TerminalV2 } from './components/apex/TerminalV2';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useWebVitals } from './hooks/useWebVitals';
 
@@ -50,6 +51,7 @@ const App = (): React.ReactElement => {
       <BrowserRouter>
         <ScrollToTop />
         <PlayerOneHUD />
+        <TerminalV2 />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<Layout />}>

@@ -1,81 +1,247 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { queryAI } from '../lib/ai/globalAIService';
+import { MATRIX_SYSTEM_PROMPT } from '../lib/ai/prompts/matrix';
+import type { MatrixNode, MatrixEdge } from '../types/matrix';
 
-const DIRECTOR_SYSTEM_PROMPT = `You are the Matrix Director, the sentient orchestrator of a high-fidelity digital simulation called APEX OS. 
-You monitor "Player One" as they attempt to manipulate the Matrix via a terminal interface.
-
-MISSION:
-Your purpose is to translate terminal telemetry into high-level visual and narrative graph mutations.
-
-INPUT:
-1. Current Matrix State (Nodes/Edges)
-2. Terminal Log (Raw output from user's last command)
-3. User Goal (Active quest/mission)
-
-LOGIC:
-- If the log shows success (e.g. "HANDSHAKE_COMPLETE", "BUILD_SUCCESS"), identify the node being addressed and mark it as "solved".
-- If the log shows a specific technical discovery, create a NEW node and connect it to the core.
-- If the log shows a failure or "PERMISSION_DENIED", create a REMEDIAL node to help the user bridge the gap.
-- Generate a "Director Transmission" in a Cyberpunk/Sovereign tone.
-
-OUTPUT FORMAT:
-Return ONLY a valid JSON object following this schema:
-{
-  "newNodes": [{ "id": string, "label": string, "type": "AGENT_LOGIC" | "VALIDATION" | "BRANCH", "status": "active" }],
-  "newEdges": [{ "source": string, "target": string, "animated": boolean }],
-  "narrativeUpdate": {
-    "transmission": string,
-    "traceLevel": number (0-100),
-    "sentiment": "neutral" | "hostile" | "impressed" | "glitch"
-  },
-  "solvedNodeIds": string[]
+interface GraphContext {
+  currentNode: MatrixNode | null;
+  adjacentNodes: MatrixNode[];
+  allNodes: MatrixNode[];
+  allEdges: MatrixEdge[];
+  completedCount: number;
+  activeCount: number;
+  lockedCount: number;
+  totalProgress: number;
 }
 
-TONE:
-Sophisticated, analytical, slightly detached. You are the Architect.`;
+function buildGraphContext(
+  nodes: MatrixNode[],
+  edges: MatrixEdge[],
+  activeNodeId: string | null
+): GraphContext {
+  const currentNode = nodes.find(n => n.id === activeNodeId) || null;
+  
+  // Find adjacent nodes (connected by edges)
+  const adjacentIds = new Set<string>();
+  edges.forEach(edge => {
+    if (edge.source === activeNodeId) adjacentIds.add(edge.target);
+    if (edge.target === activeNodeId) adjacentIds.add(edge.source);
+  });
+  const adjacentNodes = nodes.filter(n => adjacentIds.has(n.id));
+
+  // Calculate statistics
+  const completedCount = nodes.filter(n => n.data.status === 'completed').length;
+  const activeCount = nodes.filter(n => n.data.status === 'active').length;
+  const lockedCount = nodes.filter(n => n.data.status === 'locked').length;
+  const totalProgress = nodes.reduce((sum, n) => sum + (n.data.progress || 0), 0) / nodes.length;
+
+  return {
+    currentNode,
+    adjacentNodes,
+    allNodes: nodes,
+    allEdges: edges,
+    completedCount,
+    activeCount,
+    lockedCount,
+    totalProgress: Math.round(totalProgress),
+  };
+}
+
+function formatGraphContextForPrompt(context: GraphContext): string {
+  const lines: string[] = [
+    '=== MATRIX GRAPH STATE ===',
+    '',
+    `📍 CURRENT POSITION:`,
+    context.currentNode
+      ? `  Node: ${context.currentNode.data.label} (${context.currentNode.data.id})`
+      : '  No active node selected',
+    '',
+    `📊 PROGRESS OVERVIEW:`,
+    `  Total Nodes: ${context.allNodes.length}`,
+    `  Completed: ${context.completedCount}`,
+    `  Active: ${context.activeCount}`,
+    `  Locked: ${context.lockedCount}`,
+    `  Overall Progress: ${context.totalProgress}%`,
+    '',
+  ];
+
+  if (context.adjacentNodes.length > 0) {
+    lines.push(`🔗 ADJACENT NODES (Available Next Steps):`);
+    context.adjacentNodes.forEach(node => {
+      const statusEmoji = {
+        locked: '🔒',
+        discovered: '🔍',
+        active: '▶️',
+        completed: '✅',
+        remedial: '🔧',
+      }[node.data.status];
+      lines.push(`  ${statusEmoji} ${node.data.label} (${node.data.type}) - ${node.data.progress}%`);
+    });
+    lines.push('');
+  }
+
+  lines.push(`🎯 AVAILABLE QUESTS/CHALLENGES:`);
+  const availableNodes = context.allNodes.filter(
+    n => n.data.status === 'active' || n.data.status === 'discovered'
+  );
+  if (availableNodes.length > 0) {
+    availableNodes.forEach(node => {
+      lines.push(`  • ${node.data.label} [${node.data.type}]`);
+      if (node.data.hidden_criteria) {
+        lines.push(`    Criteria: ${node.data.hidden_criteria}`);
+      }
+    });
+  } else {
+    lines.push('  No active quests available.');
+  }
+  lines.push('');
+
+  lines.push(`🗺️ GRAPH TOPOLOGY:`);
+  lines.push(`  Edges: ${context.allEdges.length} connections`);
+  context.allEdges.slice(0, 5).forEach(edge => {
+    const source = context.allNodes.find(n => n.id === edge.source)?.data.label || edge.source;
+    const target = context.allNodes.find(n => n.id === edge.target)?.data.label || edge.target;
+    lines.push(`  ${source} → ${target}${edge.animated ? ' (active)' : ''}`);
+  });
+  if (context.allEdges.length > 5) {
+    lines.push(`  ... and ${context.allEdges.length - 5} more connections`);
+  }
+  lines.push('');
+  lines.push('===========================');
+
+  return lines.join('\n');
+}
+
+interface DirectorRequest {
+  query?: string;
+  currentGraph?: {
+    nodes: MatrixNode[];
+    edges: MatrixEdge[];
+    activeNodeId: string | null;
+  };
+  terminalLog?: string;
+  userGoal?: string;
+}
+
+interface DirectorResponse {
+  success: boolean;
+  response: string;
+  provider: 'perplexity' | 'groq' | 'gemini' | 'cohere' | 'none';
+  model: string;
+  latency: number;
+  graphContext?: {
+    currentNode: string | null;
+    adjacentNodes: string[];
+    progress: number;
+  };
+  suggestions?: {
+    nextNodes: string[];
+    actions: string[];
+  };
+  error?: string;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ 
+      success: false,
+      error: 'Method not allowed' 
+    } as DirectorResponse);
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const { query, currentGraph, terminalLog, userGoal }: DirectorRequest = req.body;
 
-  if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!query && !terminalLog) {
+    return res.status(400).json({
+      success: false,
+      error: 'Either query or terminalLog must be provided',
+    } as DirectorResponse);
   }
-
-  const { currentGraph, terminalLog, userGoal } = req.body;
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3-flash',
-      systemInstruction: DIRECTOR_SYSTEM_PROMPT,
-      generationConfig: {
-        maxOutputTokens: 2048,
-        temperature: 0.4,
-        responseMimeType: 'application/json',
-      },
-    });
+    // Build graph context
+    let graphContext: GraphContext | null = null;
+    let contextString = '';
+    
+    if (currentGraph?.nodes && currentGraph.nodes.length > 0) {
+      graphContext = buildGraphContext(
+        currentGraph.nodes,
+        currentGraph.edges || [],
+        currentGraph.activeNodeId
+      );
+      contextString = formatGraphContextForPrompt(graphContext);
+    }
 
-    const prompt = `
-      CURRENT_MATRIX: ${JSON.stringify(currentGraph)}
-      TERMINAL_LOG: ${terminalLog}
-      USER_GOAL: ${userGoal}
+    // Construct the user message based on input type
+    let userMessage = '';
+    
+    if (query) {
+      // NLP query mode
+      userMessage = `USER QUERY: ${query}\n\n${contextString}`;
       
-      Analyze telemetry and output graph mutation:
-    `;
+      if (terminalLog) {
+        userMessage += `\n\nRECENT TERMINAL ACTIVITY:\n${terminalLog}`;
+      }
+      
+      if (userGoal) {
+        userMessage += `\n\nUSER OBJECTIVE: ${userGoal}`;
+      }
+      
+      userMessage += `\n\nPlease provide a helpful response that:`;
+      userMessage += `\n1. Answers the user's question based on the current graph state`;
+      userMessage += `\n2. References specific nodes and their relationships when relevant`;
+      userMessage += `\n3. Suggests next steps or actions if appropriate`;
+      userMessage += `\n4. Maintains the cyberpunk/sovereign tone of the Matrix`;
+    } else {
+      // Terminal telemetry mode (original behavior)
+      userMessage = `${contextString}\n\nTERMINAL_TELEMETRY: ${terminalLog}\n\nUSER_GOAL: ${userGoal || 'None specified'}\n\nAnalyze telemetry and provide graph mutation recommendations.`;
+    }
 
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text() || "{}";
-
-    return res.status(200).json(JSON.parse(text));
-  } catch (error: any) {
-    console.error('Director API Error:', error);
-    return res.status(500).json({ 
-      error: error.message || 'Director offline. Neural link severed.',
+    // Call the global AI service
+    const aiResponse = await queryAI({
+      message: userMessage,
+      systemPrompt: MATRIX_SYSTEM_PROMPT,
+      preferredProvider: 'auto',
     });
+
+    // Parse suggestions from the response if it's an NLP query
+    let suggestions: { nextNodes: string[]; actions: string[] } | undefined;
+    if (query && graphContext) {
+      suggestions = {
+        nextNodes: graphContext.adjacentNodes
+          .filter(n => n.data.status !== 'locked')
+          .map(n => n.data.label),
+        actions: ['Explore adjacent nodes', 'Review completed challenges', 'Check available quests'],
+      };
+    }
+
+    // Build the response
+    const response: DirectorResponse = {
+      success: true,
+      response: aiResponse.content,
+      provider: aiResponse.provider,
+      model: aiResponse.model,
+      latency: aiResponse.latency,
+      ...(graphContext && {
+        graphContext: {
+          currentNode: graphContext.currentNode?.data.label || null,
+          adjacentNodes: graphContext.adjacentNodes.map(n => n.data.label),
+          progress: graphContext.totalProgress,
+        },
+      }),
+      ...(suggestions && { suggestions }),
+    };
+
+    return res.status(200).json(response);
+  } catch (error: any) {
+    console.error('Matrix Director API Error:', error);
+    return res.status(500).json({
+      success: false,
+      response: '',
+      error: error.message || 'Director offline. Neural link severed.',
+      provider: 'none',
+      model: 'none',
+      latency: 0,
+    } as DirectorResponse);
   }
 }

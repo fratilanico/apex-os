@@ -7,9 +7,10 @@ import { UI_LABELS, SYSTEM_MESSAGES } from '@/lib/terminal/constants';
 
 interface TerminalHeaderProps {
   className?: string;
+  children?: React.ReactNode;
 }
 
-export const TerminalHeader: React.FC<TerminalHeaderProps> = ({ className = '' }) => {
+export const TerminalHeader: React.FC<TerminalHeaderProps> = ({ className = '', children }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -69,6 +70,8 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({ className = '' }
           transition={{ duration: 2, repeat: Infinity }}
           className="w-2 h-2 rounded-full bg-emerald-400"
         />
+        
+        {children}
       </div>
     </motion.div>
   );

@@ -6,7 +6,7 @@ import { useMatrixStore } from '@/stores/useMatrixStore';
 import { useGameEngine } from '@/stores/useGameEngine';
 import { useSkillTreeStore } from '@/stores/useSkillTreeStore';
 import { useSession, type SessionState } from '@/hooks/useSession';
-import { validateCommandPayload, sanitizeInput } from '@/lib/validation/terminalSchemas';
+import { sanitizeInput } from '@/lib/validation/terminalSchemas';
 import { withTimeout, retryWithBackoff, CircuitBreaker } from '@/lib/utils/resilience';
 import { commandRegistry, executeCommand, type CommandContext } from '@/lib/terminal/commands';
 import { 
@@ -25,6 +25,9 @@ import { TerminalOutput } from './components/TerminalOutput';
 import { TerminalInput } from './components/TerminalInput';
 import { NeuralBoard } from './components/NeuralBoard';
 import { NeuralPixelBranding } from './components/NeuralPixelBranding';
+import { ProviderBadge } from '@/components/ai/ProviderBadge';
+import { queryAI, type AIResponse } from '@/lib/ai/globalAIService';
+import { TERMINAL_SYSTEM_PROMPT } from '@/lib/ai/prompts/terminal';
 import * as CLIFormatter from '@/lib/cliFormatter';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -59,6 +62,10 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
   const [isProcessing, setIsProcessing] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
   const [hasRestoredSession, setHasRestoredSession] = useState(false);
+  const [currentProvider, setCurrentProvider] = useState<'perplexity' | 'groq' | 'gemini' | 'cohere' | 'offline'>('offline');
+  const [currentModel, setCurrentModel] = useState('');
+  const [currentLatency, setCurrentLatency] = useState(0);
+  const [currentTier, setCurrentTier] = useState(0);
   
   // 2. Store hooks
   const { syncTerminalContext, processDirectorResponse, nodes, edges } = useMatrixStore();
@@ -89,16 +96,16 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     setLines(prev => [...prev.slice(-99), newLine]);
   }, []);
 
-  // 6. AI Interaction Logic with Seamless Fallback
+  // 6. AI Interaction Logic with Global Multi-Tier Service
   const callAI = useCallback(async (message: string): Promise<string> => {
     const idempotencyKey = generateIdempotencyKey();
-    
+
     if (processedCommands.current.has(idempotencyKey)) {
       return ERROR_MESSAGES.ALREADY_PROCESSING;
     }
     processedCommands.current.add(idempotencyKey);
 
-    // Prepare history for both APIs
+    // Prepare history for AI
     const history = lines
       .filter(l => l.type === 'input' || l.type === 'ai')
       .slice(-10)
@@ -107,103 +114,53 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
         content: typeof l.content === 'string' ? l.content.replace(/^> /, '') : '',
       }));
 
-    // PRIMARY: Try Gemini first
     try {
-      const data = await apiCircuitBreaker.execute(async () => {
-        return retryWithBackoff(async () => {
-          const response = await withTimeout(
-            fetch('/api/terminal-vertex', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'X-Idempotency-Key': idempotencyKey,
-              },
-              body: JSON.stringify({ message, history }),
-            }),
-            TERMINAL_CONFIG.API_TIMEOUT_MS,
-            'Terminal API request timeout'
-          );
+      setIsProcessing(true);
 
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `HTTP_${response.status}`);
-          }
-
-          return response.json();
-        }, {
-          maxRetries: TERMINAL_CONFIG.MAX_RETRY_ATTEMPTS,
-          baseDelay: 100,
-          maxDelay: 5000,
-        });
+      // Use global AI service with multi-tier fallback
+      const aiResponse: AIResponse = await queryAI({
+        message,
+        history,
+        systemPrompt: TERMINAL_SYSTEM_PROMPT,
+        preferredProvider: 'auto', // Let it choose based on availability
       });
-      
-      syncTerminalContext(data.response || '');
-      
+
+      // Update provider state for UI
+      setCurrentProvider(aiResponse.provider);
+      setCurrentModel(aiResponse.model);
+      setCurrentLatency(aiResponse.latency);
+      setCurrentTier(aiResponse.tier);
+
+      // Sync to Matrix Director
+      syncTerminalContext(aiResponse.content);
+
       // Fire-and-forget director sync
       fetch('/api/matrix-director', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           currentGraph: { nodes, edges },
-          terminalLog: data.response,
-          userGoal: 'Achieve Sovereign Dominance'
+          terminalLog: aiResponse.content,
+          userGoal: 'Achieve Sovereign Dominance',
+          provider: aiResponse.provider,
         }),
       }).then(res => {
         if (res.ok) res.json().then(processDirectorResponse);
       }).catch(err => console.warn('Director sync failed:', err));
 
-      return data.response || SYSTEM_MESSAGES.NEURAL_HANDSHAKE_COMPLETE;
-    } catch (geminiError: any) {
-      console.warn('Gemini API failed, attempting Perplexity fallback:', geminiError.message);
-      
-      // FALLBACK: Try Perplexity
-      try {
-        const fallbackData = await retryWithBackoff(async () => {
-          const response = await withTimeout(
-            fetch('/api/terminal-perplexity', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'X-Idempotency-Key': idempotencyKey,
-              },
-              body: JSON.stringify({ message, history }),
-            }),
-            TERMINAL_CONFIG.API_TIMEOUT_MS,
-            'Fallback API request timeout'
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `HTTP_${response.status}`);
-          }
-
-          return response.json();
-        }, {
-          maxRetries: 2, // Fewer retries for fallback
-          baseDelay: 200,
-          maxDelay: 3000,
-        });
-
-        // Still sync to director even on fallback
-        fetch('/api/matrix-director', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            currentGraph: { nodes, edges },
-            terminalLog: fallbackData.response,
-            userGoal: 'Achieve Sovereign Dominance',
-            source: 'perplexity-fallback'
-          }),
-        }).then(res => {
-          if (res.ok) res.json().then(processDirectorResponse);
-        }).catch(err => console.warn('Director sync failed:', err));
-
-        return fallbackData.response || SYSTEM_MESSAGES.NEURAL_HANDSHAKE_COMPLETE;
-      } catch (perplexityError: any) {
-        console.error('Both AI providers failed:', perplexityError);
-        return ERROR_MESSAGES.ALL_AI_OFFLINE(perplexityError.message || 'All services unavailable');
+      // Add provider indicator if using fallback
+      let responseText = aiResponse.content;
+      if (aiResponse.tier > 1) {
+        responseText = `[${aiResponse.provider.toUpperCase()} T${aiResponse.tier}]\n${responseText}`;
       }
+
+      return responseText || SYSTEM_MESSAGES.NEURAL_HANDSHAKE_COMPLETE;
+    } catch (error: any) {
+      console.error('AI service error:', error);
+      setCurrentProvider('offline');
+      return ERROR_MESSAGES.ALL_AI_OFFLINE(error.message || 'All providers failed');
     } finally {
+      setIsProcessing(false);
       setTimeout(() => {
         processedCommands.current.delete(idempotencyKey);
       }, 60000);
@@ -215,15 +172,11 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     const trimmedCmd = rawInput.trim();
     if (!trimmedCmd) return;
 
+    // Sanitize input for security (removes dangerous chars) but DON'T block unknown commands
     const sanitizedInput = sanitizeInput(trimmedCmd);
-    const validation = validateCommandPayload({ 
-      command: sanitizedInput.split(' ')[0],
-      args: sanitizedInput.split(' ').slice(1),
-      metadata: { timestamp: new Date().toISOString() }
-    });
-
-    if (!validation.success) {
-      addLine('error', ERROR_MESSAGES.INVALID_COMMAND(validation.errors?.errors?.[0]?.message || 'Validation failed'));
+    
+    if (!sanitizedInput) {
+      addLine('error', 'Invalid input');
       return;
     }
 
@@ -235,7 +188,7 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     const cmd = command?.toLowerCase();
 
     if (!cmd) {
-      addLine('error', 'Invalid command');
+      addLine('error', 'Empty command');
       return;
     }
 
@@ -254,12 +207,14 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
     };
 
     try {
+      // Check if it's a registered command first
       const entry = commandRegistry[cmd];
       if (entry) {
         setIsProcessing(true);
         await executeCommand(cmd, context, args);
         setIsProcessing(false);
       } else {
+        // Not a registered command - check for special cases or send to AI
         const normalized = sanitizedInput.toLowerCase().replace(/\s/g, '');
         if (normalized === 'showmethemoney' || normalized.includes('money')) {
           addLine('system', SYSTEM_MESSAGES.ACCESSING_VAULT);
@@ -268,6 +223,7 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
             window.location.href = '/showmethemoney';
           }, 1500);
         } else {
+          // Send ALL other input to AI - this is the key fix!
           setIsProcessing(true);
           const res = await callAI(sanitizedInput);
           setIsProcessing(false);
@@ -385,9 +341,18 @@ const ApexTerminalHUDInner: React.FC<ApexTerminalHUDProps> = ({ className = '' }
       onClick={() => inputRef.current?.focus()}
       style={{ touchAction: 'manipulation' }}
     >
-      <TerminalHeader />
+      <TerminalHeader>
+        <ProviderBadge
+          provider={currentProvider}
+          model={currentModel}
+          latency={currentLatency}
+          tier={currentTier}
+          isProcessing={isProcessing}
+          className="ml-auto"
+        />
+      </TerminalHeader>
 
-      <TerminalOutput 
+      <TerminalOutput
         ref={outputRef}
         lines={lines}
         isProcessing={isProcessing}

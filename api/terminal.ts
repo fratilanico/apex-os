@@ -46,9 +46,9 @@ PERSONALITY:
 - Encouraging - celebrate wins, push through blocks
 - You're the architect's trusted companion on the Frontier`;
 
-// Model configuration - Gemini 3 Flash
-const PRIMARY_MODEL = 'gemini-3-flash';
-const FALLBACK_MODEL = 'gemini-3-flash';
+// Model configuration - Gemini 1.5 Flash
+const PRIMARY_MODEL = 'gemini-1.5-flash';
+const FALLBACK_MODEL = 'gemini-1.5-flash';
 
 /**
  * Format chat history for Gemini API
