@@ -1,227 +1,196 @@
-// APEX OS Vibe - Second Brain Panel
-// Card List style matching AcademyPage design
-// Preserving the SOUL of the vibe-portfolio aesthetic
-
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Search, Activity, Sparkles } from 'lucide-react';
-import { soul, getMemoryTypeColor } from '../../lib/theme';
-
-export interface MemoryNode {
-  id: string;
-  type: 'file' | 'agent_output' | 'conversation' | 'concept' | 'code' | 'event';
-  title: string;
-  content: string;
-  timestamp: string;
-  connections: number;
-  metadata?: {
-    moduleId?: string;
-    agentId?: string;
-    fileType?: string;
-    size?: number;
-    tags?: string[];
-  };
-}
+import type { SecondBrainState, MemoryNode } from '../types';
 
 interface SecondBrainPanelProps {
-  memories: MemoryNode[];
-  isConnected: boolean;
-  onSearch?: (query: string) => void;
+  brain: SecondBrainState;
 }
 
-export const SecondBrainPanel: React.FC<SecondBrainPanelProps> = ({
-  memories,
-  isConnected,
-  onSearch,
-}) => {
+export const SecondBrainPanel: React.FC<SecondBrainPanelProps> = ({ brain }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [expandedNode, setExpandedNode] = useState<string | null>(null);
 
-  const filteredMemories = memories.filter((m) => {
-    const matchesSearch =
-      !searchQuery ||
-      m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = !selectedType || m.type === selectedType;
+  // Filter nodes based on search and type
+  const filteredNodes = brain.memoryGraph.nodes.filter(node => {
+    const matchesSearch = !searchQuery || 
+      node.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      node.content.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = !selectedType || node.type === selectedType;
     return matchesSearch && matchesType;
   });
 
-  const memoryTypes = ['file', 'agent_output', 'conversation', 'concept', 'code'];
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value);
-    onSearch?.(value);
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'file': return '📄';
+      case 'agent_output': return '🤖';
+      case 'event': return '📊';
+      case 'concept': return '💡';
+      case 'code': return '💻';
+      case 'conversation': return '💬';
+      default: return '📎';
+    }
   };
 
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'file': return 'bg-blue-900/50 text-blue-400 border-blue-700';
+      case 'agent_output': return 'bg-purple-900/50 text-purple-400 border-purple-700';
+      case 'event': return 'bg-green-900/50 text-green-400 border-green-700';
+      case 'concept': return 'bg-yellow-900/50 text-yellow-400 border-yellow-700';
+      case 'code': return 'bg-cyan-900/50 text-cyan-400 border-cyan-700';
+      case 'conversation': return 'bg-pink-900/50 text-pink-400 border-pink-700';
+      default: return 'bg-gray-800 text-gray-400 border-gray-700';
+    }
+  };
+
+  // Group nodes by type for mobile view
+  const nodesByType = filteredNodes.reduce((acc, node) => {
+    if (!acc[node.type]) acc[node.type] = [];
+    acc[node.type].push(node);
+    return acc;
+  }, {} as Record<string, MemoryNode[]>);
+
   return (
-    <div className="h-full flex flex-col bg-[#030303]">
-      {/* Header - Sticky with glass effect */}
-      <div className="sticky top-0 z-10 bg-[#030303]/95 backdrop-blur-xl border-b border-white/10 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-              <Brain className="w-5 h-5 text-cyan-400" />
-            </div>
+    <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+      {/* Header - Mobile optimized */}
+      <div className="p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🧠</span>
             <div>
-              <h2 className="text-lg font-bold text-white">Second Brain</h2>
-              <p className="text-xs text-white/40 font-mono">
-                {memories.length} memories indexed
+              <h2 className="text-lg font-bold">Second Brain</h2>
+              <p className="text-xs text-gray-400">
+                {brain.stats.totalNodes} memories • {brain.stats.totalConnections} connections
               </p>
             </div>
           </div>
-
-          {/* Connection Status */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'
-              }`}
-            />
-          </div>
         </div>
 
-        {/* Search Input */}
+        {/* Search - Full width on mobile */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
           <input
             type="text"
             placeholder="Search memories..."
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3
-                       text-sm text-white placeholder-white/40 font-mono
-                       focus:outline-none focus:border-cyan-500/50 transition-all"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors"
           />
+          <span className="absolute right-3 top-3 text-gray-500">🔍</span>
         </div>
 
-        {/* Type Filters */}
+        {/* Type filters - Horizontal scroll on mobile */}
         <div className="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
           <button
             onClick={() => setSelectedType(null)}
-            className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-all border font-mono
-              ${
-                !selectedType
-                  ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50'
-                  : 'bg-white/5 text-white/60 border-white/10'
-              }`}
+            className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors ${
+              !selectedType ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+            }`}
           >
-            ALL
+            All ({brain.stats.totalNodes})
           </button>
-          {memoryTypes.map((type) => {
-            const colors = getMemoryTypeColor(type);
-            return (
-              <button
-                key={type}
-                onClick={() => setSelectedType(selectedType === type ? null : type)}
-                className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-all border font-mono
-                  ${
-                    selectedType === type
-                      ? `${colors.bg} ${colors.text} ${colors.border}`
-                      : 'bg-white/5 text-white/60 border-white/10'
-                  }`}
-              >
-                {type.replace('_', '.')}
-              </button>
-            );
-          })}
+          {Object.entries(brain.stats.memoryTypes).map(([type, count]) => (
+            <button
+              key={type}
+              onClick={() => setSelectedType(type)}
+              className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors flex items-center gap-1 ${
+                selectedType === type ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+              }`}
+            >
+              <span>{getTypeIcon(type)}</span>
+              <span className="capitalize">{type.replace('_', ' ')}</span>
+              <span className="text-gray-400">({count})</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Memory List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        <AnimatePresence mode="popLayout">
-          {filteredMemories.map((memory, index) => {
-            const typeColors = getMemoryTypeColor(memory.type);
-            return (
-              <motion.div
-                key={memory.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ y: -2 }}
-                className="bg-white/[0.02] backdrop-blur border border-white/10 rounded-2xl p-4
-                           hover:border-white/20 hover:bg-white/[0.03] transition-all cursor-pointer group"
+      {/* Memory Grid - Mobile optimized list view */}
+      <div className="p-4">
+        {filteredNodes.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-4xl mb-2">🔍</div>
+            <p>No memories found</p>
+            <p className="text-sm">Try adjusting your search</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredNodes.slice(0, 20).map((node) => (
+              <div
+                key={node.id}
+                className={`border rounded-lg p-3 cursor-pointer transition-all ${getTypeColor(node.type)}`}
+                onClick={() => setExpandedNode(expandedNode === node.id ? null : node.id)}
               >
-                {/* Terminal Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-rose-400/80" />
-                      <div className="w-2 h-2 rounded-full bg-amber-400/80" />
-                      <div className="w-2 h-2 rounded-full bg-emerald-400/80" />
-                    </div>
-                    <span className="text-[10px] font-mono text-white/40 uppercase tracking-wider">
-                      {memory.type.replace('_', '.')}
-                    </span>
-                  </div>
-
-                  <span className="text-[10px] font-mono text-white/30">
-                    {new Date(memory.timestamp).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                </div>
-
-                {/* Content */}
                 <div className="flex items-start gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${typeColors.bg} ${typeColors.text}`}
-                  >
-                    <span className="text-lg">{typeColors.icon}</span>
-                  </div>
-
+                  <span className="text-xl">{getTypeIcon(node.type)}</span>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm text-white truncate group-hover:text-cyan-400 transition-colors">
-                      {memory.title}
-                    </h3>
-
-                    <p className="text-xs text-white/60 mt-1 line-clamp-2 font-mono">
-                      {memory.content}
+                    <h3 className="font-medium text-sm truncate">{node.title}</h3>
+                    <p className="text-xs opacity-75 mt-1 line-clamp-2">
+                      {node.content}
                     </p>
-
-                    <div className="flex items-center gap-3 mt-3 text-[10px] text-white/40 font-mono">
-                      <span className="flex items-center gap-1">
-                        <Activity className="w-3 h-3" />
-                        {memory.connections} connections
+                    
+                    <div className="flex items-center gap-2 mt-2 text-xs opacity-60">
+                      <span>
+                        {new Date(node.metadata.createdAt).toLocaleDateString()}
                       </span>
-
-                      {memory.metadata?.fileType && (
-                        <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
-                          {memory.metadata.fileType}
+                      {node.metadata.moduleId && (
+                        <span className="px-1.5 py-0.5 bg-black/20 rounded">
+                          {node.metadata.moduleId}
                         </span>
                       )}
-
-                      {memory.metadata?.tags?.slice(0, 2).map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
                     </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
 
-        {filteredMemories.length === 0 && (
-          <div className="text-center py-12 text-white/40">
-            <Brain className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm font-mono">NO_MEMORIES_FOUND</p>
-            <p className="text-xs mt-1">Try adjusting your search parameters</p>
+                    {/* Expanded details */}
+                    {expandedNode === node.id && (
+                      <div className="mt-3 pt-3 border-t border-current border-opacity-20">
+                        <div className="space-y-2 text-xs">
+                          {node.metadata.agentId && (
+                            <p><span className="opacity-60">Agent:</span> {node.metadata.agentId}</p>
+                          )}
+                          {node.metadata.fileType && (
+                            <p><span className="opacity-60">Type:</span> {node.metadata.fileType}</p>
+                          )}
+                          {node.metadata.size && (
+                            <p><span className="opacity-60">Size:</span> {(node.metadata.size / 1024).toFixed(1)} KB</p>
+                          )}
+                          {node.metadata.creditsUsed && (
+                            <p><span className="opacity-60">Credits:</span> {node.metadata.creditsUsed}</p>
+                          )}
+                          {node.metadata.tags && node.metadata.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {node.metadata.tags.map(tag => (
+                                <span key={tag} className="px-1.5 py-0.5 bg-black/20 rounded">
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-xs opacity-50">
+                    {expandedNode === node.id ? '▼' : '▶'}
+                  </span>
+                </div>
+              </div>
+            ))}
+            
+            {filteredNodes.length > 20 && (
+              <p className="text-center text-xs text-gray-500 mt-4">
+                +{filteredNodes.length - 20} more memories
+              </p>
+            )}
           </div>
         )}
+      </div>
+
+      {/* Stats footer */}
+      <div className="px-4 py-3 bg-gray-900/50 border-t border-gray-700">
+        <div className="flex justify-between text-xs text-gray-400">
+          <span>{filteredNodes.length} shown</span>
+          <span>{brain.stats.totalConnections} connections</span>
+        </div>
       </div>
     </div>
   );
 };
-
-export default SecondBrainPanel;

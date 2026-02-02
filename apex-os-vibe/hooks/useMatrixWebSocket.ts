@@ -1,17 +1,38 @@
-// APEX OS Vibe - Matrix WebSocket Hook
-// Unified hook for Second Brain + Agent Swarm real-time updates
-
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { MemoryNode } from '../components/matrix/SecondBrainPanel';
-import type { Agent } from '../components/matrix/AgentSwarmPanel';
 
-interface SwarmState {
+export interface Agent {
+  id: string;
+  name: string;
+  status: 'online' | 'offline' | 'busy' | 'error';
+  module: string;
+  credits: number;
+  capabilities: string[];
+  lastHeartbeat: string;
+}
+
+export interface MemoryNode {
+  id: string;
+  type: 'file' | 'agent_output' | 'conversation' | 'concept' | 'code' | 'event';
+  title: string;
+  content: string;
+  timestamp: string;
+  connections: number;
+  metadata: {
+    moduleId?: string;
+    agentId?: string;
+    fileType?: string;
+    size?: number;
+    tags?: string[];
+  };
+}
+
+export interface SwarmState {
   agents: Agent[];
   memories: MemoryNode[];
   isConnected: boolean;
-  isReconnecting: boolean;
   activeAgents: number;
   totalMemories: number;
+  unreadNotifications: number;
 }
 
 interface WebSocketMessage {
@@ -25,17 +46,18 @@ export function useMatrixWebSocket() {
     agents: [],
     memories: [],
     isConnected: false,
-    isReconnecting: false,
     activeAgents: 0,
     totalMemories: 0,
+    unreadNotifications: 0,
   });
 
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectAttempts = useRef(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
 
   const connect = useCallback(() => {
-    // Mock WebSocket for demo (replace with real WS URL in production)
     const wsUrl = import.meta.env.VITE_WS_URL || 'wss://apex-os.vercel.app/ws';
     
     try {
@@ -43,13 +65,15 @@ export function useMatrixWebSocket() {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('[Matrix] Connected');
-        setState(prev => ({ ...prev, isConnected: true, isReconnecting: false }));
-        reconnectAttempts.current = 0;
+        console.log('[Matrix] WebSocket connected');
+        setState(prev => ({ ...prev, isConnected: true }));
+        setIsReconnecting(false);
+        reconnectAttemptsRef.current = 0;
         
         // Subscribe to channels
-        ws.send(JSON.stringify({ action: 'subscribe:swarm' }));
+        ws.send(JSON.stringify({ action: 'subscribe:agents' }));
         ws.send(JSON.stringify({ action: 'subscribe:memory' }));
+        ws.send(JSON.stringify({ action: 'subscribe:notifications' }));
       };
 
       ws.onmessage = (event) => {
@@ -74,6 +98,13 @@ export function useMatrixWebSocket() {
               }));
               break;
               
+            case 'notification:new':
+              setState(prev => ({
+                ...prev,
+                unreadNotifications: prev.unreadNotifications + 1,
+              }));
+              break;
+              
             case 'agent:status':
               setState(prev => ({
                 ...prev,
@@ -91,16 +122,17 @@ export function useMatrixWebSocket() {
       };
 
       ws.onclose = () => {
-        console.log('[Matrix] Disconnected');
+        console.log('[Matrix] WebSocket disconnected');
         setState(prev => ({ ...prev, isConnected: false }));
         
-        if (reconnectAttempts.current < maxReconnectAttempts) {
-          setState(prev => ({ ...prev, isReconnecting: true }));
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
+        // Attempt reconnection with exponential backoff
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+          setIsReconnecting(true);
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
           
-          setTimeout(() => {
-            reconnectAttempts.current += 1;
-            console.log(`[Matrix] Reconnecting... Attempt ${reconnectAttempts.current}`);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectAttemptsRef.current += 1;
+            console.log(`[Matrix] Reconnecting... Attempt ${reconnectAttemptsRef.current}`);
             connect();
           }, delay);
         }
@@ -116,6 +148,9 @@ export function useMatrixWebSocket() {
   }, []);
 
   const disconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
     wsRef.current?.close();
   }, []);
 
@@ -125,10 +160,10 @@ export function useMatrixWebSocket() {
     }
   }, []);
 
-  const invokeAgent = useCallback((agentId: string, prompt: string) => {
+  const invokeAgent = useCallback((agentId: string, prompt: string, context?: object) => {
     sendMessage({
       action: 'agent:invoke',
-      payload: { agentId, prompt },
+      payload: { agentId, prompt, context },
     });
   }, [sendMessage]);
 
@@ -146,11 +181,10 @@ export function useMatrixWebSocket() {
 
   return {
     ...state,
+    isReconnecting,
     invokeAgent,
     searchMemories,
     sendMessage,
     reconnect: connect,
   };
 }
-
-export default useMatrixWebSocket;
