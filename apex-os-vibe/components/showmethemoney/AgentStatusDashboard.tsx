@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bot,
-  Activity,
   Zap,
   Server,
   Shield,
@@ -24,17 +23,13 @@ import {
   Radio,
   Terminal,
   RefreshCw,
-  Wifi,
   WifiOff,
   AlertCircle,
   CheckCircle,
   Clock,
-  ChevronRight,
-  ChevronDown,
-  Play,
-  Square,
 } from 'lucide-react';
-import { useAgentSwarm, Agent, AgentTask } from '../../../hooks/useAgentSwarm';
+import { useAgentSwarm } from '../../hooks/useAgentSwarm';
+import type { Agent, AgentTask } from '../../types/swarm';
 
 // Agent Icon Mapping
 const AGENT_ICONS: Record<string, React.ElementType> = {
@@ -263,11 +258,9 @@ export const AgentStatusDashboard: React.FC = () => {
     tasks,
     isConnected,
     isConnecting,
-    activeAgents,
     totalAgents,
     onlineAgents,
     busyAgents,
-    errorAgents,
     mcpStatus,
     lastUpdate,
     invokeAgent,

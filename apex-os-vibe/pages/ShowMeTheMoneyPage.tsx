@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  DollarSign, 
+  DollarSign,
   TrendingUp, 
   Users, 
   Target, 
@@ -34,6 +34,7 @@ import { PricingTab } from '@/components/showmethemoney/tabs/PricingTab';
 import { DashboardTab } from '@/components/showmethemoney/tabs/DashboardTab';
 import { AnalyticsTab } from '@/components/showmethemoney/tabs/AnalyticsTab';
 import { ComparablesTab } from '@/components/showmethemoney/tabs/ComparablesTab';
+import { JarvisIntegration } from '@/components/jarvis/JarvisIntegration';
 import {
   fundingRounds,
   capTable,
@@ -601,214 +602,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-8"
           >
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 ">Executive Summary</h2>
-              <p className="text-white/60 px-2 font-mono text-xs uppercase tracking-widest">Sovereign Growth Protocol // 2026_STRATEGY</p>
-            </div>
-
-            {/* APEX ACCELERATOR (The Profit Engine) - CRITICAL TOP PIECE */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-4 sm:p-10 rounded-[2.5rem] border border-violet-500/40 bg-gradient-to-br from-violet-600/20 via-black/60 to-cyan-600/10 relative overflow-hidden group shadow-2xl shadow-violet-500/20"
-            >
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                <Rocket className="w-48 h-48 text-violet-500" />
-              </div>
-              
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
-                  <div className="flex items-center gap-6">
-                    <div className="inline-flex w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-violet-500/30 border border-violet-500/50 items-center justify-center shadow-2xl shadow-violet-500/30">
-                      <Rocket className="w-8 h-8 sm:w-10 sm:h-10 text-violet-300" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl sm:text-4xl font-bold text-white ">APEX Accelerator</h3>
-                      <p className="text-violet-400 text-sm sm:text-lg font-mono tracking-widest font-bold">PHASE_2_PROFIT_ENGINE</p>
-                    </div>
-                  </div>
-                  <div className="px-6 py-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 backdrop-blur-md">
-                    <div className="text-emerald-400 font-bold text-xl sm:text-3xl tracking-tight">15% EQUITY MODEL</div>
-                    <div className="text-white/50 text-xs uppercase tracking-widest font-bold">Success-Linked Growth</div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                  <div className="lg:col-span-2 space-y-6">
-                    <p className="text-white/90 text-xl leading-relaxed font-medium ">
-                      The core engine for massive value capture. We don't just teach; we <span className="text-violet-400 font-bold">accelerate</span>. By selecting the top 1% of performers from the global academy, we build a portfolio of AI-first startups.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-8">
-                      {[
-                        { icon: Zap, text: "30-Day Idea-to-Revenue Sprint", color: "violet" },
-                        { icon: Users, text: "Direct Investor Network Intros", color: "cyan" },
-                        { icon: Target, text: "Production-Ready GTM Support", color: "emerald" },
-                        { icon: Shield, text: "15% Equity Portfolio Value", color: "amber" }
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-violet-500/30 transition-all group/item">
-                          <item.icon className={`w-6 h-6 text-${item.color}-400 group-hover/item:scale-110 transition-transform`} />
-                          <span className="text-white/80 text-sm font-bold uppercase tracking-wider">{item.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <div className="p-8 rounded-3xl bg-black/60 border border-violet-500/30 backdrop-blur-xl shadow-2xl">
-                      <h4 className="text-white font-bold text-lg mb-6 flex items-center gap-3 ">
-                        <DollarSign className="w-5 h-5 text-emerald-400" />
-                        Unit Economics
-                      </h4>
-                      <div className="space-y-5">
-                        <div className="flex justify-between items-center">
-                          <span className="text-white/60 text-xs uppercase font-bold tracking-widest">Onboarding Fee</span>
-                          <span className="text-white font-mono font-bold text-lg">$2,500</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-white/60 text-xs uppercase font-bold tracking-widest">Equity Value (Est.)</span>
-                          <span className="text-emerald-400 font-mono font-bold text-lg">$45,000</span>
-                        </div>
-                        <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent my-4" />
-                        <div className="flex justify-between items-center">
-                          <span className="text-violet-400 font-bold text-xl ">Target LTV</span>
-                          <span className="text-white font-bold font-mono text-2xl tracking-tight">$47,500</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-5 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-center">
-                      <p className="text-violet-300 text-xs font-bold uppercase tracking-wider leading-relaxed">
-                        "Building the next generation of AI-native unicorns from emerging markets."
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* MARKET SEGMENTATION & SHADOW BRANDING */}
-            <div className="p-4 sm:p-8 rounded-[2.5rem] border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-transparent backdrop-blur-md">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="inline-flex w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 items-center justify-center shrink-0">
-                  <Shield className="w-7 h-7 text-cyan-400" />
-                </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white ">Shadow Branding Protocol</h3>
-                  <p className="text-cyan-400 text-xs font-mono uppercase font-bold tracking-widest">Brand_Protection_Systems_Active</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="space-y-5">
-                  <h4 className="text-white font-bold flex items-center gap-3 uppercase text-sm tracking-widest">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                    Premium Tier (Global Brand)
-                  </h4>
-                  <div className="p-6 rounded-3xl bg-black/40 border border-white/10 hover:border-cyan-500/30 transition-colors">
-                    <div className="text-lg font-bold text-white mb-2 ">APEX OS Academy</div>
-                    <div className="text-[10px] text-white/40 mb-4 uppercase font-bold tracking-widest">Target: USA, UK, Western Europe</div>
-                    <ul className="text-xs text-white/70 space-y-3 font-mono uppercase font-bold">
-                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-400 rounded-full" /> $299–$749/mo (Premium Ladder)</li>
-                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-400 rounded-full" /> Global Job Board Certification</li>
-                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-400 rounded-full" /> Direct Strategic Consultation</li>
-                    </ul>
-                  </div>
-                  <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">
-                    * GOLD STANDARD. NEVER DISCOUNTED.
-                  </p>
-                </div>
-
-                <div className="space-y-5">
-                  <h4 className="text-orange-400 font-bold flex items-center gap-3 uppercase text-sm tracking-widest">
-                    <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-                    Beta Tier (Shadow Brand)
-                  </h4>
-                  <div className="p-6 rounded-3xl bg-black/40 border border-orange-500/20 hover:border-orange-500/40 transition-colors">
-                    <div className="text-lg font-bold text-orange-400 mb-2 ">Builder Lab / CodeSprint</div>
-                    <div className="text-[10px] text-white/40 mb-4 uppercase font-bold tracking-widest">Target: Romania, India, LATAM</div>
-                    <ul className="text-xs text-white/70 space-y-3 font-mono uppercase font-bold">
-                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-orange-400 rounded-full" /> $89–$249/mo (PPP Adjusted)</li>
-                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-orange-400 rounded-full" /> Identical Curriculum, Hidden Origin</li>
-                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-orange-400 rounded-full" /> Community-Led Sovereign Support</li>
-                    </ul>
-                  </div>
-                  <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">
-                    * MASSIVE VOLUME. BRAND INTEGRITY PRESERVED.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Value Proposition Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {valueProps.map((prop, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="p-6 rounded-3xl border border-white/10 bg-white/[0.02] hover:border-cyan-500/30 transition-all hover:bg-white/[0.04]"
-                >
-                  <div className={`inline-flex w-12 h-12 rounded-2xl bg-${prop.color}-500/20 border border-${prop.color}-500/30 items-center justify-center mb-5`}>
-                    <prop.icon className={`w-6 h-6 text-${prop.color}-400`} />
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2 ">{prop.title}</h3>
-                  <p className="text-white/50 text-[11px] leading-relaxed uppercase font-bold tracking-tight">{prop.description}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Pricing Strategy Optimization */}
-            <div className="p-6 sm:p-10 rounded-[2.5rem] border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-transparent">
-              <div className="flex flex-col sm:flex-row items-start gap-6">
-                <div className="inline-flex w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 items-center justify-center shrink-0 shadow-2xl shadow-amber-500/20">
-                  <Lightbulb className="w-7 h-7 text-amber-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-xl sm:text-3xl font-bold text-white mb-4 ">Strategic Positioning Matrix</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-6">
-                    <div className="space-y-4">
-                      <h4 className="text-red-400 font-bold mb-2 text-sm uppercase tracking-widest border-b border-red-500/20 pb-2">❌ DEPRECATED_STRATEGY</h4>
-                      <ul className="text-white/60 text-xs space-y-3 font-mono uppercase font-bold">
-                        <li className="flex items-start gap-2"><span className="text-red-500">✕</span> Only 2 tiers: $200/mo or $997 lifetime</li>
-                        <li className="flex items-start gap-2"><span className="text-red-500">✕</span> Zero lead-capture for 32K funnel</li>
-                        <li className="flex items-start gap-2"><span className="text-red-500">✕</span> No middle ground for early validation</li>
-                        <li className="flex items-start gap-2"><span className="text-red-500">✕</span> Missing B2B/Team revenue capture</li>
-                      </ul>
-                    </div>
-                    <div className="space-y-4">
-                      <h4 className="text-emerald-400 font-bold mb-2 text-sm uppercase tracking-widest border-b border-emerald-500/20 pb-2">✅ SOVEREIGN_STRATEGY_2026</h4>
-                      <ul className="text-white/60 text-xs space-y-3 font-mono uppercase font-bold">
-                        <li className="flex items-start gap-2"><span className="text-emerald-500">✓</span> 5-Tier regional revenue ladder</li>
-                        <li className="flex items-start gap-2"><span className="text-emerald-500">✓</span> $89 shadow-brand entry protocol</li>
-                        <li className="flex items-start gap-2"><span className="text-emerald-500">✓</span> $1299+ Enterprise/Team B2B scale</li>
-                        <li className="flex items-start gap-2"><span className="text-emerald-500">✓</span> High-ticket equity accelerator backend</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Key Assumptions */}
-            <div className="p-6 sm:p-8 rounded-[2rem] border border-white/10 bg-white/[0.02] backdrop-blur-xl">
-              <h3 className="text-sm font-bold text-white/40 mb-6 uppercase tracking-[0.3em] text-center">Key Business Assumptions</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-                {[
-                  { label: 'Market Pool', value: '32,000 Leads', icon: Users },
-                  { label: 'Target Conv.', value: '22% Peak', icon: Target },
-                  { label: 'Blended ARPU', value: `$${BLENDED_ARPU}`, icon: DollarSign },
-                  { label: 'Retention', value: '30% Ret.', icon: Shield },
-                  { label: 'CAC (Blended)', value: '$150', icon: TrendingUp },
-                  { label: 'LTV (Year 1)', value: '$1,466', icon: Award }
-                ].map((assumption, idx) => (
-                  <div key={idx} className="flex flex-col items-center text-center p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-cyan-500/20 transition-all">
-                    <assumption.icon className="w-5 h-5 text-cyan-400 mb-2" />
-                    <div className="text-white font-bold text-xs  mb-1">{assumption.value}</div>
-                    <div className="text-[8px] text-white/30 uppercase font-bold tracking-widest">{assumption.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ExecutiveTab projections={projections} />
           </motion.section>
         )}
 
@@ -860,110 +654,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-12"
           >
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 ">Pricing Strategy</h2>
-              <p className="text-white/60 px-2 font-mono text-xs uppercase tracking-widest">5-Tier Revenue Ladder // GLOBAL_PPP_OPTIMIZED</p>
-            </div>
-
-            {/* Pricing Cards - Emerging Markets */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 border-b border-orange-500/20 pb-4">
-                <Globe className="text-orange-400 w-6 h-6" />
-                <div>
-                  <h3 className="text-xl font-bold text-white ">Emerging Markets Strategy</h3>
-                  <p className="text-orange-400 text-[10px] font-mono uppercase font-bold tracking-widest">SHADOW_BRANDING_ENABLED // RO_IN_LATAM</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {pricingTiersEmerging.map((tier, idx) => (
-                  <motion.div
-                    key={`emerging-${idx}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.08 }}
-                    className={`p-6 rounded-3xl border border-white/10 bg-white/[0.02] hover:border-orange-500/40 transition-all ${
-                      tier.isRecommended ? 'ring-2 ring-emerald-500/50 scale-[1.02] bg-white/[0.04]' : ''
-                    }`}
-                  >
-                    <div className={`inline-flex px-3 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r ${tier.color} text-white mb-6 uppercase tracking-widest`}>
-                      {tier.name}
-                    </div>
-
-                    <div className="mb-6">
-                      <div className="text-3xl font-bold text-white tracking-tight">
-                        {tier.priceLabel ?? (tier.monthly ? `$${tier.monthly}` : 'FREE')}
-                        <span className="text-xs text-white/40 uppercase font-bold tracking-widest ml-1">
-                          {tier.billingLabel ?? (tier.monthly ? '/mo' : '')}
-                        </span>
-                      </div>
-                    </div>
-
-                    <ul className="space-y-3 mb-8 min-h-[140px]">
-                      {tier.features.map((feature, fidx) => (
-                        <li key={fidx} className="flex items-start gap-2 text-[10px] text-white/60 font-bold ">
-                          <CheckCircle2 className="text-emerald-400 w-3 h-3 shrink-0 mt-0.5" />
-                          <span className="leading-tight">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="pt-4 border-t border-white/5">
-                      <p className="text-[8px] text-white/30 uppercase font-bold tracking-widest">{tier.target}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Pricing Cards - West */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 border-b border-cyan-500/20 pb-4">
-                <Star className="text-cyan-400 w-6 h-6" />
-                <div>
-                  <h3 className="text-xl font-bold text-white ">Premium West Strategy</h3>
-                  <p className="text-cyan-400 text-[10px] font-mono uppercase font-bold tracking-widest">APEX_OS_CORE_BRAND // US_UK_EU</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {pricingTiersWest.map((tier, idx) => (
-                  <motion.div
-                    key={`west-${idx}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.08 }}
-                    className={`p-6 rounded-3xl border border-white/10 bg-white/[0.02] hover:border-cyan-500/40 transition-all ${
-                      tier.isRecommended ? 'ring-2 ring-violet-500/50 scale-[1.02] bg-white/[0.04]' : ''
-                    }`}
-                  >
-                    <div className={`inline-flex px-3 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r ${tier.color} text-white mb-6 uppercase tracking-widest`}>
-                      {tier.name}
-                    </div>
-
-                    <div className="mb-6">
-                      <div className="text-3xl font-bold text-white tracking-tight">
-                        {tier.priceLabel ?? (tier.monthly ? `$${tier.monthly}` : 'FREE')}
-                        <span className="text-xs text-white/40 uppercase font-bold tracking-widest ml-1">
-                          {tier.billingLabel ?? (tier.monthly ? '/mo' : '')}
-                        </span>
-                      </div>
-                    </div>
-
-                    <ul className="space-y-3 mb-8 min-h-[140px]">
-                      {tier.features.map((feature, fidx) => (
-                        <li key={fidx} className="flex items-start gap-2 text-[10px] text-white/60 font-bold ">
-                          <CheckCircle2 className="text-emerald-400 w-3 h-3 shrink-0 mt-0.5" />
-                          <span className="leading-tight">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="pt-4 border-t border-white/5">
-                      <p className="text-[8px] text-white/30 uppercase font-bold tracking-widest">{tier.target}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+            <PricingTab />
           </motion.section>
         )}
 
@@ -976,60 +667,7 @@ export const ShowMeTheMoneyPage: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-12"
           >
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 ">Financial Projections</h2>
-              <p className="text-white/60 px-2 font-mono text-xs uppercase tracking-widest">12-Month Forecast // GROWTH_CURVE_MODEL</p>
-            </div>
-
-            {/* Revenue Chart */}
-            <div className="p-8 rounded-[2.5rem] border border-white/10 bg-black/40 backdrop-blur-md">
-              <div className="flex items-center justify-between mb-10">
-                <h3 className="text-lg font-bold text-white uppercase tracking-widest">Monthly Recurring Revenue (MRR)</h3>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-cyan-500" />
-                    <span className="text-[10px] text-white/40 uppercase font-bold">Base Revenue</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-violet-500" />
-                    <span className="text-[10px] text-white/40 uppercase font-bold">Accelerator Fees</span>
-                  </div>
-                </div>
-              </div>
-              <div className="h-64 sm:h-80 flex items-end gap-2 sm:gap-4 px-4">
-                {projections.map((p, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center min-w-0 group relative">
-                    <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 backdrop-blur-md px-2 py-1 rounded text-[10px] font-mono text-white z-10">
-                      ${(p.mrr / 1000).toFixed(1)}K
-                    </div>
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${(p.mrr / maxMrr) * 100}%` }}
-                      transition={{ delay: idx * 0.05, type: 'spring', stiffness: 50 }}
-                      className="w-full bg-gradient-to-t from-cyan-500 via-violet-500 to-purple-500 rounded-t-lg min-h-[4px] shadow-lg shadow-violet-500/10 group-hover:from-cyan-400 group-hover:to-purple-400 transition-all"
-                    />
-                    <div className="text-[10px] text-white/40 mt-4 font-bold uppercase ">{p.month.replace('Month ', 'M')}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Unit Economics Deep Dive */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { label: 'CAC', value: '$150', sub: 'Blended 18-Month', icon: Target, color: 'cyan' },
-                { label: 'LTV', value: '$1,466', sub: '12-Month Value', icon: Award, color: 'emerald' },
-                { label: 'Margin', value: '82%', sub: 'Gross Profitability', icon: TrendingUp, color: 'violet' },
-                { label: 'Payback', value: '1.2 Mo', sub: 'LTV:CAC 9.8:1', icon: Zap, color: 'amber' }
-              ].map((stat, i) => (
-                <div key={i} className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-md hover:border-white/20 transition-all">
-                  <stat.icon className={`w-6 h-6 text-${stat.color}-400 mb-4`} />
-                  <div className="text-3xl font-bold text-white tracking-tight mb-1">{stat.value}</div>
-                  <div className="text-[10px] text-white/40 uppercase font-bold tracking-widest">{stat.label}</div>
-                  <div className="text-[8px] text-white/20 uppercase font-bold mt-2 tracking-widest">{stat.sub}</div>
-                </div>
-              ))}
-            </div>
+            <FinancialsTab />
           </motion.section>
         )}
 
@@ -1673,6 +1311,15 @@ export const ShowMeTheMoneyPage: React.FC = () => {
         </div>
       </section>
     </main>
+    
+    {/* JARVIS AI Assistant */}
+    <JarvisIntegration 
+      onNavigate={(section) => {
+        setActiveSection(section);
+        // Scroll to top of page
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }}
+    />
     </>
   );
 };
