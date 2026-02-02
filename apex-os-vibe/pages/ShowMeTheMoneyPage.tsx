@@ -812,6 +812,45 @@ export const ShowMeTheMoneyPage: React.FC = () => {
           </motion.section>
         )}
 
+        {/* DASHBOARD */}
+        {activeSection === 'dashboard' && (
+          <motion.section
+            key="dashboard"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-8"
+          >
+            <DashboardTab />
+          </motion.section>
+        )}
+
+        {/* ANALYTICS */}
+        {activeSection === 'analytics' && (
+          <motion.section
+            key="analytics"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-8"
+          >
+            <AnalyticsTab />
+          </motion.section>
+        )}
+
+        {/* COMPARABLES */}
+        {activeSection === 'comparables' && (
+          <motion.section
+            key="comparables"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-8"
+          >
+            <ComparablesTab />
+          </motion.section>
+        )}
+
         {/* PRICING STRATEGY */}
         {activeSection === 'pricing' && (
           <motion.section
