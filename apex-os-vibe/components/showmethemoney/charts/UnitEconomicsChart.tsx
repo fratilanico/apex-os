@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { DollarSign, TrendingUp, Clock, Users, Target, Calculator } from 'lucide-react';
+import { DollarSign, TrendingUp, Clock, Target, Calculator } from 'lucide-react';
 
 interface UnitEconomicsChartProps {
   height?: number;
@@ -193,7 +193,7 @@ export const UnitEconomicsChart: React.FC<UnitEconomicsChartProps> = ({
                   dataKey="value"
                   animationDuration={1000}
                   animationEasing="ease-out"
-                  onMouseEnter={(_, index) => setActiveSegment(data[index].name)}
+                  onMouseEnter={(_, index) => setActiveSegment(data[index]?.name || null)}
                   onMouseLeave={() => setActiveSegment(null)}
                 >
                   {data.map((entry, index) => (

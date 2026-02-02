@@ -212,7 +212,7 @@ const CACChannelChart: React.FC = () => {
             
             <Bar dataKey="cac" radius={[0, 4, 4, 0]}>
               {data.map((entry, index) => (
-                <cell key={`cell-${index}`} fill={entry.color} />
+                <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Bar>
           </BarChart>

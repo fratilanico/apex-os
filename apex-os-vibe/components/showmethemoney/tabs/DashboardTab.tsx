@@ -6,7 +6,6 @@ import {
   Users,
   Target,
   Calendar,
-  Zap,
   ArrowUpRight,
   ArrowDownRight,
   Activity,
