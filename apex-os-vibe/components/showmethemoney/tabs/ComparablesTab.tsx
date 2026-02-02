@@ -1,18 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  Users,
   Target,
-  BarChart3,
-  TrendingUp,
   Globe,
-  Award,
-  Shield,
   Zap,
-  Briefcase,
   Layers,
 } from 'lucide-react';
-import { ResponsiveContainer, BubbleChart, ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 
 interface Competitor {
   name: string;

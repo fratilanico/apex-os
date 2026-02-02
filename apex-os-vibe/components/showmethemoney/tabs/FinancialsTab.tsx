@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ComposedChart, Area, Bar, Line, PieChart, Pie, Cell,
+  ComposedChart, Area, Bar, Line,
 } from 'recharts';
 import { SectionHeader } from '../shared/SectionHeader';
 import { GlassCard } from '../shared/GlassCard';
-import { TrendingUp, Users, Target, DollarSign } from 'lucide-react';
 
 type Scenario = 'base' | 'monster' | 'bear';
 
