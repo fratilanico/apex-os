@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Line,
   ComposedChart,
+  Cell,
 } from 'recharts';
 import {
   Calculator,
@@ -33,9 +34,9 @@ const SensitivityAnalysis: React.FC = () => {
   const [arpu, setArpu] = useState(149);
 
   // Calculate impact
-  const baseRevenue = monthlyProjections[17].monthlyRevenue;
+  const baseRevenue = monthlyProjections[17]?.monthlyRevenue || 0;
   const adjustedRevenue = baseRevenue * (conversionRate / 3.5) * (1 + (5 - churnRate) / 100) * (arpu / 149);
-  const impact = ((adjustedRevenue - baseRevenue) / baseRevenue) * 100;
+  const impact = baseRevenue > 0 ? ((adjustedRevenue - baseRevenue) / baseRevenue) * 100 : 0;
 
   return (
     <motion.div
