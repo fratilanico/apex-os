@@ -65,18 +65,27 @@ echo "Opening Notion integrations page in your browser..."
 echo ""
 
 # Open Notion integrations page
+echo "Trying to open browser..."
 if command -v open &> /dev/null; then
-  open "https://www.notion.so/my-integrations"
+  open "https://www.notion.so/my-integrations" 2>/dev/null &
 elif command -v xdg-open &> /dev/null; then
-  xdg-open "https://www.notion.so/my-integrations"
+  xdg-open "https://www.notion.so/my-integrations" 2>/dev/null &
 fi
 
-echo "In the browser:"
-echo "  1. Click '+ New integration'"
-echo "  2. Name it: 'Source Code Guide Generator'"
-echo "  3. Select your workspace"
-echo "  4. Click 'Submit'"
-echo "  5. Copy the 'Internal Integration Token'"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "  📋 Open this URL in your browser:"
+echo "     https://www.notion.so/my-integrations"
+echo ""
+echo "  🖱️  Then follow these steps:"
+echo "     1. Click '+ New integration'"
+echo "     2. Name it: 'Source Code Guide Generator'"
+echo "     3. Select your workspace"
+echo "     4. Click 'Submit'"
+echo "     5. Copy the 'Internal Integration Token'"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "Then come back here and paste the token."
 echo ""
