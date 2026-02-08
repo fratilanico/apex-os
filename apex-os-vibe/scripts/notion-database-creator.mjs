@@ -11,8 +11,15 @@ import { writeFileSync } from 'fs';
 
 const NOTION_TOKEN = process.argv[2];
 
-if (!NOTION_TOKEN || !NOTION_TOKEN.startsWith('secret_')) {
+// Accept both old (secret_) and new (ntn_) token formats
+const isValidToken = NOTION_TOKEN && (
+  NOTION_TOKEN.startsWith('secret_') || 
+  NOTION_TOKEN.startsWith('ntn_')
+);
+
+if (!isValidToken) {
   console.error('Error: Invalid Notion token');
+  console.error('Token should start with "secret_" or "ntn_"');
   console.error('Usage: node notion-database-creator.mjs <notion-token>');
   process.exit(1);
 }

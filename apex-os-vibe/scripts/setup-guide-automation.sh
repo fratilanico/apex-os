@@ -71,10 +71,12 @@ echo ""
 echo -e "${BLUE}We need your Notion integration token.${NC}"
 echo "Get it from: https://www.notion.so/my-integrations"
 echo ""
-read -p "Notion Integration Token (secret_...): " NOTION_TOKEN
+read -p "Notion Integration Token (secret_... or ntn_...): " NOTION_TOKEN
 
-if [[ ! $NOTION_TOKEN == secret_* ]]; then
+# Accept both old (secret_) and new (ntn_) token formats
+if [[ ! $NOTION_TOKEN =~ ^(secret_|ntn_) ]]; then
   echo -e "${RED}Error: Invalid Notion token format${NC}"
+  echo "Token should start with 'secret_' or 'ntn_'"
   exit 1
 fi
 
