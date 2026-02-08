@@ -18,7 +18,11 @@
     "agents:scan": "node scripts/agent-orchestrator.cjs task security-monitor scan_vulnerabilities '{\"path\": \".\"}'",
     "agents:deploy": "node scripts/agent-orchestrator.cjs task deployment-automation deploy_application '{\"environment\": \"production\"}'",
     "agents:compliance": "node scripts/agent-orchestrator.cjs task compliance-guardian check_compliance '{\"standard\": \"SOC2\"}'",
-    "agents:cost": "node scripts/agent-orchestrator.cjs task cost-optimizer analyze_costs '{}'"
+    "agents:cost": "node scripts/agent-orchestrator.cjs task cost-optimizer analyze_costs '{}'",
+    "guides:setup": "./scripts/one-click-setup.sh",
+    "guides:test": "./scripts/test-guide-system.sh",
+    "guides:deploy": "vercel --prod",
+    "guides:check": "cat .env.local | grep -E 'NOTION_|GOOGLE_|GUIDE_'"
   },
   "dependencies": {
     "@google-cloud/vertexai": "^1.10.0",
